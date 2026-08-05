@@ -146,7 +146,7 @@ check_sensitive_files() {
     done
     echo "" >&2
     echo -e "  ${CYAN}Reason:${RESET} These file patterns often contain API keys, passwords, or certificates." >&2
-    echo -e "  ${CYAN}Action:${RESET} Add them to .gitignore, or use git-secret / SOPS for encrypted secrets." >&2
+    echo -e "  ${CYAN}Action:${RESET} Add them to .gitignore, or use git-secret / DEVSOPS for encrypted secrets." >&2
     return 1
   fi
 }

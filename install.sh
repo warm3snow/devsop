@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# install.sh — Symlink the bundled SOP skills into ~/.codebuddy/skills/
+# install.sh — Symlink the bundled DEVSOP skills into ~/.codebuddy/skills/
 #
 # Usage: bash install.sh
 #
@@ -40,10 +40,10 @@ SKILLS_SRC="${REPO_ROOT}/skills"
 
 DEST_DIR="${HOME}/.codebuddy/skills"
 
-SKILLS="sop.init sop.eval go-quality-scorer go-secret-leak-review"
+SKILLS="devsop.init devsop.eval go-quality-scorer go-secret-leak-review"
 
 echo ""
-info "Installing SOP skills from: ${SKILLS_SRC}"
+info "Installing DEVSOP skills from: ${SKILLS_SRC}"
 info "Target directory:           ${DEST_DIR}"
 echo ""
 

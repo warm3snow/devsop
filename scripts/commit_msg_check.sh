@@ -63,7 +63,7 @@ if [[ ${#MSG_TITLE} -gt 72 ]]; then
 fi
 
 # ── Check 4: Conventional Commits format (enforced by default) ─────────
-# SOP red line 4 / agents.md.tmpl Commit conventions enforce: <type>(<scope>): <subject>
+# DEVSOP red line 4 / agents.md.tmpl Commit conventions enforce: <type>(<scope>): <subject>
 # Disable with: export DISABLE_CONV_COMMITS=1 (not recommended, transition only for legacy projects)
 if [[ "${DISABLE_CONV_COMMITS:-}" != "1" ]]; then
   CONV_PATTERN='^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert|other)(\(.+\))?(!)?:[[:space:]].+'
@@ -99,7 +99,7 @@ if [[ "${DISABLE_CONV_COMMITS:-}" != "1" ]]; then
   fi
 fi
 
-# ── Check 5: TAPD ticket footer (mandatory per SOP red line 4) ────────
+# ── Check 5: TAPD ticket footer (mandatory per DEVSOP red line 4) ────────
 # Format: any line of the message body contains --<kind>=<id>
 #   kind: story (default) / bug (bug fix) / task / test / other
 #   id:   digits only
@@ -108,7 +108,7 @@ fi
 if [[ "${DISABLE_TAPD_FOOTER:-}" != "1" ]]; then
   FOOTER_PATTERN='--(bug|story|task|test|other)=[0-9]+'
   if ! grep -E -- "${FOOTER_PATTERN}" "${COMMIT_MSG_FILE}" >/dev/null 2>&1; then
-    error "Commit message is missing the TAPD ticket footer (mandatory per SOP red line 4)."
+    error "Commit message is missing the TAPD ticket footer (mandatory per DEVSOP red line 4)."
     echo "" >&2
     echo -e "  ${CYAN}Expected format:${RESET} append a footer to any line of the commit message body" >&2
     echo -e "    --story=<id>      # default (requirement / story)" >&2

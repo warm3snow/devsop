@@ -88,7 +88,7 @@ python3 $SKILL_DIR/scripts/review_secret_leak.py assemble \
 
 ## Sub-agent Dispatch Rules (caller must follow)
 
-Following this repo's conventions (modeled on `sop.init` / `sop.eval`):
+Following this repo's conventions (modeled on `devsop.init` / `devsop.eval`):
 
 - **Tool**: Agent tool, param `run_in_background: true`, `subagent_type` defaults to `general-purpose`.
 - **Input injected into the sub-agent**:

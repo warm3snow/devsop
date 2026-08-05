@@ -1,7 +1,7 @@
-# sop — Team R&D SOP Skills Library
+# devsop — Team R&D DEVSOP Skills Library
 
 > This file is the **single source of truth** for AI collaboration (AGENTS.md). CODEBUDDY.md / CLAUDE.md are symlinks pointing to this file, so all AI tools read the same content through the symlinks.
-> This file is only an index + recovery protocol + project-specific red lines. The SOP conventions themselves are provided by the skills in this repository.
+> This file is only an index + recovery protocol + project-specific red lines. The DEVSOP conventions themselves are provided by the skills in this repository.
 
 ---
 
@@ -11,8 +11,8 @@
 |-------|----------|
 | Project background, features, installation | `README.md` |
 | AI collaboration entry | `AGENTS.md` (this file; `CODEBUDDY.md` / `CLAUDE.md` are symlinks) |
-| SOP scaffolding skill (create `.harness/` skeleton in target projects) | `skills/sop.init/SKILL.md` |
-| SOP maturity audit skill | `skills/sop.eval/SKILL.md` |
+| DEVSOP scaffolding skill (create `.harness/` skeleton in target projects) | `skills/devsop.init/SKILL.md` |
+| DEVSOP maturity audit skill | `skills/devsop.eval/SKILL.md` |
 | Go code quality scoring skill | `skills/go-quality-scorer/SKILL.md` |
 | Go secret-leak review skill | `skills/go-secret-leak-review/SKILL.md` |
 | Requirement clarification skill | `.codebuddy/skills/clarify/SKILL.md` |
@@ -25,15 +25,15 @@
 # Install skills to ~/.codebuddy/skills/
 bash install.sh
 
-# Initialize the SOP structure in a target project
-sop.init
-sop.init --dry-run          # preview the changes
-sop.init --update-only      # only update templates
+# Initialize the DEVSOP structure in a target project
+devsop.init
+devsop.init --dry-run          # preview the changes
+devsop.init --update-only      # only update templates
 
-# Audit a target project's SOP compliance
-sop.eval
-sop.eval --json             # JSON format output
-sop.eval --diff-from HEAD~3 # incremental audit
+# Audit a target project's DEVSOP compliance
+devsop.eval
+devsop.eval --json             # JSON format output
+devsop.eval --diff-from HEAD~3 # incremental audit
 
 # Go code quality scoring
 python3 skills/go-quality-scorer/scripts/go-quality-scorer-v1.1.py /path/to/go/project
@@ -51,8 +51,8 @@ bash scripts/pre_push_check.sh
 ### Skill Development Conventions
 
 - **`$SKILL_DIR` and `$REPO_ROOT` are strictly separated**: Skills only read the install directory and write only to the target project directory; never write to this repo or `$HOME`.
-- **No auto-commit**: `sop.init` / `sop.eval` do not run `git add` / `git commit`; changes are left for the user to review.
-- **Template changes**: after modifying templates under `sop.init/assets/`, run `sop.init --update-only` to verify the generated `AGENTS.md` is ≤300 lines (≤200 is excellent).
+- **No auto-commit**: `devsop.init` / `devsop.eval` do not run `git add` / `git commit`; changes are left for the user to review.
+- **Template changes**: after modifying templates under `devsop.init/assets/`, run `devsop.init --update-only` to verify the generated `AGENTS.md` is ≤300 lines (≤200 is excellent).
 - **Go code** (`go-quality-scorer` / `go-secret-leak-review`): follow `rules/go-style-guide.md`.
 
 ### Git Hooks (this repo's CI)
@@ -82,5 +82,5 @@ Key points: no hardcoded credentials, input validation, parameterized queries, s
 | # | Red line | Consequence |
 |---|----------|-------------|
 | 1 | **Skills must never write to this repo or `$HOME`**: `$SKILL_DIR` and `$REPO_ROOT` are strictly separated; Skills only write to the target project directory. | repo pollution; broken install state |
-| 2 | **No auto-commit**: `sop.init` / `sop.eval` do not run git operations; changes must be reviewed and committed manually by the user. | accidentally committing unreviewed content |
+| 2 | **No auto-commit**: `devsop.init` / `devsop.eval` do not run git operations; changes must be reviewed and committed manually by the user. | accidentally committing unreviewed content |
 | 3 | **One MR one commit**: an MR in this repo may only contain one commit; fixes are always accumulated via `git commit --amend`, and pushes must use `--force-with-lease`. | messy commit history; difficult Code Review |
