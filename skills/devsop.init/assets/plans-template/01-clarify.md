@@ -2,7 +2,7 @@
 
 > **Purpose**: Clarify vague ideas into executable requirements. This stage focuses on the three things **Background / Goals / Risk Points**, and must be fully aligned with the user.
 > **Recommended aid**: use `skill: clarify` to clarify requirements; AI switches to the "Product Manager" role to conduct the two-phase Discovery + Challenge dialogue. If the skill is unavailable, proceed manually following the "Decision Framework" below.
-> **Input**: user's original description / TAPD ticket / Issue link
+> **Input**: user's original description / issue-tracker ticket / Issue link
 > **Output**: this file fully filled in + key decision points registered in the `00-overview.md` key decision log
 
 ---
@@ -43,7 +43,7 @@
 
 ## 5. References
 
-- TAPD / Issue:
+- Ticket / Issue:
 - Related APIs / design docs / ADRs:
 - Upstream / downstream dependencies:
 

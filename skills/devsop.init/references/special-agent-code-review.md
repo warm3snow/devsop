@@ -29,7 +29,7 @@ The two are **complementary, not merged**: code-review.md does not copy review.m
 - Main branch name: use `git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null || git branch -a` to determine `main` / `master` / other, replacing `{{main / master}}`
 - Self-check commands: read `Makefile` (or `package.json` scripts / CI config) to confirm whether `make build` / `make lint` / `make ut` actually exist; if not, replace them with actual commands (e.g. `go build ./...` / `golangci-lint run` / `go test ./...`)
 - Coverage threshold: extract the actual threshold from CI config / `.golangci.yml` / `Makefile`; without evidence keep the default ≥60%
-- commit message format: read `.git/hooks/commit-msg` or `commit_msg_check.sh`, confirm the actual validated type list and TAPD ticket number format (`--story=<id>` / `--bug=<id>`), aligning with the clauses in §1 / §2
+- commit message format: read `.git/hooks/commit-msg` or `commit_msg_check.sh`, confirm the actual validated type list and issue-tracker ticket number format (`--story=<id>` / `--bug=<id>` or `#<id>`), aligning with the clauses in §1 / §2
 - Merge criteria: if the project's CI / GitLab has an explicit approver-count configuration (`.gitlab-ci.yml` / CODEOWNERS), fill in §5 per the actual values
 
 ### 2. Generate / update the document

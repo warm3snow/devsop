@@ -28,7 +28,8 @@ for f in AGENTS.md README.md \
          .harness/devsop_report.md .env.example Makefile lefthook.yml \
          .golangci.yml .golangci.yaml \
          .pre-commit-config.yaml .gitignore \
-         Jenkinsfile Jenkinsfile.ci Jenkinsfile.cd; do
+         Jenkinsfile Jenkinsfile.ci Jenkinsfile.cd \
+         .github/workflows/ci.yml .gitlab-ci.yml; do
   if [ -f "$f" ]; then
     lines=$(wc -l < "$f")
     echo "EXISTS $f ($lines lines)"
@@ -109,13 +110,14 @@ latest_overview=$(find .harness/plans -name 00-overview.md -not -path '*/_templa
 echo "latest_00-overview_update: ${latest_overview:-NONE}"
 
 echo "=== CI_PLATFORM ==="
-# Path ①: Jenkinsfile checked in
-jenkins_files=$( (ls Jenkinsfile Jenkinsfile.* 2>/dev/null || true) | tr '\n' ' ')
-echo "jenkinsfile: ${jenkins_files:-NONE}"
+# Path ①: CI config checked in (any platform: Jenkinsfile / GitHub Actions / GitLab CI)
+ci_files=$( (ls Jenkinsfile Jenkinsfile.* 2>/dev/null || true; ls .github/workflows/*.yml .gitlab-ci.yml 2>/dev/null || true) | tr '\n' ' ')
+echo "ci_config_files: ${ci_files:-NONE}"
 echo "jenkins_dir: $( { [ -d jenkins ] || [ -d .jenkins ]; } && echo YES || echo NO)"
+echo "github_actions_dir: $( { [ -d .github/workflows ]; } && echo YES || echo NO)"
 
-# Path ②: README/development.md contains CI platform URLs (Jenkins / Argo CD / Zhiyan)
-ci_urls=$(grep -ihE 'https?://[^ )]*(jenkins|argocd|argo-cd|zhiyan)' \
+# Path ②: README/development.md contains CI platform URLs (any CI / deployment platform)
+ci_urls=$(grep -ihE 'https?://[^ )]*(jenkins|argocd|argo-cd|github\.com/.*/(actions|workflows)|gitlab|travis|circleci|zhiyan)' \
   README.md .harness/docs/devops/development.md .harness/docs/devops/deployment.md AGENTS.md 2>/dev/null | head -5 || true)
 if [ -n "$ci_urls" ]; then
   echo "ci_url_found: YES"
@@ -125,35 +127,25 @@ else
 fi
 
 # platform name only, no URL (PARTIAL signal)
-ci_name_only=$(grep -ihE '\b(jenkins|argo[ -]?cd|zhiyan)\b' \
+ci_name_only=$(grep -ihE '\b(jenkins|github[ -]?actions|gitlab[ -]?ci|argo[ -]?cd|zhiyan|travis|circleci)\b' \
   README.md .harness/docs/devops/development.md .harness/docs/devops/deployment.md AGENTS.md 2>/dev/null | grep -vE 'https?://' | head -3 || true)
 [ -n "$ci_name_only" ] && echo "ci_name_no_url: YES" || echo "ci_name_no_url: NO"
 
 echo ""
 echo "=== ISSUE_TRACKER ==="
-# Tapd URL traces (the team's default issue tracker)
-tapd_urls=$(grep -ihE 'https?://[^ )]*tapd\.(cn|woa\.com|oa\.com)' \
+# Generic issue-tracker URL traces (GitHub Issues / GitLab / Jira / TAPD / etc.)
+tracker_urls=$(grep -ihE 'https?://[^ )]*(github\.com/[^ )]*/(issues|projects)|gitlab\.com/.*/-/issues|jira|tapd\.(cn|woa\.com|oa\.com)|linear)' \
   README.md AGENTS.md .harness/docs/devops/development.md .harness/docs/code-review.md 2>/dev/null | head -3 || true)
-if [ -n "$tapd_urls" ]; then
-  echo "tapd_url_found: YES"
-  echo "$tapd_urls" | sed 's/^/  /'
+if [ -n "$tracker_urls" ]; then
+  echo "issue_tracker_url_found: YES"
+  echo "$tracker_urls" | sed 's/^/  /'
 else
-  echo "tapd_url_found: NO"
+  echo "issue_tracker_url_found: NO"
 fi
 
-# commit messages referencing Tapd tickets
-tapd_commits=$(git log --since='90 days ago' --pretty=%s 2>/dev/null | grep -cE -- '--(story|bug)=[0-9]+' || true)
-echo "tapd_commit_refs_90d: ${tapd_commits:-0}"
-
-# forbidden tracker traces (hit = anti-pattern)
-forbidden_trackers=$(grep -ihE '\b(jira|linear)\b|github\.com/[^ )]+/issues' \
-  README.md AGENTS.md .harness/**/*.md 2>/dev/null | head -3 || true)
-if [ -n "$forbidden_trackers" ]; then
-  echo "forbidden_trackers_found: YES"
-  echo "$forbidden_trackers" | sed 's/^/  /'
-else
-  echo "forbidden_trackers_found: NO"
-fi
+# commit messages referencing tickets (--story=/--bug= or GitHub-style #<id>)
+ticket_commits=$(git log --since='90 days ago' --pretty=%s 2>/dev/null | grep -cE -- '--(story|bug|task|test|other)=[0-9]+|(^|[[:space:]])#[0-9]+' || true)
+echo "ticket_commit_refs_90d: ${ticket_commits:-0}"
 
 echo ""
 echo "=== DEVSOP_REPORT_HISTORY ==="

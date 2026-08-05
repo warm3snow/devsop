@@ -40,7 +40,7 @@ both of which are **DEVSOP rules**, shared across tasks and do not change with t
 | Item | Value |
 |----|----|
 | Branch | `feature/xxx` |
-| Issue / TAPD | `--story=xxx` / `#123` |
+| Issue / Ticket | `--story=xxx` / `#123` |
 | Summary | One-sentence description |
 | Status | 🟡 Pending / 🔵 In progress / ✅ Done / ❌ Cancelled |
 | Created | YYYY-MM-DD |

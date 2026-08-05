@@ -164,15 +164,15 @@ Score the six pillars item by item. Record for each:
 |----|-----------------|------------|--------|
 | B1 | The `AGENTS.md` "§2 DEVSOP" chapter clearly defines the 9-step R&D flow (Clarify→Plan→Implement→UT→Deploy→IT→Docs→Review→Commit) | 5 | model |
 | B2 | Role responsibilities (product/test/R&D) are documented or described in `AGENTS.md` | 4 | model |
-| B3 | Phase deliverables have clear ownership locations (`.harness/plans/<task>/` task dirs + `_template/` template); tasks/requirements/defects must use **Tapd**; Jira/Linear/GitHub Issues are forbidden | 4 | code+model |
-| B4 | Branch naming + Commit Message conventions are documented (Conventional Commits or equivalent), with ticket references formatted `--story=<id>` / `--bug=<id>` (Tapd) | 2 | code+model |
+| B3 | Phase deliverables have clear ownership locations (`.harness/plans/<task>/` task dirs + `_template/` template); tasks/requirements/defects must be registered in the team-designated issue tracker (default example: GitHub Issues) and used consistently | 4 | code+model |
+| B4 | Branch naming + Commit Message conventions are documented (Conventional Commits or equivalent), with ticket references formatted per the team's tracker convention (e.g., `--story=<id>` / `--bug=<id>`, GitHub-style `#<id>`) | 2 | code+model |
 
 #### C. Quality checks & feedback mechanisms (25 points)
 
 | ID | Evaluation item | Full score | Grader |
 |----|-----------------|------------|--------|
 | C1 | Commit / Push convention memorization: `AGENTS.md` and rule files under `.codebuddy/rules/` explicitly define commit conventions (message format / pre-commit checks / ticket references) and push conventions (pre-push checks / MR flow / force-push constraints). **Note**: this Skill runs on a server; `.git/hooks/` is not distributed with code, so Git Hooks are not evidence | 5 | code+model |
-| C2 | CI pipeline with full unit tests + coverage gate (either of two counts as having CI: ① repo contains `Jenkinsfile`/`jenkins/`; ② `README.md` or `.harness/docs/devops/development.md` explicitly writes the Jenkins / Argo CD / Zhiyan pipeline URL). **Disallowed evidence**: having only `.github/workflows/` or `.gitlab-ci.yml` cannot be primary PASS evidence; only when no Jenkins trace exists does it degrade to a PARTIAL fallback signal | 5 | code |
+| C2 | CI pipeline with full unit tests + coverage gate (either of two counts as having CI: ① repo contains a CI config such as `Jenkinsfile`/`jenkins/`/`.github/workflows/`/`.gitlab-ci.yml`; ② `README.md` or `.harness/docs/devops/development.md` explicitly writes the CI platform/pipeline URL). Any CI platform counts as primary PASS evidence | 5 | code |
 | C3 | Prohibited-item protection: sensitive files, artifacts, unformatted code, unreviewed AI code (reflected in `.gitignore` / Hooks / `.harness/docs/code-review.md`) | 4 | code+model |
 | C4 | Branch protection: conventions such as no direct pushes to main, PR must be reviewed, PR line-count constraints, documented | 3 | model |
 | C5 | Feedback mechanism (failures.md / pitfall records continuously updated, non-empty doc) | 3 | code+model |
@@ -195,7 +195,7 @@ Score the six pillars item by item. Record for each:
 | ID | Evaluation item | Full score | Grader |
 |----|-----------------|------------|--------|
 | E1 | The project has a Skills accumulation directory (`.codebuddy/skills/`) with ≥3 SKILL.md files | 2 | code |
-| E2 | Knowledge accumulation completeness (any of the following counts as PASS: ① ≥10 docs under `.harness/docs/`; ② README/AGENTS.md links to external team wikis/Confluence/Tapd knowledge bases; ③ ≥3 created task dirs under `.harness/plans/`) | 3 | code+model |
+| E2 | Knowledge accumulation completeness (any of the following counts as PASS: ① ≥10 docs under `.harness/docs/`; ② README/AGENTS.md links to external team wikis/Confluence/knowledge bases; ③ ≥3 created task dirs under `.harness/plans/`) | 3 | code+model |
 
 #### F. Measurement mechanisms (15 points)
 
@@ -235,11 +235,10 @@ Even with a decent total score, scan the table below for anti-patterns. Any hit 
 | Docs severely out of sync with code (files under `.harness/` not updated in >60 days) | `git log --since='60 days ago' -- .harness/` | AI generates code from stale constraints |
 | Excessive test mocking (>20 mock files and no integration test files) | `find . -name '*_mock*.go' \| wc -l` + `find . -path '*/integration*' -name '*_test.go' \| wc -l` | AI gets distorted feedback |
 | Sensitive files or artifacts committed (`*.env`, `*.key`, `vendor/`, `dist/`, `node_modules/`) | `git ls-files \| grep -E ...` | directly violates DEVSOP prohibitions |
-| Important decisions only in commit messages / conversation history, not captured in docs | spot-check 5 recent large PR commit messages for spec/openspec/Tapd ticket references (`--story=` / `--bug=`) | AI cannot trace constraints |
+| Important decisions only in commit messages / conversation history, not captured in docs | spot-check 5 recent large PR commit messages for spec/issue-tracker ticket references (`--story=` / `--bug=` / `#<id>`) | AI cannot trace constraints |
 | `failures.md` long empty or only placeholder | `wc -l .harness/docs/failures.md` and no modifications in 90 days | the feedback mechanism exists in name only |
 | `AGENTS.md` shallow (only project intro, no prohibitions/regulations index) | line count + chapter keyword check | AI has no effective constraint signals |
 | Legacy harness residue not migrated (the new specs-devsop switched to the hidden `.harness/` + new doc names) | `ls -d harness/` hits a non-hidden legacy dir; or legacy files exist such as root `ARCHITECTURE.md`, `.harness/docs/dependency-map.md`, `.harness/docs/testing.md`, `.harness/plan.md` | the legacy layout is incompatible with the new devsop.init; the AI entry index may point to wrong paths; evaluation must be judged separately against the legacy layout |
-| Using forbidden tool stacks (CI using GitHub Actions/GitLab CI/CircleCI as the main pipeline; Issues using Jira/Linear/GitHub Issues; dependencies using Dependabot) | `grep -rE 'jira\|linear\|github\.com/.*/issues\|dependabot' README.md AGENTS.md .harness/ .github/`; `ls .github/workflows/ .gitlab-ci.yml` with no `Jenkinsfile` | violates the team's tool-stack constraints; cannot align across projects |
 
 ### Step 5: Generate the report and write `.harness/devsop_report.md`
 
@@ -255,7 +254,7 @@ The report contains the following sections (fixed order):
 6. Prioritized improvement suggestions (high/medium/low priority; each references an Eval ID + gives an executable action + expected benefit; see `references/devsop-improvement-examples.md`)
 7. Upgrade roadmap (key milestones from the current L? to L?+1)
 8. Core conclusions (3-4 sentence summary)
-9. **Todo Suggestions table** (right after core conclusions; extract 3-7 directly actionable items from the suggestions, two columns: `Todo title` / `Improvement plan`, for frontend parsing or direct conversion to TAPD tickets)
+9. **Todo Suggestions table** (right after core conclusions; extract 3-7 directly actionable items from the suggestions, two columns: `Todo title` / `Improvement plan`, for frontend parsing or direct conversion to issue-tracker tickets)
 
 ---
 
@@ -339,10 +338,10 @@ You are the DEVSOP evaluation sub-agent, responsible for the <N> Eval items (<ID
 - Improvement suggestion library: <actual absolute $SKILL_DIR injected by the main agent>/references/devsop-improvement-examples.md (read only the chapter for your pillar)
 - Project language stack: <injected by the main agent>
 - Project type: <injected by the main agent: service / library / cli / monorepo>
-- **Mandatory tool-stack constraints (CI / Issue Tracker / dependency management)**: the default tool stack for this DEVSOP framework is **CI=Jenkins + deployment=Argo CD + pipeline portal=Zhiyan + Issues=Tapd + dependency updates=Renovate (Self-Hosted)**. Platforms such as GitHub Actions / GitLab CI / CircleCI / CNB / Jira / Linear / GitHub Issues / Dependabot are **forbidden** in improvement suggestions.
-  - **CI (C2/C6/C7)**: the improvement path must be ① check a `Jenkinsfile` into the repo root (stages: Build → Lint → UnitTest → Coverage → Integration / Security); ② write clickable Jenkins/Argo CD/Zhiyan URLs in `.harness/docs/devops/development.md`. Evidence scanning checks `Jenkinsfile` / `Jenkinsfile.*` / `jenkins/` / `.jenkins/` first; if no hit, `.github/workflows/` / `.gitlab-ci.yml` are only a fallback signal (not primary PASS evidence).
-  - **Issue Tracker (B3/C4/F4)**: all suggestions of the "task list / ticket reference / defect tracking / requirements management" type must land on **Tapd**. MR/commit message ticket references use `--story=<id>` / `--bug=<id>`. Evidence scanning checks `tapd.cn` / `tapd.woa.com` URLs and `--story=` / `--bug=` commit-message traces.
-  - **Dependency management (C6)**: recommend `Renovate` (Self-Hosted); `Dependabot` (GitHub-only) is forbidden.
+- **Tool-agnostic guidance (CI / Issue Tracker / dependency management)**: the DEVSOP framework does not mandate a specific tool stack. Improvement suggestions must stay consistent with the project's existing tools (e.g. Jenkins / GitHub Actions / GitLab CI / TAPD / GitHub Issues / Jira / Renovate / Dependabot) — do not force or forbid any specific platform.
+  - **CI (C2/C6/C7)**: the improvement path must be ① check a CI config into the repo root (`.github/workflows/`, `.gitlab-ci.yml`, `Jenkinsfile`, etc., with stages: Build → Lint → UnitTest → Coverage → Integration / Security); ② write clickable pipeline URLs in `.harness/docs/devops/development.md`. Evidence scanning checks any of `Jenkinsfile` / `Jenkinsfile.*` / `jenkins/` / `.jenkins/` / `.github/workflows/` / `.gitlab-ci.yml` first.
+  - **Issue Tracker (B3/C4/F4)**: all suggestions of the "task list / ticket reference / defect tracking / requirements management" type must land on the team-designated issue tracker (default example: GitHub Issues). MR/commit message ticket references use the team's convention, e.g. `--story=<id>` / `--bug=<id>` or GitHub-style `#<id>`. Evidence scanning checks tracker references (`--<kind>=<id>`, `#<id>`, or tracker URLs) in the project.
+  - **Dependency management (C6)**: recommend whichever dependency-update tool the project already uses (Renovate, Dependabot, etc.); do not force one.
 
 # Evidence Cache (pre-collected by the main agent; use it first to avoid duplicate IO)
 
@@ -686,11 +685,11 @@ Report: .harness/devsop_report.md
 
 ### CI integration (optional)
 
-> This project uses **Jenkins** as the CI platform.
+> This section is tool-agnostic — any CI platform (Jenkins, GitHub Actions, GitLab CI, etc.) works.
 
-- Add a stage in the Jenkins Pipeline to call `devsop.eval --dry-run`, writing the score into build logs / archiving as a `.harness/devsop_report.md` artifact
+- Add a stage in the project's CI pipeline to call `devsop.eval --dry-run`, writing the score into build logs / archiving as a `.harness/devsop_report.md` artifact
 - When the total score drops below a threshold (e.g. 60), mark the build with `currentBuild.result = 'UNSTABLE'` (avoid rigid gates that freeze the flow; do not use FAILURE)
-- Recommended with Jenkins Build Discarder + `archiveArtifacts '.harness/devsop_report.md'` to keep historical evaluation comparisons
+- Recommended with build-artifact retention (`archiveArtifacts '.harness/devsop_report.md'`) to keep historical evaluation comparisons
 
 ---
 

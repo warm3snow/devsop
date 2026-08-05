@@ -99,7 +99,7 @@ This template is used by the `devsop.eval` skill to render the final report, **t
 | Eval | Conclusion | Evidence | Grader |
 |------|-----------|----------|--------|
 | C1 Commit/Push conventions memorized (AGENTS.md / .codebuddy/rules) | ✅/⚠️/❌ | {rule file paths + covered items (commit / push)} | code+model |
-| C2 CI pipeline + coverage gate (Jenkinsfile or README/deployment.md with CI platform URL) | ✅/⚠️/❌ | {Jenkinsfile path or Jenkins/Argo CD/Zhiyan URL in docs + coverage threshold} | code |
+| C2 CI pipeline + coverage gate (CI config file or README/deployment.md with CI platform URL) | ✅/⚠️/❌ | {CI config path (e.g. .github/workflows/, .gitlab-ci.yml, Jenkinsfile) or CI platform URL in docs + coverage threshold} | code |
 | C3 Prohibited-item protection | ✅/⚠️/❌ | {.gitignore rules + doc explanation} | code+model |
 | C4 Branch protection and Review flow | ✅/⚠️/❌ | {documented constraint count} | model |
 | C5 failures.md active | ✅/⚠️/❌ | {line count + last commit time} | code+model |
@@ -248,7 +248,7 @@ To upgrade from L{N} to L{N+1}, you need to achieve:
 
 ## 📌 Todo Suggestions
 
-> This table targets the team task system; the frontend can parse it and convert it into TAPD tickets with one click. Distill 3-7 **independently actionable** items that are **completable within a week** from the "Prioritized Improvement Suggestions".
+> This table targets the team task system; the frontend can parse it and convert it into issue-tracker tickets with one click. Distill 3-7 **independently actionable** items that are **completable within a week** from the "Prioritized Improvement Suggestions".
 
 <!-- DEVSOP_TODOS_START -->
 | Todo title | Improvement plan |

@@ -99,23 +99,26 @@ if [[ "${DISABLE_CONV_COMMITS:-}" != "1" ]]; then
   fi
 fi
 
-# ── Check 5: TAPD ticket footer (mandatory per DEVSOP red line 4) ────────
-# Format: any line of the message body contains --<kind>=<id>
-#   kind: story (default) / bug (bug fix) / task / test / other
-#   id:   digits only
-# Regex consistent with the agents.md.tmpl Commit conventions: --(bug|story|task|test|other)=\d+
-# Disable with: export DISABLE_TAPD_FOOTER=1 (only for non-team projects / no TAPD; the reason must be recorded in the 00-overview.md key-decision notes)
-if [[ "${DISABLE_TAPD_FOOTER:-}" != "1" ]]; then
-  FOOTER_PATTERN='--(bug|story|task|test|other)=[0-9]+'
+# ── Check 5: Issue-tracker ticket footer (mandatory per DEVSOP red line 4) ────────
+# A ticket reference must appear in the commit message body. Two conventions are accepted by default:
+#   1. `--<kind>=<id>` generic footer:   --story=123 / --bug=456 (kind: story / bug / task / test / other)
+#   2. GitHub-style `#<id>`:            Fixes #123 / #456
+# The pattern can be overridden with TICKET_FOOTER_PATTERN (a grep -E regex, matched against the message).
+# Disable with: export DISABLE_TICKET_FOOTER=1 (legacy alias: DISABLE_TAPD_FOOTER=1)
+#   (only for non-team projects / no issue tracker; the reason must be recorded in the 00-overview.md key-decision notes)
+if [[ "${DISABLE_TICKET_FOOTER:-${DISABLE_TAPD_FOOTER:-}}" != "1" ]]; then
+  FOOTER_PATTERN="${TICKET_FOOTER_PATTERN:-(--(bug|story|task|test|other)=[0-9]+|(^|[[:space:]])#[0-9]+)}"
   if ! grep -E -- "${FOOTER_PATTERN}" "${COMMIT_MSG_FILE}" >/dev/null 2>&1; then
-    error "Commit message is missing the TAPD ticket footer (mandatory per DEVSOP red line 4)."
+    error "Commit message is missing the issue-tracker ticket footer (mandatory per DEVSOP red line 4)."
     echo "" >&2
-    echo -e "  ${CYAN}Expected format:${RESET} append a footer to any line of the commit message body" >&2
+    echo -e "  ${CYAN}Expected format:${RESET} append a ticket reference to any line of the commit message body" >&2
     echo -e "    --story=<id>      # default (requirement / story)" >&2
     echo -e "    --bug=<id>        # use instead for bug fixes" >&2
     echo -e "    --task=<id>       # task type" >&2
     echo -e "    --test=<id>       # test-related" >&2
     echo -e "    --other=<id>      # does not fit the categories above" >&2
+    echo -e "    #<id>             # GitHub-style reference, e.g. Fixes #123" >&2
+    echo -e "    (custom pattern)  # set TICKET_FOOTER_PATTERN to your tracker's reference format" >&2
     echo "" >&2
     echo -e "  ${CYAN}Examples:${RESET}" >&2
     echo -e "    feat(user): add login throttling" >&2
@@ -124,14 +127,14 @@ if [[ "${DISABLE_TAPD_FOOTER:-}" != "1" ]]; then
     echo "" >&2
     echo -e "    fix(parser): handle escaped quotes" >&2
     echo -e "" >&2
-    echo -e "    --bug=7654321" >&2
+    echo -e "    Fixes #7654321" >&2
     echo "" >&2
     echo -e "  ${CYAN}Your message:${RESET}" >&2
     sed 's/^/    /' "${COMMIT_MSG_FILE}" >&2
     echo "" >&2
-    echo -e "  ${CYAN}Action:${RESET} git commit --amend (append the '--<kind>=<id>' footer to the body)" >&2
-    echo -e "  ${CYAN}Skip:${RESET} for non-team projects / no TAPD, record the reason in the 00-overview.md key-decision notes, then retry with the env var reset:" >&2
-    echo -e "    DISABLE_TAPD_FOOTER=1 git commit ..." >&2
+    echo -e "  ${CYAN}Action:${RESET} git commit --amend (append the ticket reference to the body)" >&2
+    echo -e "  ${CYAN}Skip:${RESET} for non-team projects / no issue tracker, record the reason in the 00-overview.md key-decision notes, then retry with the env var reset:" >&2
+    echo -e "    DISABLE_TICKET_FOOTER=1 git commit ..." >&2
     exit 1
   fi
 fi

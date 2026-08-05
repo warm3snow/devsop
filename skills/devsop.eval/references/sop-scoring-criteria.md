@@ -342,31 +342,31 @@ grep -inE 'push|force-with-lease|MR|merge' AGENTS.md .codebuddy/rules/*.md 2>/de
 
 **Code Grader**:
 ```bash
-# Path ①: Jenkinsfile checked into the repo (strongest evidence)
-ls Jenkinsfile Jenkinsfile.* jenkins/ .jenkins/ 2>/dev/null
+# Path ①: CI config checked into the repo (any platform — GitHub Actions / GitLab CI / Jenkinsfile / etc.)
+ls .github/workflows/ .gitlab-ci.yml Jenkinsfile Jenkinsfile.* jenkins/ .jenkins/ 2>/dev/null
 
 # Path ②: README.md or .harness/docs/devops/development.md explicitly writes the CI/CD platform URL
-#   recognized platforms: Jenkins / ArgoCD / Argo CD / Zhiyan
+#   recognized platforms: GitHub Actions / GitLab CI / Jenkins / ArgoCD / etc.
 #   match: the same line mentions the platform name and contains an http(s):// link (URL may be an IP address)
-grep -iE '(jenkins|argocd|argo.?cd|zhiyan).*https?://|https?://.*(jenkins|argocd|argo.?cd|zhiyan)' \
+grep -iE '(github.?actions|gitlab.?ci|jenkins|argocd|argo.?cd|travis|circleci).*https?://|https?://.*(github\.com/.*/(actions|workflows)|gitlab|jenkins|argocd|argo.?cd|travis|circleci)' \
   README.md .harness/docs/devops/development.md AGENTS.md 2>/dev/null | head -5
 
-# coverage gate (Jenkinsfile/Makefile usually uses cobertura/jacoco or a shell check)
+# coverage gate (CI config/Makefile usually uses cobertura/jacoco or a shell check)
 grep -rE 'coverage|COVERAGE_THRESHOLD|cover|cobertura|jacoco' \
-  Makefile Jenkinsfile jenkins/ 2>/dev/null
+  Makefile .github/ .gitlab-ci.yml Jenkinsfile jenkins/ 2>/dev/null
 ```
 
 **Judgment** (either Path ① or ② hit counts as having CI):
 - ✅ PASS: satisfies either path + runs unit tests + has a coverage threshold
-  - Path ①: Jenkinsfile checked in + stages include unit tests + includes coverage-gate logic
-  - Path ②: README/development.md writes the Jenkins/Argo CD/Zhiyan URL + docs explain the pipeline includes unit tests and a coverage gate
+  - Path ①: a CI config checked in (GitHub Actions workflow / GitLab CI / Jenkinsfile) + stages include unit tests + includes coverage-gate logic
+  - Path ②: README/development.md writes the CI platform URL + docs explain the pipeline includes unit tests and a coverage gate
 - ⚠️ PARTIAL:
-  - Path ① hit but the Jenkinsfile only runs build/lint without unit tests, or has unit tests without a coverage gate
+  - Path ① hit but the CI config only runs build/lint without unit tests, or has unit tests without a coverage gate
   - Path ② hit but the docs do not explain the stage contents/have no coverage-gate explanation
-  - only the platform name is mentioned (e.g. "we use Jenkins for CI") without a URL
-- ❌ FAIL: no Jenkinsfile in the repo, and no Jenkins/Argo CD/Zhiyan URL in README/development.md
+  - only the platform name is mentioned (e.g. "we use GitHub Actions for CI") without a URL
+- ❌ FAIL: no CI config in the repo, and no CI platform URL in README/development.md
 
-> **Core rule**: the URL must be a clickable http(s):// link; just writing "we use Jenkins" does not count as PASS (AI/newcomers still cannot reach the pipeline directly).
+> **Core rule**: the URL must be a clickable http(s):// link; just writing "we use <CI platform>" does not count as PASS (AI/newcomers still cannot reach the pipeline directly).
 
 ---
 
@@ -458,13 +458,13 @@ grep -iE 'gosec|golangci|trivy|snyk|sonar|govulncheck|security|vulnerability' \
 grep -E 'https?://' .harness/docs/devops/development.md .harness/docs/devops/deployment.md 2>/dev/null | \
   grep -iE 'ci|workflow|pipeline|argo|security|scan'
 
-# 4. Renovate (the project does not use Dependabot)
-ls renovate.json renovate.json5 .renovaterc 2>/dev/null
+# 4. dependency-update / vulnerability tooling (Renovate / Dependabot / trivy etc.)
+ls renovate.json renovate.json5 .renovaterc .github/dependabot.yml .trivyignore 2>/dev/null
 ```
 
 **Judgment**:
-- ✅ PASS: satisfies any of — ① Go project `.golangci.yml` / `.golangci.yaml` exists and `gosec` is in `linters.enable` (not in the disable list); ② local security-scan tool config files exist; ③ local CI config (Jenkinsfile/Makefile) includes security scanning; ④ security scanning integrated in Argo Workflow or external CI yaml; ⑤ .harness/docs explicitly declares the security scan is integrated in an external CI pipeline (with tool name and location); ⑥ Renovate config exists
-- ⚠️ PARTIAL: `.golangci.yml` exists but `gosec` not enabled (lint system present, security linter missing); or only Renovate without proactive vulnerability scanning; or .harness/docs mentions security scanning but does not state the specific tool/location; or the config exists but the rules are empty
+- ✅ PASS: satisfies any of — ① Go project `.golangci.yml` / `.golangci.yaml` exists and `gosec` is in `linters.enable` (not in the disable list); ② local security-scan tool config files exist; ③ local CI config (GitHub Actions/GitLab CI/Jenkinsfile/Makefile) includes security scanning; ④ security scanning integrated in Argo Workflow or external CI yaml; ⑤ .harness/docs explicitly declares the security scan is integrated in an external CI pipeline (with tool name and location); ⑥ dependency-update / vulnerability tooling exists (Renovate / Dependabot / trivy etc.)
+- ⚠️ PARTIAL: `.golangci.yml` exists but `gosec` not enabled (lint system present, security linter missing); or only dependency-update tooling without proactive vulnerability scanning; or .harness/docs mentions security scanning but does not state the specific tool/location; or the config exists but the rules are empty
 - ❌ FAIL: no `.golangci.yml` or the enable list is empty, no other security-scan config, and .harness/docs does not declare external-CI security scanning
 
 ---
@@ -481,9 +481,8 @@ ls -d tests/e2e/ tests/integration/ test/e2e/ e2e/ integration/ 2>/dev/null
 # check integration test files (Go / JS / Python)
 find . -name '*integration*test*' -o -name '*e2e*test*' -o -name '*_integration_test.go' 2>/dev/null | head -5
 
-# check whether CI has an E2E/integration test stage (the project uses Jenkins)
+# check whether CI has an E2E/integration test stage (any CI platform)
 grep -iE "e2e|integration.test|interface test" Jenkinsfile jenkins/ Makefile .harness/docs/devops/deployment.md 2>/dev/null
-# compatible with other platforms
 grep -iE "e2e|integration.test|interface test" .github/workflows/*.yml .gitlab-ci.yml 2>/dev/null
 ```
 
@@ -614,8 +613,8 @@ find .harness/docs/ -name '*.md' 2>/dev/null | wc -l
 **Path ② remote team knowledge-base references (Code Grader + Model Grader)**:
 ```bash
 # check for external knowledge-base links in README/AGENTS
-# recognized keywords: wiki, confluence, tapd (including markdown_wikis), notion, yuque, feishu, shared repos, etc.
-grep -iE '(wiki|confluence|tapd|notion|yuque|feishu|knowledge|doc.center)' \
+# recognized keywords: wiki, confluence, notion, yuque, feishu, knowledge bases, shared repos, etc.
+grep -iE '(wiki|confluence|notion|yuque|feishu|knowledge|doc.center)' \
   README.md AGENTS.md 2>/dev/null | grep -E 'https?://'
 ```
 - a line or file contains both a knowledge-platform keyword and an http(s):// link → Code Grader hit

@@ -72,7 +72,7 @@
 | 6 | **IT** | `06-it.md` | Paste key logs (with reqid) for each case; not skipped in collaborative mode |
 | 7 | **Docs** | `07-docs.md` | Incrementally update `.harness/docs/` |
 | 8 | **Review** | `08-review.md` | Code review results |
-| 9 | **Commit** | `09-commit.md` | ① Ask about TAPD → ② Release the environment → ③ Advance TAPD status to "Developing" → ④ Write commit message → ⑤ Update overview (boundary point A) → ⑥ One-time `git add` → ⑦ `git commit` (first time only) → ⑧ `git push` creates the MR, triggering TAPD "Developing→CR" → ⑨ (repeatable until the MR merges) amend to accumulate fixes (one MR one commit principle) |
+| 9 | **Commit** | `09-commit.md` | ① Ask about the issue/task ticket → ② Release the environment → ③ Advance the ticket status to "Developing" → ④ Write commit message → ⑤ Update overview (boundary point A) → ⑥ One-time `git add` → ⑦ `git commit` (first time only) → ⑧ `git push` creates the MR, triggering the ticket status "Developing→CR" → ⑨ (repeatable until the MR merges) amend to accumulate fixes (one MR one commit principle) |
 
 ### Task Size Branch
 
@@ -110,19 +110,19 @@
 
 ### Commit Standards
 
-> This section is the **DEVSOP entry** — `09-commit.md` gives the **checklist + forms**; the complete rules are in the team TAPD SKILL.md / `SKILL.md` red line 4.
+> This section is the **DEVSOP entry** — `09-commit.md` gives the **checklist + forms**; the complete rules are in the team issue-tracker skill / `SKILL.md` red line 4.
 
-**Order**: ① Ask about TAPD → ② Release the environment (team environment management Skill) → ③ Advance TAPD status to "Developing" (team TAPD Skill) → ④ Write the `09-commit.md` commit message → ⑤ Update `00-overview.md` (triggers **boundary point A**) → ⑥ One-time `git add` (code + plans deliverables + 00-overview.md + docs) → ⑦ `git commit` (first time only) → ⑧ `git push` creates the MR, triggering TAPD **Developing → CR** → ⑨ (repeatable until the MR merges) code fix amend → merge triggers **boundary point B**.
+**Order**: ① Ask about the issue/task ticket → ② Release the environment (team environment management Skill) → ③ Advance the ticket status to "Developing" (team issue-tracker Skill) → ④ Write the `09-commit.md` commit message → ⑤ Update `00-overview.md` (triggers **boundary point A**) → ⑥ One-time `git add` (code + plans deliverables + 00-overview.md + docs) → ⑦ `git commit` (first time only) → ⑧ `git push` creates the MR, triggering the ticket status **Developing → CR** → ⑨ (repeatable until the MR merges) code fix amend → merge triggers **boundary point B**.
 
-> **Note on timing**: the trigger condition for the TAPD status "Developing → CR" is "automatic after MR submission"; only push (step ⑧) creating the MR can trigger it, and it is **not** a prerequisite of step ③; step ③ only needs to advance to "Developing".
+> **Note on timing**: the trigger condition for the ticket status "Developing → CR" is "automatic after MR submission"; only push (step ⑧) creating the MR can trigger it, and it is **not** a prerequisite of step ③; step ③ only needs to advance to "Developing".
 >
 > **New: forbidden to modify `00-overview.md` / `09-commit.md` after boundary points A / B** — completing steps ④+⑤ triggers boundary point A (commit content finalized); MR merge triggers boundary point B (task wrap-up). Between the two, the **only exception** is the step ⑨ code fix via amend — **only change the code itself, do not touch md**; repeatable without limit, always one commit; once merged, completely frozen. Full rules in the "1. Execution Order" section of `09-commit.md`.
 
-**When entering commit, you MUST first ask about TAPD** (AI must execute entry): do not just look at the `00-overview.md` Meta field and assume yes / no; if there is none, you **must guide the user to create one** (default recommended path A: AI creates it on behalf via the team TAPD skill). 4 situations: ① user gives an ID ② AI creates it on behalf ③ user creates it manually then gives the ID ④ skip (must record the reason in the key decision log). See the "0.0 Ask about TAPD" section of `09-commit.md`.
+**When entering commit, you MUST first ask whether there is an issue/task ticket** (AI must execute entry): do not just look at the `00-overview.md` Meta field and assume yes / no; if there is none, you **must guide the user to create one** (default recommended path A: AI creates it on behalf via the team issue-tracker skill). 4 situations: ① user gives an ID ② AI creates it on behalf ③ user creates it manually then gives the ID ④ skip (must record the reason in the key decision log). See the "0.0 Ask about the ticket" section of `09-commit.md`.
 
-**TAPD status advancement** (mandatory when part of the team flow): before commit, call the team TAPD Skill to advance the status from the current node to "Developing" (solution reviewed → scheduled → developing); **CR is automatically triggered by the MR submission after push**, not completed before commit, and is **not mandatory** to backfill in `09-commit.md` (the TAPD system status is the only source). **Before task wrap-up**, query the real TAPD status with the team TAPD Skill to confirm it has landed on **CR**. See the "0.2 TAPD Status Advancement" section of `09-commit.md`.
+**Ticket status advancement** (mandatory when part of the team flow): before commit, call the team issue-tracker Skill to advance the status from the current node to "Developing" (solution reviewed → scheduled → developing); **CR is automatically triggered by the MR submission after push**, not completed before commit, and is **not mandatory** to backfill in `09-commit.md` (the tracker's status is the only source). **Before task wrap-up**, query the real ticket status with the team issue-tracker Skill to confirm it has landed on **CR**. See the "0.2 Ticket Status Advancement" section of `09-commit.md`.
 
-**Format**: `<type>(<scope>): <subject>` + footer `--<kind>=<id>` (**default `--story=<id>`**; change to `--bug=<id>` for bug fixes; CI validation regex `--(bug|story|task|test|other)=\d+`).
+**Format**: `<type>(<scope>): <subject>` + ticket reference footer `--<kind>=<id>` (**default `--story=<id>`**; change to `--bug=<id>` for bug fixes; GitHub-style `#<id>` also accepted; CI validation regex `--(bug|story|task|test|other)=\d+` or `#\d+`, overridable via `TICKET_FOOTER_PATTERN`).
 
 **One MR one commit (iron rule)**: the MR for this task may only have one commit. Any fix (before push / follow-up after DEVSOP completes / push meta-information additions) must go through `git commit --amend` to accumulate into the original commit; **strictly forbidden** to add a second commit. After amend, push must use `git push --force-with-lease` (**forbidden** bare `--force`). See the "2. Amend Process" section of `09-commit.md`.
 

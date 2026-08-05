@@ -166,49 +166,44 @@ Refer to the "DEVSOP startup prerequisites" and "step execution rules" sections 
 
 ### C2 No CI pipeline
 
-> This project's CI platforms: **Jenkins** / **Argo CD** / **Zhiyan**. Either of two counts as having CI: ① `Jenkinsfile` checked into the repo; ② README/deployment.md explicitly writes the CI platform URL.
+> Any CI platform counts: GitHub Actions / GitLab CI / Jenkins / Argo CD / etc. Either of two counts as having CI: ① a CI config checked into the repo (`.github/workflows/` / `.gitlab-ci.yml` / `Jenkinsfile`); ② README/deployment.md explicitly writes the CI platform URL.
 
 | Current state | Improvement action |
 |---------------|--------------------|
-| Path ①: Jenkinsfile checked in | Create a `Jenkinsfile` at the repo root, stages: Checkout → Build → Lint → UnitTest → Coverage → IntegrationTest. Skeleton below |
-| Path ②: pipeline configured in Jenkins Master / Argo CD / Zhiyan, not in the repo | Add a "## CI Pipeline" section to `README.md` or `.harness/docs/devops/deployment.md`, which must include: CI platform name + **clickable URL** (http(s)://) + trigger conditions + stage list + failure contact. Platform name only without URL does not count |
-| Platform name only, no URL | Add the URL: Jenkins Job page, Argo CD App details page, or Zhiyan pipeline details page — paste any one into deployment.md |
-| No coverage gate | Add `COVERAGE_THRESHOLD := 60` to the Makefile; in the Jenkinsfile, after `sh 'go test -coverprofile=coverage.out ./...'`, validate with the `cobertura` plugin or a shell `awk` check; on failure `currentBuild.result = 'UNSTABLE'`; for Argo CD/Zhiyan configure the threshold on the corresponding platform |
+| Path ①: CI config checked in | Create a CI workflow at the repo root (e.g. `.github/workflows/ci.yml` / `.gitlab-ci.yml` / `Jenkinsfile`), stages: Checkout → Build → Lint → UnitTest → Coverage → IntegrationTest. Skeleton below |
+| Path ②: pipeline configured on the CI platform, not in the repo | Add a "## CI Pipeline" section to `README.md` or `.harness/docs/devops/deployment.md`, which must include: CI platform name + **clickable URL** (http(s)://) + trigger conditions + stage list + failure contact. Platform name only without URL does not count |
+| Platform name only, no URL | Add the URL: the pipeline page of the CI platform in use — paste it into deployment.md |
+| No coverage gate | Add `COVERAGE_THRESHOLD := 60` to the Makefile; in the CI config, after `sh 'go test -coverprofile=coverage.out ./...'`, validate with a shell `awk` check; on failure mark the build UNSTABLE |
 
-**Jenkinsfile reference skeleton (Go project)**:
-```groovy
-pipeline {
-  agent any
-  options { timeout(time: 30, unit: 'MINUTES') }
-  stages {
-    stage('Build')    { steps { sh 'make build' } }
-    stage('Lint')     { steps { sh 'make lint' } }
-    stage('UnitTest') {
-      steps { sh 'go test -coverprofile=coverage.out ./...' }
-      post { always { archiveArtifacts 'coverage.out' } }
-    }
-    stage('Coverage Gate') {
-      steps {
-        sh '''
+**CI workflow reference skeleton (Go project, GitHub Actions example)**:
+```yaml
+# .github/workflows/ci.yml
+name: CI
+on: [push, pull_request]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with: { go-version: '1.22' }
+      - run: make build
+      - run: make lint
+      - run: go test -coverprofile=coverage.out ./...
+      - name: Coverage gate (>=60%)
+        run: |
           pct=$(go tool cover -func=coverage.out | tail -1 | awk '{print $3}' | tr -d '%')
           awk -v p=$pct -v t=60 'BEGIN{exit !(p>=t)}' || { echo "coverage $pct% < 60%"; exit 1; }
-        '''
-      }
-    }
-    stage('Integration') { steps { sh 'make integration-test' } }
-  }
-  post {
-    failure { /* TAPD ticket / WeChat Work alert */ }
-  }
-}
+      - run: make integration-test
 ```
+> Jenkinsfile / GitLab CI equivalents are equally valid — the framework does not mandate a specific platform.
 
 **deployment.md section template (Path ②)**:
 ```markdown
 ## CI Pipeline
 
-- Platform: Jenkins (or Argo CD / Zhiyan)
-- URL: https://jenkins.example.com/job/xxx
+- Platform: {GitHub Actions / GitLab CI / Jenkins / ...}
+- URL: https://github.com/<org>/<repo>/actions (or the pipeline page of the platform in use)
 - Trigger: push to main / MR
 - Stages: Build → Lint → UnitTest → Coverage(≥60%) → Integration
 - Failure contact: @xxx
@@ -233,7 +228,7 @@ pipeline {
 
 **Improvement action**: add a section to `.harness/docs/code-review.md` listing:
 - No direct pushes to main / master (always feature branch + MR)
-- MRs must reference a TAPD ticket (MR title contains `--story=<id>` or `--bug=<id>`)
+- MRs must reference an issue-tracker ticket (MR title/description contains the ticket reference, e.g. `--story=<id>` / `--bug=<id>` or `#<id>`, per the team's tracker convention)
 - MR line count ≤500; anything larger must be split
 - At least 1 Reviewer approval required before merge
 - AI-generated code must be human-reviewed before commit (including an "I understand this code" confirmation)
@@ -263,7 +258,7 @@ If using a code platform that supports Branch Protection (e.g. Gongfeng), config
 | Go | `golangci-lint` (enable `gosec`) + `govulncheck` | Add `- gosec` to the `linters.enable` list in `.golangci.yml` (gosec runs with `golangci-lint run`, no separate install needed); `go install golang.org/x/vuln/cmd/govulncheck@latest`; add `security: govulncheck ./...` to the Makefile |
 | JS/TS | `npm audit` + Snyk | Add `npm audit --production` to CI; or `npx snyk test` |
 | Python | `safety` + `bandit` | `pip install safety bandit && safety check && bandit -r src/` |
-| Generic | Renovate | Configure `renovate.json` to auto-detect dependency updates (for Jenkins projects, Renovate Self-Hosted or Mend Renovate is recommended) |
+| Generic | Renovate / Dependabot | Configure `renovate.json` or `.github/dependabot.yml` to auto-detect dependency updates (whichever the project already uses) |
 
 **Go project `.golangci.yml` config example**:
 ```yaml
@@ -274,19 +269,17 @@ linters:
     - staticcheck
 ```
 
-**Jenkins integration example** (Makefile target approach, so the Jenkinsfile can directly `sh 'make security'`):
+**CI integration example** (Makefile target approach, so any CI config can call `make security`):
 ```makefile
 # Makefile (gosec already runs via golangci-lint in make lint; this adds dependency-vulnerability scanning)
 security:
 	govulncheck ./...
 ```
 
-Call `make security` in CI (prefer the Jenkins Pipeline). Jenkinsfile example:
-```groovy
-stage('Security') {
-  steps { sh 'make lint && make security' }
-  post { unstable { /* alert but do not block */ } }
-}
+Call `make security` in CI (GitHub Actions / GitLab CI / Jenkinsfile all work the same way). Example:
+```yaml
+# .github/workflows/ci.yml — Security stage
+      - run: make lint && make security
 ```
 
 ### C7 No E2E/integration tests
@@ -305,19 +298,14 @@ stage('Security') {
    - Use `testcontainers-go` or `docker-compose` to start real dependencies
    - File naming: `tests/integration/user_flow_test.go`
 
-3. **CI integration (Jenkinsfile)**:
-   ```groovy
-   stage('Integration') {
-     steps {
-       sh '''
-         docker-compose -f docker-compose.test.yml up -d
-         go test ./tests/integration/ -v -tags=integration
-       '''
-     }
-     post {
-       always { sh 'docker-compose -f docker-compose.test.yml down' }
-     }
-   }
+3. **CI integration** (GitHub Actions example; Jenkinsfile/GitLab CI equivalents work the same):
+   ```yaml
+   # .github/workflows/ci.yml — Integration stage
+      - name: Integration
+        run: |
+          docker-compose -f docker-compose.test.yml up -d
+          go test ./tests/integration/ -v -tags=integration
+          docker-compose -f docker-compose.test.yml down
    ```
 
 4. **Add conventions to `.harness/docs/unittest/unittest.md` (unit tests) and `.harness/docs/integration_test/integration_test.md` (integration tests)**: explain the integration test scope, how to run it, and how it differs from unit tests
@@ -404,7 +392,7 @@ If all three are missing, start with Path ① — local spec accumulation is the
 **Improvement action**:
 1. **Running devsop.eval this time updates the file** (creating it satisfies the requirement)
 2. **Establish a monthly evaluation mechanism**: add "run devsop.eval in the first week of each month" to the team weekly meeting agenda
-3. **Configure a Jenkins scheduled job** (optional): create a Jenkins Job with `triggers { cron('H 9 1 * *') }` triggering on the 1st of each month, run `devsop.eval --dry-run`, archive `.harness/devsop_report.md`, and use `currentBuild.result = 'UNSTABLE'` when the total drops below the threshold — alert but do not block
+3. **Configure a scheduled CI job** (optional): add a scheduled job on the project's CI platform (e.g. GitHub Actions `schedule`/`cron`) triggering on the 1st of each month, run `devsop.eval --dry-run`, archive `.harness/devsop_report.md`, and mark the build UNSTABLE when the total drops below the threshold — alert but do not block
 
 ### F2 No AI session/memory/failure-case retention
 

@@ -67,5 +67,5 @@ cat go-quality-report-v1.1.json | jq '.overall_score, .rating'
 
 - **`$SKILL_DIR` and `$REPO_ROOT` are strictly separated**: Skills only read the install directory and write only to the target project directory; never write to this repository or `$HOME`.
 - **No auto-commit**: `devsop.init` / `devsop.eval` do not run `git add` / `git commit`; changes are left for the user to review.
-- **Fixed team tool stack**: the DEVSOP audit is based on Jenkins (CI), Tapd (Issues; commit messages use `--story=<id>` / `--bug=<id>`), and self-hosted Renovate (dependencies); GitHub Actions / GitLab CI / Jira / Dependabot are not introduced.
+- **Tool-agnostic audit**: the DEVSOP audit does not mandate a specific CI / issue-tracker / dependency-management stack. It evaluates whether the project consistently uses its team-designated tools (any of Jenkins, GitHub Actions, GitLab CI, TAPD, GitHub Issues, Jira, Renovate, Dependabot, etc.), and the commit-message ticket reference convention is configurable (default `--story=<id>` / `--bug=<id>`, GitHub-style `#<id>` also accepted).
 - The AI collaboration entry for this repository is [CODEBUDDY.md](CODEBUDDY.md).
