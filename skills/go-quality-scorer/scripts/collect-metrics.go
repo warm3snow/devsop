@@ -8,7 +8,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"regexp"
 	"strconv"
 	"strings"
 )
@@ -157,15 +156,11 @@ func (mc *MetricsCollector) collectGocyclo() error {
 	if len(files) == 0 {
 		return nil
 	}
-	args := append([]string{"-json"}, files...)
-	cmd := exec.Command("gocyclo", args...)
+	// gocyclo (fzipp) has no -json flag; parse its text output:
+	//   <complexity> <package> <function> <file:line:column>
+	cmd := exec.Command("gocyclo", files...)
 	output, err := cmd.Output()
 	if err != nil {
-		return err
-	}
-
-	var results []map[string]interface{}
-	if err := json.Unmarshal(output, &results); err != nil {
 		return err
 	}
 
@@ -173,19 +168,27 @@ func (mc *MetricsCollector) collectGocyclo() error {
 	var ccCount int
 	maxCC := 0
 
-	for _, r := range results {
-		if cc, ok := r["complexity"].(float64); ok {
-			totalCC += int(cc)
-			ccCount++
-			if int(cc) > maxCC {
-				maxCC = int(cc)
-			}
+	for _, line := range strings.Split(string(output), "\n") {
+		parts := strings.Fields(line)
+		if len(parts) < 4 {
+			continue
+		}
+		cc, err := strconv.Atoi(parts[0])
+		if err != nil {
+			continue
+		}
+		totalCC += cc
+		ccCount++
+		if cc > maxCC {
+			maxCC = cc
 		}
 	}
 
 	if ccCount > 0 {
 		mc.Metrics.AvgCC = float64(totalCC) / float64(ccCount)
 		mc.Metrics.PeakCC = maxCC
+		// gocyclo emits one line per function → ccCount is the real function count
+		mc.Metrics.FunctionCount = ccCount
 	}
 
 	return nil
@@ -216,7 +219,8 @@ func (mc *MetricsCollector) collectGocognit() error {
 	var cogCount int
 
 	for _, r := range results {
-		if cc, ok := r["complexity"].(float64); ok {
+		// gocognit -json marshals the raw struct: keys are capitalized ("Complexity")
+		if cc, ok := r["Complexity"].(float64); ok {
 			totalCognitive += cc
 			cogCount++
 		}
@@ -232,6 +236,7 @@ func (mc *MetricsCollector) collectGocognit() error {
 // collectScc collects size statistics (skips test/mock files)
 func (mc *MetricsCollector) collectScc() error {
 	// scc natively supports --exclude-dir; test files are filtered with --not-match='_test\.go$'
+	// scc v3 --format json outputs a top-level array with capitalized keys
 	cmd := exec.Command(
 		"scc", "--format", "json",
 		"--exclude-dir", "mock,fake,stub,testdata,fixtures,vendor,node_modules,.git,.venv,venv,__pycache__,data,.idea,.vscode,dist,build,.codebuddy",
@@ -243,15 +248,10 @@ func (mc *MetricsCollector) collectScc() error {
 		return err
 	}
 
-	var result struct {
-		Languages []struct {
-			Name      string `json:"name"`
-			Blank     int    `json:"blank"`
-			Comment   int    `json:"comment"`
-			Code      int    `json:"code"`
-			Count     int    `json:"count"`
-			FileCount int    `json:"fileCount"`
-		} `json:"languages"`
+	var result []struct {
+		Name  string `json:"Name"`
+		Code  int    `json:"Code"`
+		Count int    `json:"Count"`
 	}
 
 	if err := json.Unmarshal(output, &result); err != nil {
@@ -259,18 +259,19 @@ func (mc *MetricsCollector) collectScc() error {
 	}
 
 	// get Go language data
-	for _, lang := range result.Languages {
+	for _, lang := range result {
 		if lang.Name == "Go" {
 			mc.Metrics.SLOC = lang.Code
-			mc.Metrics.FunctionCount = lang.Count
-			// estimate average function length (LOC / function count)
-			if lang.Count > 0 {
-				mc.Metrics.AvgFunctionLength = float64(lang.Code) / float64(lang.Count)
-				// overlong function estimate (functions >80 lines)
-				mc.Metrics.LongFunctions = int(float64(lang.Count) * 0.1) // assume 10% are overlong functions
-			}
 			break
 		}
+	}
+
+	// average function length = total non-test SLOC / function count (from gocyclo),
+	// which is more accurate than scc's Count field (scc counts files, not functions)
+	if mc.Metrics.FunctionCount > 0 {
+		mc.Metrics.AvgFunctionLength = float64(mc.Metrics.SLOC) / float64(mc.Metrics.FunctionCount)
+		// overlong function estimate (functions >80 lines)
+		mc.Metrics.LongFunctions = int(float64(mc.Metrics.FunctionCount) * 0.1) // assume 10% are overlong functions
 	}
 
 	return nil
@@ -303,31 +304,4 @@ func (mc *MetricsCollector) calculateMI() {
 	}
 
 	mc.Metrics.MI = math.Round(mi*10) / 10
-}
-
-// Helper: parse an integer from command output
-func parseInt(s string) int {
-	re := regexp.MustCompile(`\d+`)
-	matches := re.FindString(s)
-	if matches == "" {
-		return 0
-	}
-	val, _ := strconv.Atoi(matches)
-	return val
-}
-
-// Helper: parse a float from command output
-func parseFloat(s string) float64 {
-	re := regexp.MustCompile(`\d+(\.\d+)?`)
-	matches := re.FindString(s)
-	if matches == "" {
-		return 0
-	}
-	val, _ := strconv.ParseFloat(matches, 64)
-	return val
-}
-
-// Helper: build a project path
-func (mc *MetricsCollector) buildPath(elem ...string) string {
-	return filepath.Join(append([]string{mc.ProjectPath}, elem...)...)
 }

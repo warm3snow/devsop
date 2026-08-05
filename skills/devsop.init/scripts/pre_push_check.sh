@@ -68,28 +68,33 @@ if [[ -f "${SCRIPT_DIR}/env.sh" ]]; then
 fi
 
 # ── Parse pre-push stdin to find changed files ──────────────────
+# stdin is only available when invoked by `git push` (hook context, stdin is a pipe).
+# When run manually (`bash scripts/pre_push_check.sh`), stdin is a terminal and
+# `read` would block forever — guard with `-t 0` and fall back to diffing HEAD.
 PUSH_FILES=()
-while read -r local_ref local_sha remote_ref remote_sha; do
-  # Skip delete operations
-  if [[ "${local_sha}" == "0000000000000000000000000000000000000000" ]]; then
-    continue
-  fi
+if [[ ! -t 0 ]]; then
+  while read -r local_ref local_sha remote_ref remote_sha; do
+    # Skip delete operations
+    if [[ "${local_sha}" == "0000000000000000000000000000000000000000" ]]; then
+      continue
+    fi
 
-  # New branch: compare with main/master
-  if [[ "${remote_sha}" == "0000000000000000000000000000000000000000" ]]; then
-    base_branch=$(git rev-parse --verify origin/main 2>/dev/null || git rev-parse --verify origin/master 2>/dev/null || echo "")
-    if [[ -n "${base_branch}" ]]; then
+    # New branch: compare with main/master
+    if [[ "${remote_sha}" == "0000000000000000000000000000000000000000" ]]; then
+      base_branch=$(git rev-parse --verify origin/main 2>/dev/null || git rev-parse --verify origin/master 2>/dev/null || echo "")
+      if [[ -n "${base_branch}" ]]; then
+        while IFS= read -r f; do
+          [[ -n "$f" ]] && PUSH_FILES+=("$f")
+        done < <(git diff --name-only "${base_branch}...${local_sha}" 2>/dev/null)
+      fi
+    else
+      # Incremental push: compare with remote
       while IFS= read -r f; do
         [[ -n "$f" ]] && PUSH_FILES+=("$f")
-      done < <(git diff --name-only "${base_branch}...${local_sha}" 2>/dev/null)
+      done < <(git diff --name-only "${remote_sha}...${local_sha}" 2>/dev/null)
     fi
-  else
-    # Incremental push: compare with remote
-    while IFS= read -r f; do
-      [[ -n "$f" ]] && PUSH_FILES+=("$f")
-    done < <(git diff --name-only "${remote_sha}...${local_sha}" 2>/dev/null)
-  fi
-done
+  done
+fi
 
 # Fallback: diff against origin/main
 if [[ ${#PUSH_FILES[@]} -eq 0 ]]; then

@@ -8,6 +8,7 @@ Output: full JSON report + grade rating (A-F)
 import json
 import subprocess
 import os
+import shutil
 import re
 import math
 import sys
@@ -106,10 +107,7 @@ class D3ScaleComplexityCalculator:
         """Maintainability Index score (MI >=65 full score)"""
         if mi >= 65:
             return 100
-        elif mi >= 50:
-            return 100 - (65 - mi) * 2
-        else:
-            return max(0, 100 - (65 - mi) * 2)
+        return max(0, 100 - (65 - mi) * 2)
 
 
 class GoQualityScorerV11:
@@ -328,21 +326,21 @@ class GoQualityScorerV11:
         """Security scan - invoke the gosec binary independently (golangci-lint does not enable the gosec linter
         by default, so it must be invoked independently for full security rule coverage). Skips test/mock files."""
         try:
-            targets = self._filter_go_paths_for_cli()
-            if not targets:
-                print("[gosec] diff mode has no target files, skipping", file=sys.stderr)
-                return
+            # gosec 2.22 only accepts package/directory targets (./... or a dir); passing
+            # individual .go files makes it treat the file as an import path and always
+            # returns 0 findings. So scan the whole module (like the full-mode coverage
+            # collection) and let downstream filtering handle per-file concerns.
             result = subprocess.run(
                 [
                     "gosec", "-fmt=json", "-quiet",
-                    # exclude mock dirs; gosec skips _test.go by default, no need to declare it explicitly
                     "-exclude-dir=mock",
                     "-exclude-dir=fake",
                     "-exclude-dir=stub",
                     "-exclude-dir=testdata",
                     "-exclude-dir=fixtures",
-                ] + targets,
-                capture_output=True, text=True, timeout=120
+                    "./...",
+                ],
+                cwd=self.project_path, capture_output=True, text=True, timeout=120
             )
             # gosec returns a non-zero exit code when issues are found, but stdout still contains JSON results
             if result.stdout:
@@ -427,16 +425,10 @@ class GoQualityScorerV11:
         such as dependencies / cloned artifacts / VCS to avoid being misled by .go/.py files embedded in
         vendor / .venv / node_modules / data.
         """
-        _IGNORE_DIRS = {
-            ".git", ".venv", "venv", "node_modules", "vendor",
-            "__pycache__", "data", ".idea", ".vscode", "dist", "build",
-            ".codebuddy",
-        }
-
         def _has_ext(ext: str) -> bool:
             for p in self.project_path.rglob(f"*{ext}"):
                 rel_parts = p.relative_to(self.project_path).parts
-                if any(part in _IGNORE_DIRS for part in rel_parts[:-1]):
+                if any(part in self._IGNORE_DIRS for part in rel_parts[:-1]):
                     continue
                 return True
             return False
@@ -538,11 +530,7 @@ class GoQualityScorerV11:
         candidates = [self.project_path]
         try:
             for sub in sorted(self.project_path.iterdir()):
-                if sub.is_dir() and sub.name not in {
-                    ".git", ".venv", "venv", "node_modules", "vendor",
-                    "__pycache__", "data", ".idea", ".vscode", "dist", "build",
-                    ".codebuddy", "frontend",
-                }:
+                if sub.is_dir() and sub.name not in self._IGNORE_DIRS and sub.name != "frontend":
                     candidates.append(sub)
         except OSError:
             pass
@@ -566,14 +554,12 @@ class GoQualityScorerV11:
             root / ".venv" / "Scripts" / "python.exe",
             root / "venv" / "Scripts" / "python.exe",
         ]
-        import os
         for c in candidates:
             if c.is_file():
                 # use abspath (not following symlinks): venv's bin/python is often a symlink to the system
                 # python; resolve() would dereference to the system interpreter and lose the venv environment,
                 # causing coverage/pytest to fail.
                 return os.path.abspath(c)
-        import shutil
         return shutil.which("python3") or shutil.which("python") or "python3"
 
     def _scan_coverage_python(self):
@@ -724,6 +710,34 @@ class GoQualityScorerV11:
         except Exception as e:
             print(f"⚠️  code static analysis failed: {e}")
 
+    def _collect_d3_metrics_go(self) -> bool:
+        """Measure real D3 sub-metrics via collect-metrics.go (gocognit + scc + MI).
+
+        Returns True on success and stores cognitive_cc / avg_function_length /
+        long_functions / mi into self.metrics; returns False when the Go toolchain
+        or the metric collectors are unavailable (caller falls back to estimates).
+        """
+        script = Path(__file__).resolve().parent / "collect-metrics.go"
+        try:
+            result = subprocess.run(
+                ["go", "run", str(script), "-path", str(self.project_path)],
+                capture_output=True, text=True, timeout=300,
+            )
+            if result.returncode != 0:
+                print(f"[d3] collect-metrics.go failed: {(result.stderr or '')[-500:]}", file=sys.stderr)
+                return False
+            data = json.loads(result.stdout)
+        except (subprocess.SubprocessError, json.JSONDecodeError, OSError) as e:
+            print(f"[d3] collect-metrics.go unavailable ({e}), falling back to estimates", file=sys.stderr)
+            return False
+
+        self.metrics["cognitive_cc"] = data.get("cognitive_cc", 0)
+        self.metrics["avg_function_length"] = data.get("avg_function_length", 0)
+        self.metrics["long_functions"] = data.get("long_functions", 0)
+        self.metrics["mi"] = data.get("mi", 0)
+        self.metrics["d3_metrics_source"] = "collected"
+        return True
+
     def _calculate_d3_extension(self):
         """D3 scale-complexity extension calculation (only counts non-test/mock files)"""
         try:
@@ -746,17 +760,21 @@ class GoQualityScorerV11:
                 except:
                     pass
 
-            # set default values
-            self.metrics["cognitive_cc"] = self.metrics.get("avg_cc", 8) * 1.2
             # sloc is used for scoring and red-line checks; its meaning is "max single-file line count" (red line: single file > 2000)
             self.metrics["sloc"] = max_file_sloc
             # total_sloc is the total line count of all project .go files, for report display only
             self.metrics["total_sloc"] = total_sloc
             self.metrics["max_file_sloc"] = max_file_sloc
             self.metrics["max_file_path"] = max_file_path
-            self.metrics["avg_function_length"] = 35
-            self.metrics["long_functions"] = 0
-            self.metrics["mi"] = 75
+
+            # measure real D3 sub-metrics via collect-metrics.go (gocognit+scc);
+            # fall back to estimates only when the Go collector/toolchain is unavailable
+            if not self._collect_d3_metrics_go():
+                self.metrics["cognitive_cc"] = self.metrics.get("avg_cc", 8) * 1.2
+                self.metrics["avg_function_length"] = 35
+                self.metrics["long_functions"] = 0
+                self.metrics["mi"] = 75
+                self.metrics["d3_metrics_source"] = "estimated"
 
         except:
             pass
@@ -769,7 +787,11 @@ class GoQualityScorerV11:
         self.dimension_scores["d1"] = max(0, d1_base - critical_issues * 5)
 
         # D2 Security (20%)
-        security_issues = len([i for i in self.issues if "security" in i["type"].lower()])
+        # gosec issues are stored with rule_id types (e.g. G104); match them explicitly
+        security_issues = len([
+            i for i in self.issues
+            if re.match(r'^G\d+$', i.get("type", "").upper()) or i.get("type") == "gosec"
+        ])
         self.dimension_scores["d2"] = max(0, 85 - security_issues * 3)
 
         # D3 Maintainability & Scale-Complexity (20%)
@@ -786,10 +808,10 @@ class GoQualityScorerV11:
         d4 = 50 + (coverage / 100) * 50
         self.dimension_scores["d4"] = round(d4, 1)
 
-        # D5 Architecture & Design (12%)
+        # D5 Architecture & Design (12%) — baseline default, not auto-measured
         self.dimension_scores["d5"] = 80
 
-        # D6 Performance Efficiency (8%)
+        # D6 Performance Efficiency (8%) — baseline default, not auto-measured
         self.dimension_scores["d6"] = 75
 
         # composite score
@@ -849,11 +871,10 @@ class GoQualityScorerV11:
                     "score": self.dimension_scores.get("d1", 0),
                     "weight": 0.25,
                     "evidence": {
-                        "logic_correctness": max(0, self.dimension_scores.get("d1", 0) - 5),
-                        "boundary_handling": max(0, self.dimension_scores.get("d1", 0) - 3),
-                        "error_handling": max(0, self.dimension_scores.get("d1", 0) - 7),
-                        "concurrency_safety": max(0, self.dimension_scores.get("d1", 0) - 2),
-                        "notes": "based on scan results and code analysis"
+                        "critical_issues": len([i for i in self.issues if i.get("severity") == "critical"]),
+                        "major_issues": len([i for i in self.issues if i.get("severity") == "major"]),
+                        "total_issues": len(self.issues),
+                        "notes": "based on golangci-lint / gosec / gocyclo scan results"
                     }
                 },
                 "D2": {
@@ -861,11 +882,11 @@ class GoQualityScorerV11:
                     "score": self.dimension_scores.get("d2", 0),
                     "weight": 0.20,
                     "evidence": {
-                        "input_validation": max(0, self.dimension_scores.get("d2", 0) - 2),
-                        "auth_authz": max(0, self.dimension_scores.get("d2", 0) - 3),
-                        "secret_management": max(0, self.dimension_scores.get("d2", 0) - 1),
-                        "dependency_cves": max(0, self.dimension_scores.get("d2", 0) - 5),
-                        "notes": "checked via gosec"
+                        "gosec_issues": len([
+                            i for i in self.issues
+                            if re.match(r'^G\d+$', i.get("type", "").upper()) or i.get("type") == "gosec"
+                        ]),
+                        "notes": "based on gosec scan"
                     }
                 },
                 "D3": {
@@ -873,12 +894,13 @@ class GoQualityScorerV11:
                     "score": self.dimension_scores.get("d3", 0),
                     "weight": 0.20,
                     "evidence": {
-                        "complexity": max(0, d3_base - 3),
-                        "duplication": max(0, d3_base - 5),
-                        "function_size": max(0, d3_base - 8),
-                        "naming": max(0, d3_base - 2),
-                        "comments": max(0, d3_base - 4),
-                        "maintainability_index": self.metrics.get("mi", 75)
+                        "avg_cyclomatic_complexity": self.metrics.get("avg_cc", 0),
+                        "peak_cyclomatic_complexity": self.metrics.get("peak_cc", 0),
+                        "cognitive_complexity": self.metrics.get("cognitive_cc", 0),
+                        "maintainability_index": self.metrics.get("mi", 0),
+                        "format_issues": len([i for i in self.issues if i.get("type") == "format"]),
+                        "d3_metrics_source": self.metrics.get("d3_metrics_source", "estimated"),
+                        "notes": "metrics collected via gocyclo/gocognit/scc"
                     },
                     "scale_complexity": {
                         "D3_base": d3_base,
@@ -892,7 +914,8 @@ class GoQualityScorerV11:
                             "project_total_sloc": self.metrics.get("total_sloc", 0),
                             "max_file_path": self.metrics.get("max_file_path", ""),
                             "avg_function_length": self.metrics.get("avg_function_length", 0),
-                            "maintainability_index": self.metrics.get("mi", 75)
+                            "maintainability_index": self.metrics.get("mi", 0),
+                            "d3_metrics_source": self.metrics.get("d3_metrics_source", "estimated")
                         },
                         "notes": "D3 fusion: 60% Base + 40% ScaleComplexity"
                     }
@@ -903,9 +926,7 @@ class GoQualityScorerV11:
                     "weight": 0.15,
                     "evidence": {
                         "coverage": self.metrics.get("test_coverage", 0),
-                        "assertion_validity": max(0, self.dimension_scores.get("d4", 0) - 5),
-                        "boundary_negative": max(0, self.dimension_scores.get("d4", 0) - 8),
-                        "testability": max(0, self.dimension_scores.get("d4", 0) - 3),
+                        "coverage_note": self.metrics.get("coverage_note", "collected via go tool cover"),
                         "notes": f"coverage {self.metrics.get('test_coverage', 0):.1f}%"
                     }
                 },
@@ -914,11 +935,8 @@ class GoQualityScorerV11:
                     "score": self.dimension_scores.get("d5", 0),
                     "weight": 0.12,
                     "evidence": {
-                        "layering_dependency": max(0, self.dimension_scores.get("d5", 0) - 2),
-                        "coupling_cohesion": max(0, self.dimension_scores.get("d5", 0) - 3),
-                        "interface_abstract": max(0, self.dimension_scores.get("d5", 0) - 1),
-                        "extensibility": max(0, self.dimension_scores.get("d5", 0) - 5),
-                        "notes": "based on project structure analysis"
+                        "not_auto_measured": True,
+                        "notes": "baseline default (80/100) — not auto-measured, requires manual architecture review"
                     }
                 },
                 "D6": {
@@ -926,11 +944,8 @@ class GoQualityScorerV11:
                     "score": self.dimension_scores.get("d6", 0),
                     "weight": 0.08,
                     "evidence": {
-                        "time_complexity": max(0, self.dimension_scores.get("d6", 0) - 2),
-                        "space_complexity": max(0, self.dimension_scores.get("d6", 0) - 3),
-                        "resource_usage": max(0, self.dimension_scores.get("d6", 0) - 5),
-                        "overhead": max(0, self.dimension_scores.get("d6", 0) - 1),
-                        "notes": "based on automated analysis"
+                        "not_auto_measured": True,
+                        "notes": "baseline default (75/100) — not auto-measured, requires manual performance review"
                     }
                 }
             },
@@ -938,14 +953,16 @@ class GoQualityScorerV11:
             "grade": self._get_rating(self.dimension_scores.get("final", 0)),
             "red_lines": {
                 "triggered": self._check_red_lines(),
-                "description": [
-                    "✓ No hardcoded secrets/Token",
-                    "✓ No SQL injection risk",
-                    "✓ No known high-severity CVE dependencies",
-                    "✓ No fake tests inflating coverage",
-                    "✓ No silently swallowed errors on critical paths",
-                    "✓ No hallucinated APIs"
-                ]
+                "checked": [
+                    "peak cyclomatic complexity <= 50",
+                    "average cyclomatic complexity <= 25",
+                    "single-file size <= 2000 lines"
+                ],
+                "description": (
+                    "This scorer checks complexity and file-size red lines only. "
+                    "Secret / SQL-injection / dependency-CVE scanning is not part of it; "
+                    "use the go-secret-leak-review skill for secret scanning."
+                )
             },
             "issues": detailed_issues,
             "top_improvements": self._generate_improvements(),
@@ -980,7 +997,7 @@ class GoQualityScorerV11:
             )
             match = re.search(r'go(\d+\.\d+)', result.stdout)
             if match:
-                return f"1.{match.group(1)}"
+                return match.group(1)
         except:
             pass
         return "1.21"
@@ -988,7 +1005,7 @@ class GoQualityScorerV11:
     def _infer_dimension(self, issue: Dict[str, Any]) -> str:
         """Infer which dimension an issue belongs to"""
         issue_type = issue.get("type", "").lower()
-        if "security" in issue_type or "gosec" in issue_type:
+        if re.match(r'^g\d+$', issue_type) or "security" in issue_type or "gosec" in issue_type:
             return "D2"
         elif "complexity" in issue_type:
             return "D3"
@@ -1304,14 +1321,7 @@ class GoQualityScorerV11:
         sloc = self.metrics.get("sloc", 0)
         if sloc > 2000:
             triggered.append("single-file code size exceeds 2000 lines (single-file SLOC > 2000 red line)")
-        
-        # check key issues
-        for issue in self.issues:
-            if issue.get("type") == "hardcoded_secret":
-                triggered.append("hardcoded secret (red line)")
-            elif issue.get("type") == "sql_injection":
-                triggered.append("SQL injection risk (red line)")
-        
+
         return triggered
 
 

@@ -32,6 +32,12 @@ skills/
     ├── references/      # per-dimension guides + D3 metric description
     ├── scripts/         # main scorer (Python) + metric collection (Go)
     └── examples/        # migration guide + example report
+
+Also under `skills/`:
+└── go-secret-leak-review/   # incremental-code privacy leak review Skill
+    ├── SKILL.md
+    ├── references/
+    └── scripts/
 ```
 
 ## Installation and Invocation
@@ -50,8 +56,7 @@ devsop.eval              # audit DEVSOP compliance (supports --dry-run / --only 
 ```bash
 # Install dependency tools
 brew install gocyclo golangci-lint scc
-go install github.com/AllanDay/gocognit@latest
-go install github.com/boyter/scc@latest
+go install github.com/uudashr/gocognit/cmd/gocognit@latest
 
 # Score a Go project
 python3 skills/go-quality-scorer/scripts/go-quality-scorer-v1.1.py /path/to/go/project
