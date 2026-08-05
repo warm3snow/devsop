@@ -1,0 +1,107 @@
+version: "2"
+
+# 完整版本在 https://golangci-lint.run/usage/configuration/
+linters:
+  settings:
+    funlen:
+      lines: 80       # SOP coding-style §1 强制规范表第 5 行：函数长度 ≤80 行
+      statements: 40
+    gocyclo:
+      min-complexity: 10  # SOP coding-style §1 强制规范表第 7 行：圈复杂度 ≤10
+    revive:
+      confidence: 0
+      rules:
+        - name: var-declaration
+        - name: dot-imports
+        - name: blank-imports
+        #- name: exported
+        - name: range
+        - name: errorf
+        - name: error-strings
+        - name: receiver-naming
+        - name: increment-decrement
+        - name: error-return
+        #- name: unexported-return
+        - name: time-naming
+    govet:
+      disable-all: true
+      enable:
+        - shadow
+    lll:
+      line-length: 120  # SOP coding-style §1 强制规范表第 3 行：行长 ≤120 列
+    errcheck:
+      check-type-assertions: true
+    gocritic:
+      disable-all: true
+      enabled-checks:
+        - nestingReduce
+      settings:
+        nestingReduce:
+          bodyWidth: 4  # SOP coding-style §1 强制规范表第 6 行：嵌套深度 ≤4 层
+    nolintlint:
+      require-explanation: true   # SOP coding-style §12 例外与豁免：lint:disable 必须附理由
+      require-specific: true      # 必须指定具体 linter 名
+    gosec:
+      excludes:
+        - G104  # errcheck 已覆盖，避免重复报告
+
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - std-error-handling
+    rules:
+      - path: _test\.go
+        linters:
+          - funlen   # SOP unittest §二 生成规范：测试函数 ≤160 行，golangci-lint 暂不支持 per-path 阈值，CI 脚本补充检查
+          - lll      # 测试数据行可能较长
+          - goconst  # 测试中重复常量合理
+      - path: "test/"
+        linters:
+          - errcheck
+          - lll
+      - linters:
+          - staticcheck
+        text: "SA6002: argument should be pointer-like to avoid allocations" # sync.pool.Put(buf), slice `var buf []byte` will tiger this
+      - linters:
+          - staticcheck
+        text: "SA5008: unknown JSON option"
+      - linters:
+          - lll
+        source: "^//go:generate " # Exclude lll issues for long lines with go:generate
+      - linters:
+          - revive
+        text: "JSON|ID|URL|DB|HTTP|VM|API"
+      - linters:
+          - govet
+        text: "shadow: declaration of \"err\" shadows"
+    paths:
+  #      - internal/types/types.go
+  #      - internal/handler/routes.go
+
+  enable:
+    - funlen
+    - gocyclo
+    - staticcheck
+    - revive
+    - govet
+    - lll
+    - rowserrcheck
+    - sqlclosecheck
+    - gocritic
+    - nolintlint     # SOP coding-style §12：确保 //nolint 附带理由
+    - gosec          # SOP coding-style §10 安全编码：安全检查
+    # - bodyclose https://github.com/timakin/bodyclose/issues 问题太多了，屏蔽都屏蔽不过来，显式不使用它
+
+formatters:
+  enable:
+    - gofmt
+    - goimports
+
+run:
+  timeout: 20m
+
+output:
+  sort-results: true
+  sort-order:
+    - file

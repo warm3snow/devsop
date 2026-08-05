@@ -1,0 +1,52 @@
+# {{Project name}}
+
+## Project Background and Business Goals
+
+{{Use 2-3 paragraphs to explain: why does this project exist? What business/technical problem does it solve? Who is it for?}}
+
+## Core Feature List
+
+- {{Feature 1: one-sentence value description}}
+- {{Feature 2}}
+- {{Feature 3}}
+
+## Upstream / Downstream Dependencies
+
+- Upstream (who calls it / source of entry traffic): {{service name + access method}}
+- Downstream (which services it depends on): {{database / middleware / third-party service list}}
+- Full call relationships: see [.harness/docs/relationship.md](.harness/docs/relationship.md)
+
+## Quick Start
+
+```bash
+# 1. Install dependencies
+{{dependency install command}}
+
+# 2. Start database / middleware
+{{docker-compose up -d or equivalent}}
+
+# 3. One-command run
+{{make dev or equivalent command}}
+```
+
+More details see [.harness/docs/devops/development.md](.harness/docs/devops/development.md).
+
+## Deployment Environment Requirements
+
+| Component | Version | Description |
+|------|------|------|
+| {{language runtime}} | {{version}} | {{special constraints}} |
+| {{database}} | {{version}} | |
+| {{cache/MQ}} | {{version}} | |
+
+## Notes
+
+- {{common pitfall 1}}
+- {{common pitfall 2}}
+- Historical issues and solutions see [.harness/docs/failures.md](.harness/docs/failures.md)
+
+## Collaboration and Contribution
+
+- AI collaboration standards: [AGENTS.md](AGENTS.md)
+- Code Review standards: [.harness/docs/code-review.md](.harness/docs/code-review.md)
+- Architecture docs: [.harness/docs/architecture.md](.harness/docs/architecture.md)

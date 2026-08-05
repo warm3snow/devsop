@@ -1,0 +1,174 @@
+{
+  "metadata": {
+    "project": "example-go-project",
+    "path": "/path/to/example/project",
+    "timestamp": "2026-06-26T11:30:00+08:00",
+    "version": "1.1.0",
+    "weight_scheme": "default",
+    "go_version": "1.24",
+    "go_files_total": 45,
+    "loc_non_test": 12500,
+    "test_coverage": "75.5%",
+    "tools": ["gocyclo", "gocognit", "golangci-lint", "scc", "go-tool-cover"]
+  },
+  "dimensions": {
+    "D1": {
+      "name": "正确性与可靠性",
+      "score": 85,
+      "weight": 0.25,
+      "evidence": {
+        "logic_correctness": 85,
+        "boundary_handling": 83,
+        "error_handling": 82,
+        "concurrency_safety": 88,
+        "notes": "主流程逻辑清晰；nil 检查充分；错误处理规范；并发访问受保护"
+      }
+    },
+    "D2": {
+      "name": "安全性",
+      "score": 90,
+      "weight": 0.20,
+      "evidence": {
+        "input_validation": 92,
+        "auth_authz": 88,
+        "secret_management": 95,
+        "dependency_cves": 85,
+        "notes": "无硬编码密钥；输入验证完整；gosec 无高风险；依赖安全"
+      }
+    },
+    "D3": {
+      "name": "可维护性",
+      "score": 78,
+      "weight": 0.20,
+      "evidence": {
+        "complexity": 82,
+        "duplication": 80,
+        "function_size": 76,
+        "naming": 85,
+        "comments": 75,
+        "maintainability_index": 74
+      },
+      "scale_complexity": {
+        "D3_base": 82,
+        "D3_scale_complexity": 68,
+        "D3_final": 78,
+        "sub_metrics": {
+          "avg_cyclomatic_complexity": 8.5,
+          "peak_cyclomatic_complexity": 22,
+          "cognitive_complexity": 10.2,
+          "source_lines_of_code": 12500,
+          "avg_function_length": 45,
+          "maintainability_index": 74
+        },
+        "notes": "函数复杂度分布均衡；2 个函数 CC>15；总体可维护性中上；无文件超过 800 行预警线"
+      }
+    },
+    "D4": {
+      "name": "测试有效性",
+      "score": 75,
+      "weight": 0.15,
+      "evidence": {
+        "coverage": 75,
+        "assertion_validity": 78,
+        "boundary_negative": 72,
+        "testability": 75,
+        "notes": "覆盖率 75.5%（接近优秀线 80%）；测试用例 320 个；边界测试覆盖基本"
+      }
+    },
+    "D5": {
+      "name": "架构与设计",
+      "score": 80,
+      "weight": 0.12,
+      "evidence": {
+        "layering_dependency": 82,
+        "coupling_cohesion": 78,
+        "interface_abstract": 80,
+        "extensibility": 78,
+        "notes": "分层清晰；依赖方向正确；接口定义合理；可扩展性良好"
+      }
+    },
+    "D6": {
+      "name": "性能效率",
+      "score": 75,
+      "weight": 0.08,
+      "evidence": {
+        "time_complexity": 78,
+        "space_complexity": 75,
+        "resource_usage": 72,
+        "overhead": 75,
+        "notes": "热点路径时间复杂度 O(n)；内存使用合理；无明显瓶颈"
+      }
+    }
+  },
+  "total_score": 80.5,
+  "grade": "B",
+  "red_lines": {
+    "triggered": [],
+    "description": [
+      "✓ 无硬编码密钥/Token",
+      "✓ 无 SQL 注入风险",
+      "✓ 无已知高危 CVE 依赖",
+      "✓ 无假测试充数",
+      "✓ 无关键路径静默吞错",
+      "✓ 无幻觉 API"
+    ]
+  },
+  "issues": [
+    {
+      "dimension": "D3",
+      "severity": "major",
+      "type": "complexity",
+      "file": "cmd/main.go",
+      "line": 45,
+      "code_snippet": "func processRequest(...) { /* 22 lines */ }",
+      "description": "函数圈复杂度过高（22）",
+      "suggestion": "拆分为多个小函数，每个函数 CC ≤ 10"
+    },
+    {
+      "dimension": "D4",
+      "severity": "minor",
+      "type": "coverage",
+      "file": "internal/handler.go",
+      "line": 0,
+      "code_snippet": "覆盖率 75.5%",
+      "description": "测试覆盖率低于 80% 优秀线",
+      "suggestion": "补充边界和错误路径测试，目标 ≥ 80%"
+    },
+    {
+      "dimension": "D1",
+      "severity": "minor",
+      "type": "format",
+      "file": "pkg/utils.go",
+      "line": 15,
+      "code_snippet": "x := calculateValue()",
+      "description": "无用变量赋值",
+      "suggestion": "使用空标识符 _ 或直接移除"
+    }
+  ],
+  "top_improvements": [
+    {
+      "priority": 1,
+      "dimension": "D3",
+      "action": "降低 cmd/main.go:45 processRequest 函数复杂度至 ≤15，拆分逻辑",
+      "impact": "高"
+    },
+    {
+      "priority": 2,
+      "dimension": "D4",
+      "action": "补充测试用例，覆盖率 75.5% → 80%+",
+      "impact": "高"
+    },
+    {
+      "priority": 3,
+      "dimension": "D3",
+      "action": "统一命名规范（导出/非导出函数一致性）",
+      "impact": "中"
+    }
+  ],
+  "summary": {
+    "total_issues": 3,
+    "critical": 0,
+    "major": 1,
+    "minor": 2
+  }
+}

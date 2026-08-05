@@ -1,0 +1,119 @@
+{
+  "name": "go-quality-scorer",
+  "title": "Go Code Quality Scorer",
+  "version": "1.1.0",
+  "release_date": "2026-06-26",
+  "description": "Go project code quality scoring system based on ISO/IEC 25010 and ISO/IEC 5055 CISQ. Six-dimension scoring framework, with D3 maintainability adding refined size and complexity assessment.",
+  "keywords": ["Go", "code-quality", "metrics", "maintainability", "complexity", "complexity-score"],
+  "author": "go-quality-scorer team",
+  "license": "MIT",
+  "repository": "https://github.com/example/go-quality-scorer",
+  "homepage": "https://github.com/example/go-quality-scorer",
+  "documentation": "./SKILL.md",
+  "changelog": [
+    {
+      "version": "1.1.0",
+      "date": "2026-06-26",
+      "changes": [
+        "✨ D3 maintainability dimension extended: 6 new size and complexity metrics",
+        "✨ New tool support: gocognit (cognitive complexity), scc (code size statistics)",
+        "✨ 3 new red-line rules (CC > 50, Avg CC > 25, SLOC > 2000)",
+        "🔄 D3 score fusion: D3_Final = Base(60%) + ScaleComplexity(40%)",
+        "📖 New detailed D3 guide and migration documentation",
+        "🔧 Performance optimization: collection and scoring algorithm improvements",
+        "📊 Output format upgrade: new D3_base and D3_scale_complexity fields"
+      ]
+    },
+    {
+      "version": "1.0.0",
+      "date": "2026-06-25",
+      "changes": [
+        "🎉 Initial release: six-dimension scoring framework (D1-D6)",
+        "📊 Full support: gocyclo, golangci-lint, go test, gosec and other tools",
+        "🔍 Issue detection: code format, complexity, security, coverage, etc.",
+        "📈 Grade rating: A/B/C/D/F five-level rating system"
+      ]
+    }
+  ],
+  "features": [
+    "✅ Six-dimension scoring framework (D1 correctness 25%, D2 security 20%, D3 maintainability 20%, D4 testing 15%, D5 architecture 12%, D6 performance 8%)",
+    "✅ D3 scale-complexity extension: 6 new metrics (Avg CC, Peak CC, Cognitive CC, SLOC, function length, MI)",
+    "✅ Veto red lines: 9 key rules (including 3 new rules)",
+    "✅ Automated collection: gocyclo, gocognit, scc, golangci-lint, go test, gosec, etc.",
+    "✅ JSON output: complete structured report, easy to integrate with CI/CD",
+    "✅ Grade rating: A/B/C/D/F five-level rating system"
+  ],
+  "requirements": {
+    "python": ">=3.7",
+    "go": ">=1.13",
+    "tools": [
+      "gocyclo (required)",
+      "golangci-lint (required)",
+      "go test (required)",
+      "gosec (required, for D2 security)",
+      "gocognit (recommended, for D3 extension)",
+      "scc (recommended, for D3 extension)"
+    ]
+  },
+  "file_structure": {
+    "root": {
+      "SKILL.md": "main document",
+      "README.md": "detailed guide",
+      "LICENSE": "MIT license",
+      "package.json": "this file"
+    },
+    "scripts": {
+      "go-quality-scorer-v1.1.py": "main scorer (fuses all dimensions)",
+      "collect-metrics.go": "Phase 1 metric collection (Go)",
+      "calculate-d3-score.py": "Phase 2 D3 score calculation (Python)"
+    },
+    "references": {
+      "D3-maintainability-scale-complexity.md": "D3 detailed metric guide",
+      "D1-correctness.md": "D1 correctness dimension guide (retained)",
+      "D2-security.md": "D2 security dimension guide (retained)",
+      "D4-testing.md": "D4 testing dimension guide (retained)",
+      "D5-architecture.md": "D5 architecture dimension guide (retained)",
+      "D6-performance.md": "D6 performance dimension guide (retained)"
+    },
+    "examples": {
+      "example-report-v1.1.json": "example JSON report",
+      "migration-guide.md": "v1.0 → v1.1 migration guide"
+    }
+  },
+  "quick_start": {
+    "step_1": "Install tools: brew install gocyclo golangci-lint scc && go install github.com/uudashr/gocognit/cmd/gocognit@latest && go install github.com/securego/gosec/v2/cmd/gosec@latest",
+    "step_2": "Run scoring: python3 scripts/go-quality-scorer-v1.1.py /path/to/go/project",
+    "step_3": "View report: cat go-quality-report-v1.1.json | jq"
+  },
+  "upgrade_from_v1_0": {
+    "breaking_changes": [
+      "D3 scoring algorithm changed (fuses Base + ScaleComplexity)",
+      "D3 average score drops by 3-8 points (stricter assessment)",
+      "New tool dependencies (gocognit, scc)",
+      "3 new red-line rules"
+    ],
+    "compatible": [
+      "D1-D2, D4-D6 dimension scoring algorithms unchanged",
+      "Overall scoring weights unchanged",
+      "JSON output format backward compatible (new fields added)"
+    ],
+    "migration_guide": "see examples/migration-guide.md"
+  },
+  "support": {
+    "documentation": "https://github.com/example/go-quality-scorer/wiki",
+    "issues": "https://github.com/example/go-quality-scorer/issues",
+    "discussions": "https://github.com/example/go-quality-scorer/discussions",
+    "email": "team@example.com"
+  },
+  "standards": [
+    "ISO/IEC 25010:2023 - software product quality",
+    "ISO/IEC 5055:2021 - code maintainability index",
+    "CISQ - software quality standards"
+  ],
+  "maintainers": [
+    {
+      "name": "go-quality-scorer team",
+      "email": "team@example.com"
+    }
+  ]
+}

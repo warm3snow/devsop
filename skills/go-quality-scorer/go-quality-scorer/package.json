@@ -1,0 +1,119 @@
+{
+  "name": "go-quality-scorer",
+  "title": "Go 代码质量评分器",
+  "version": "1.1.0",
+  "release_date": "2026-06-26",
+  "description": "基于 ISO/IEC 25010 和 ISO/IEC 5055 CISQ 的 Go 项目代码质量评分系统。六维度评分框架，D3 可维护性新增规模与复杂度精细化评估。",
+  "keywords": ["Go", "code-quality", "metrics", "maintainability", "complexity", "complexity-score"],
+  "author": "go-quality-scorer team",
+  "license": "MIT",
+  "repository": "https://github.com/example/go-quality-scorer",
+  "homepage": "https://github.com/example/go-quality-scorer",
+  "documentation": "./SKILL.md",
+  "changelog": [
+    {
+      "version": "1.1.0",
+      "date": "2026-06-26",
+      "changes": [
+        "✨ D3 可维护性维度扩展：新增 6 个规模与复杂度指标",
+        "✨ 新增工具支持：gocognit（认知复杂度）、scc（代码规模统计）",
+        "✨ 新增 3 条红线规则（CC > 50、Avg CC > 25、SLOC > 2000）",
+        "🔄 D3 评分融合：D3_Final = Base(60%) + ScaleComplexity(40%)",
+        "📖 新增 D3 详细指南和迁移文档",
+        "🔧 性能优化：采集和评分算法优化",
+        "📊 输出格式升级：新增 D3_base 和 D3_scale_complexity 字段"
+      ]
+    },
+    {
+      "version": "1.0.0",
+      "date": "2026-06-25",
+      "changes": [
+        "🎉 初始发布：六维度评分框架（D1-D6）",
+        "📊 完整支持：gocyclo、golangci-lint、go test、gosec 等工具",
+        "🔍 问题检测：代码格式、复杂度、安全、覆盖率等",
+        "📈 分级评级：A/B/C/D/F 五级评级系统"
+      ]
+    }
+  ],
+  "features": [
+    "✅ 六维度评分框架（D1 正确性 25%、D2 安全性 20%、D3 可维护性 20%、D4 测试 15%、D5 架构 12%、D6 性能 8%）",
+    "✅ D3 规模复杂度扩展：6 个新指标（Avg CC、Peak CC、Cognitive CC、SLOC、函数长度、MI）",
+    "✅ 一票否决红线：9 条关键规则（含 3 条新规则）",
+    "✅ 自动化采集：gocyclo、gocognit、scc、golangci-lint、go test、gosec 等",
+    "✅ JSON 输出：完整结构化报告，易集成 CI/CD",
+    "✅ 分级评级：A/B/C/D/F 五级评级系统"
+  ],
+  "requirements": {
+    "python": ">=3.7",
+    "go": ">=1.13",
+    "tools": [
+      "gocyclo (required)",
+      "golangci-lint (required)",
+      "go test (required)",
+      "gosec (required, for D2 security)",
+      "gocognit (recommended, for D3 extension)",
+      "scc (recommended, for D3 extension)"
+    ]
+  },
+  "file_structure": {
+    "root": {
+      "SKILL.md": "主文档",
+      "README.md": "详细指南",
+      "LICENSE": "MIT 许可证",
+      "package.json": "本文件"
+    },
+    "scripts": {
+      "go-quality-scorer-v1.1.py": "主评分器（融合所有维度）",
+      "collect-metrics.go": "Phase 1 指标采集（Go）",
+      "calculate-d3-score.py": "Phase 2 D3 评分计算（Python）"
+    },
+    "references": {
+      "D3-可维护性·规模复杂度.md": "D3 详细指标指南",
+      "D1-correctness.md": "D1 正确性维度指南（保留）",
+      "D2-security.md": "D2 安全性维度指南（保留）",
+      "D4-testing.md": "D4 测试维度指南（保留）",
+      "D5-architecture.md": "D5 架构维度指南（保留）",
+      "D6-performance.md": "D6 性能维度指南（保留）"
+    },
+    "examples": {
+      "example-report-v1.1.json": "示例 JSON 报告",
+      "migration-guide.md": "v1.0 → v1.1 迁移指南"
+    }
+  },
+  "quick_start": {
+    "step_1": "安装工具: brew install gocyclo golangci-lint scc && go install github.com/uudashr/gocognit/cmd/gocognit@latest && go install github.com/securego/gosec/v2/cmd/gosec@latest",
+    "step_2": "运行评分: python3 scripts/go-quality-scorer-v1.1.py /path/to/go/project",
+    "step_3": "查看报告: cat go-quality-report-v1.1.json | jq"
+  },
+  "upgrade_from_v1_0": {
+    "breaking_changes": [
+      "D3 评分算法改变（融合 Base + ScaleComplexity）",
+      "D3 平均分下降 3-8 分（更严格的评估）",
+      "新增工具依赖（gocognit、scc）",
+      "新增 3 条红线规则"
+    ],
+    "compatible": [
+      "D1-D2, D4-D6 维度评分算法不变",
+      "总体评分权重不变",
+      "JSON 输出格式向后兼容（新增字段）"
+    ],
+    "migration_guide": "参见 examples/migration-guide.md"
+  },
+  "support": {
+    "documentation": "https://github.com/example/go-quality-scorer/wiki",
+    "issues": "https://github.com/example/go-quality-scorer/issues",
+    "discussions": "https://github.com/example/go-quality-scorer/discussions",
+    "email": "team@example.com"
+  },
+  "standards": [
+    "ISO/IEC 25010:2023 - 软件产品质量",
+    "ISO/IEC 5055:2021 - 代码可维护性指数",
+    "CISQ - 软件质量标准"
+  ],
+  "maintainers": [
+    {
+      "name": "go-quality-scorer team",
+      "email": "team@example.com"
+    }
+  ]
+}

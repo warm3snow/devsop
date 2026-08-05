@@ -1,0 +1,174 @@
+{
+  "metadata": {
+    "project": "example-go-project",
+    "path": "/path/to/example/project",
+    "timestamp": "2026-06-26T11:30:00+08:00",
+    "version": "1.1.0",
+    "weight_scheme": "default",
+    "go_version": "1.24",
+    "go_files_total": 45,
+    "loc_non_test": 12500,
+    "test_coverage": "75.5%",
+    "tools": ["gocyclo", "gocognit", "golangci-lint", "scc", "go-tool-cover"]
+  },
+  "dimensions": {
+    "D1": {
+      "name": "Correctness & Reliability",
+      "score": 85,
+      "weight": 0.25,
+      "evidence": {
+        "logic_correctness": 85,
+        "boundary_handling": 83,
+        "error_handling": 82,
+        "concurrency_safety": 88,
+        "notes": "main flow logic is clear; nil checks are sufficient; error handling is standardized; concurrent access is protected"
+      }
+    },
+    "D2": {
+      "name": "Security",
+      "score": 90,
+      "weight": 0.20,
+      "evidence": {
+        "input_validation": 92,
+        "auth_authz": 88,
+        "secret_management": 95,
+        "dependency_cves": 85,
+        "notes": "no hardcoded secrets; complete input validation; no high-severity gosec findings; dependencies are safe"
+      }
+    },
+    "D3": {
+      "name": "Maintainability",
+      "score": 78,
+      "weight": 0.20,
+      "evidence": {
+        "complexity": 82,
+        "duplication": 80,
+        "function_size": 76,
+        "naming": 85,
+        "comments": 75,
+        "maintainability_index": 74
+      },
+      "scale_complexity": {
+        "D3_base": 82,
+        "D3_scale_complexity": 68,
+        "D3_final": 78,
+        "sub_metrics": {
+          "avg_cyclomatic_complexity": 8.5,
+          "peak_cyclomatic_complexity": 22,
+          "cognitive_complexity": 10.2,
+          "source_lines_of_code": 12500,
+          "avg_function_length": 45,
+          "maintainability_index": 74
+        },
+        "notes": "function complexity distribution is balanced; 2 functions have CC>15; overall maintainability is above average; no file exceeds the 800-line warning threshold"
+      }
+    },
+    "D4": {
+      "name": "Testing Effectiveness",
+      "score": 75,
+      "weight": 0.15,
+      "evidence": {
+        "coverage": 75,
+        "assertion_validity": 78,
+        "boundary_negative": 72,
+        "testability": 75,
+        "notes": "coverage 75.5% (close to the excellent threshold of 80%); 320 test cases; boundary test coverage is basic"
+      }
+    },
+    "D5": {
+      "name": "Architecture & Design",
+      "score": 80,
+      "weight": 0.12,
+      "evidence": {
+        "layering_dependency": 82,
+        "coupling_cohesion": 78,
+        "interface_abstract": 80,
+        "extensibility": 78,
+        "notes": "clear layering; correct dependency direction; reasonable interface definitions; good extensibility"
+      }
+    },
+    "D6": {
+      "name": "Performance Efficiency",
+      "score": 75,
+      "weight": 0.08,
+      "evidence": {
+        "time_complexity": 78,
+        "space_complexity": 75,
+        "resource_usage": 72,
+        "overhead": 75,
+        "notes": "hot path time complexity O(n); reasonable memory usage; no obvious bottlenecks"
+      }
+    }
+  },
+  "total_score": 80.5,
+  "grade": "B",
+  "red_lines": {
+    "triggered": [],
+    "description": [
+      "✓ No hardcoded secrets/Token",
+      "✓ No SQL injection risk",
+      "✓ No known high-severity CVE dependencies",
+      "✓ No fake tests inflating coverage",
+      "✓ No silently swallowed errors on critical paths",
+      "✓ No hallucinated APIs"
+    ]
+  },
+  "issues": [
+    {
+      "dimension": "D3",
+      "severity": "major",
+      "type": "complexity",
+      "file": "cmd/main.go",
+      "line": 45,
+      "code_snippet": "func processRequest(...) { /* 22 lines */ }",
+      "description": "function cyclomatic complexity too high (22)",
+      "suggestion": "split into multiple small functions, each function CC <= 10"
+    },
+    {
+      "dimension": "D4",
+      "severity": "minor",
+      "type": "coverage",
+      "file": "internal/handler.go",
+      "line": 0,
+      "code_snippet": "coverage 75.5%",
+      "description": "test coverage below the 80% excellent threshold",
+      "suggestion": "add boundary and error-path tests, target >= 80%"
+    },
+    {
+      "dimension": "D1",
+      "severity": "minor",
+      "type": "format",
+      "file": "pkg/utils.go",
+      "line": 15,
+      "code_snippet": "x := calculateValue()",
+      "description": "useless variable assignment",
+      "suggestion": "use the blank identifier _ or remove it directly"
+    }
+  ],
+  "top_improvements": [
+    {
+      "priority": 1,
+      "dimension": "D3",
+      "action": "reduce cmd/main.go:45 processRequest function complexity to <=15, split the logic",
+      "impact": "High"
+    },
+    {
+      "priority": 2,
+      "dimension": "D4",
+      "action": "add test cases, raise coverage 75.5% → 80%+",
+      "impact": "High"
+    },
+    {
+      "priority": 3,
+      "dimension": "D3",
+      "action": "unify naming conventions (consistency between exported/non-exported functions)",
+      "impact": "Medium"
+    }
+  ],
+  "summary": {
+    "total_issues": 3,
+    "critical": 0,
+    "major": 1,
+    "minor": 2
+  }
+}

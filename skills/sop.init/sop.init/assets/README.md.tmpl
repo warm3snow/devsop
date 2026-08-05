@@ -1,0 +1,52 @@
+# {{项目名}}
+
+## 项目背景与业务目标
+
+{{用 2-3 段说明：为什么有这个项目？解决什么业务/技术问题？面向谁？}}
+
+## 核心功能清单
+
+- {{功能 1：一句话价值描述}}
+- {{功能 2}}
+- {{功能 3}}
+
+## 上下游依赖
+
+- 上游（被谁调用 / 入口流量来源）：{{服务名 + 接入方式}}
+- 下游（依赖哪些服务）：{{数据库 / 中间件 / 第三方服务清单}}
+- 完整调用关系：见 [.harness/docs/relationship.md](.harness/docs/relationship.md)
+
+## 快速启动
+
+```bash
+# 1. 安装依赖
+{{依赖安装命令}}
+
+# 2. 启动数据库 / 中间件
+{{docker-compose up -d 或等效}}
+
+# 3. 一键运行
+{{make dev 或等效命令}}
+```
+
+更多细节见 [.harness/docs/devops/development.md](.harness/docs/devops/development.md)。
+
+## 部署环境要求
+
+| 组件 | 版本 | 说明 |
+|------|------|------|
+| {{语言运行时}} | {{版本}} | {{特殊约束}} |
+| {{数据库}} | {{版本}} | |
+| {{缓存/MQ}} | {{版本}} | |
+
+## 注意事项
+
+- {{常见踩坑点 1}}
+- {{常见踩坑点 2}}
+- 历史问题与解决方案见 [.harness/docs/failures.md](.harness/docs/failures.md)
+
+## 协作与贡献
+
+- AI 协作规范：[AGENTS.md](AGENTS.md)
+- 代码 Review 规范：[.harness/docs/code-review.md](.harness/docs/code-review.md)
+- 架构文档：[.harness/docs/architecture.md](.harness/docs/architecture.md)

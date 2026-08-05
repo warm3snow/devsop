@@ -1,0 +1,201 @@
+# Architecture Document
+
+> Maintainer: {{maintainer}} | Last updated: {{YYYY-MM-DD}}
+
+This document is for both humans and AI, describing the system structure, key decisions, and known technical debt. See the AI collaboration entry point [AGENTS.md](AGENTS.md).
+
+---
+
+## 1. System Positioning
+
+{{One sentence describing what problem this system solves and who it serves}}
+
+**Architecture pattern**: {{monolith / modular monolith / microservices / distributed monolith / Serverless}}
+
+---
+
+## 2. System Context
+
+```mermaid
+flowchart LR
+    User[{{user role}}] --> System[{{system name}}]
+    System --> ExtA[{{external system A}}]
+    System --> ExtB[{{external system B}}]
+    Admin[{{administrator}}] --> System
+```
+
+| External system / role | Interaction method | Data direction | Description |
+|-------------|---------|---------|------|
+| {{external system A}} | {{HTTP/gRPC/MQ}} | {{in/out/bidirectional}} | {{one-sentence description}} |
+| {{external system B}} | | | |
+
+---
+
+## 3. Service / Container Topology
+
+```mermaid
+graph TD
+    subgraph Gateway Layer
+        GW[{{API Gateway / BFF}}]
+    end
+    subgraph Business Services
+        SvcA[{{Service A}}<br/>{{cmd/svc-a}}]
+        SvcB[{{Service B}}<br/>{{cmd/svc-b}}]
+    end
+    subgraph Infrastructure
+        DB[({{database}})]
+        Cache[({{cache}})]
+        MQ{{{{message queue}}}}
+    end
+    GW -->|{{protocol}}| SvcA
+    GW -->|{{protocol}}| SvcB
+    SvcA --> DB
+    SvcA --> Cache
+    SvcB --> MQ
+```
+
+| Service / module | Code location | Responsibility | Communication method | Data ownership |
+|----------|---------|------|---------|-----------|
+| {{Service A}} | `{{cmd/svc-a}}` | {{core responsibility}} | {{gRPC/HTTP}} | {{owns tables X, Y}} |
+| {{Service B}} | `{{cmd/svc-b}}` | | | |
+| {{Module C}} | `{{internal/modulec}}` | | | |
+
+---
+
+## 4. Core Module Internal Structure
+
+```
+{{service name}}/
+├── cmd/             ← startup entry
+├── internal/
+│   ├── handler/     ← {{request handling layer: route binding, parameter validation}}
+│   ├── logic/       ← {{business logic layer: core algorithms, orchestration}}
+│   ├── svc/         ← {{dependency injection: ServiceContext}}
+│   ├── model/       ← {{data access layer: DB operations}}
+│   └── config/      ← {{config struct definitions}}
+├── pkg/             ← {{reusable common packages}}
+└── etc/             ← {{config files}}
+```
+
+**Inter-module dependency rules**: {{e.g. handler → logic → model one-way dependencies, reverse calls forbidden; cross-module communication must go through interfaces}}
+
+---
+
+## 5. Data Flow (core path)
+
+> The following traces the full request path of **{{core business scenario name}}**:
+
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant G as Gateway
+    participant S as {{core service}}
+    participant D as {{database}}
+    participant Q as {{MQ/external}}
+
+    C->>G: {{request description}}
+    G->>S: {{protocol + method}}
+    S->>D: {{DB operation}}
+    D-->>S: {{returned data}}
+    S->>Q: {{async notification (if any)}}
+    S-->>G: {{response}}
+    G-->>C: {{final response}}
+```
+
+**Key data structures**:
+- `{{core entity 1}}`: {{one-sentence definition + containing package}}
+- `{{core entity 2}}`: {{one-sentence definition + containing package}}
+
+---
+
+## 6. Service Communication
+
+| Caller | Callee | Protocol | Sync/Async | Key Interfaces |
+|--------|---------|------|----------|---------|
+| {{Service A}} | {{Service B}} | {{gRPC}} | Sync | `{{proto/xxx.proto: MethodName}}` |
+| {{Service B}} | {{MQ}} | {{Kafka}} | Async | `{{topic name}}` |
+
+**Communication conventions**:
+- {{e.g. all RPCs must set a timeout, must pass traceID, error codes go through a unified proto}}
+
+---
+
+## 7. Technology Selection Rationale
+
+| Selection | Alternatives | Reason for Choice | Constraints |
+|------|---------|---------|---------|
+| {{framework/library}} | {{alternatives A, B}} | {{Why: performance/ecosystem/team familiarity/business fit}} | {{e.g. team Go experience > Python}} |
+| {{database}} | | | |
+| {{message queue}} | | | |
+
+---
+
+## 8. Deployment Topology
+
+```mermaid
+graph TD
+    subgraph Prod
+        LB[Load Balancer] --> Pod1[{{Service A}} x{{replica count}}]
+        LB --> Pod2[{{Service B}} x{{replica count}}]
+        Pod1 --> DB_Master[(DB Master)]
+        DB_Master --> DB_Slave[(DB Slave)]
+    end
+```
+
+| Environment | Characteristics | Config Source |
+|------|------|---------|
+| dev | {{single instance/local docker-compose}} | `{{etc/xxx-dev.yaml}}` |
+| staging | {{same structure as prod/scaled-down}} | {{config center/environment variables}} |
+| prod | {{multiple replicas/multi-AZ}} | {{config center}} |
+
+---
+
+## 9. Cross-Cutting Concerns
+
+| Concern | Solution | Key File/Config |
+|--------|------|-------------|
+| Logging | {{e.g. zap + JSON format}} | `{{pkg/logger/}}` |
+| Tracing | {{e.g. OpenTelemetry / Jaeger}} | `{{middleware/trace.go}}` |
+| Authentication / authorization | {{e.g. JWT + RBAC}} | `{{internal/middleware/auth.go}}` |
+| Config management | {{e.g. etcd config center / local yaml}} | `{{etc/}}` |
+| Error handling | {{e.g. unified error codes + errorx package}} | `{{pkg/errorx/}}` |
+| Circuit breaking / degradation | {{e.g. built-in breaker / sentinel}} | `{{config location}}` |
+
+---
+
+## 10. Core Design Decisions
+
+| # | Decision | Why | Impact Scope | Date |
+|---|------|-----|---------|------|
+| 1 | {{decision description}} | {{driven by business constraints / technical constraints}} | {{affected modules/teams}} | {{YYYY-MM}} |
+| 2 | | | | |
+| 3 | | | | |
+
+---
+
+## 11. Invariants and Hard Constraints
+
+> No code change may **violate** the following rules:
+
+- {{e.g. all external APIs must be backward compatible; deleting fields is forbidden}}
+- {{e.g. cross-service calls must set a timeout ≤ 3s}}
+- {{e.g. database migrations must be rollbackable}}
+- {{e.g. direct DB operations in the handler layer are forbidden}}
+
+---
+
+## 12. Known Technical Debt
+
+| Severity | Debt Description | Evidence Location | Risk | Repayment Plan |
+|--------|---------|---------|------|---------|
+| 🔴 High | {{description}} | `{{file:line or TODO marker}}` | {{what happens if not handled}} | {{plan}} |
+| 🟡 Medium | {{description}} | | | |
+| 🟢 Low | {{description}} | | | |
+
+---
+
+## 13. Evolution Roadmap (optional)
+
+- **Near term** (1 month): {{plan}}
+- **Mid term** (1 quarter): {{planning}}
+- **Long term** (6 months+): {{direction}}

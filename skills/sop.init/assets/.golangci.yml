@@ -1,0 +1,107 @@
+version: "2"
+
+# Full documentation at https://golangci-lint.run/usage/configuration/
+linters:
+  settings:
+    funlen:
+      lines: 80       # SOP coding-style §1 mandatory standards table row 5: function length ≤80 lines
+      statements: 40
+    gocyclo:
+      min-complexity: 10  # SOP coding-style §1 mandatory standards table row 7: cyclomatic complexity ≤10
+    revive:
+      confidence: 0
+      rules:
+        - name: var-declaration
+        - name: dot-imports
+        - name: blank-imports
+        #- name: exported
+        - name: range
+        - name: errorf
+        - name: error-strings
+        - name: receiver-naming
+        - name: increment-decrement
+        - name: error-return
+        #- name: unexported-return
+        - name: time-naming
+    govet:
+      disable-all: true
+      enable:
+        - shadow
+    lll:
+      line-length: 120  # SOP coding-style §1 mandatory standards table row 3: line length ≤120 columns
+    errcheck:
+      check-type-assertions: true
+    gocritic:
+      disable-all: true
+      enabled-checks:
+        - nestingReduce
+      settings:
+        nestingReduce:
+          bodyWidth: 4  # SOP coding-style §1 mandatory standards table row 6: nesting depth ≤4 levels
+    nolintlint:
+      require-explanation: true   # SOP coding-style §12 exceptions and exemptions: lint:disable must include a reason
+      require-specific: true      # must specify the concrete linter name
+    gosec:
+      excludes:
+        - G104  # already covered by errcheck, avoid duplicate reports
+
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - std-error-handling
+    rules:
+      - path: _test\.go
+        linters:
+          - funlen   # SOP unittest §2 generation standards: test functions ≤160 lines; golangci-lint does not yet support per-path thresholds, CI scripts add supplemental checks
+          - lll      # test data lines may be long
+          - goconst  # repeated constants in tests are reasonable
+      - path: "test/"
+        linters:
+          - errcheck
+          - lll
+      - linters:
+          - staticcheck
+        text: "SA6002: argument should be pointer-like to avoid allocations" # sync.pool.Put(buf), slice `var buf []byte` will tiger this
+      - linters:
+          - staticcheck
+        text: "SA5008: unknown JSON option"
+      - linters:
+          - lll
+        source: "^//go:generate " # Exclude lll issues for long lines with go:generate
+      - linters:
+          - revive
+        text: "JSON|ID|URL|DB|HTTP|VM|API"
+      - linters:
+          - govet
+        text: "shadow: declaration of \"err\" shadows"
+    paths:
+  #      - internal/types/types.go
+  #      - internal/handler/routes.go
+
+  enable:
+    - funlen
+    - gocyclo
+    - staticcheck
+    - revive
+    - govet
+    - lll
+    - rowserrcheck
+    - sqlclosecheck
+    - gocritic
+    - nolintlint     # SOP coding-style §12: ensure //nolint includes a reason
+    - gosec          # SOP coding-style §10 secure coding: security checks
+    # - bodyclose https://github.com/timakin/bodyclose/issues too many issues, blocking them all is unmanageable, explicitly not using it
+
+formatters:
+  enable:
+    - gofmt
+    - goimports
+
+run:
+  timeout: 20m
+
+output:
+  sort-results: true
+  sort-order:
+    - file
