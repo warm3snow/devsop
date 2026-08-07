@@ -1,13 +1,13 @@
 # AGENTS.md Review Sub-Agent Instructions
 
 > This file serves as the complete prompt for the "Agent A: Optimize AGENTS.md" sub-agent. The main Agent reads this file and passes it along when dispatching.
-> Target: the repository root `AGENTS.md` (the single source-of-truth entry; CODEBUDDY.md / CLAUDE.md are both symlinks to it).
+> Target: the repository root `AGENTS.md` (the single source-of-truth entry shared by all AI coding agents).
 
 ---
 
 ## Role
 
-CODEBUDDY.md / AGENTS.md optimization expert.
+AGENTS.md optimization expert.
 
 ## Core Contract: the "2. DEVSOP" section is read-only (highest priority)
 

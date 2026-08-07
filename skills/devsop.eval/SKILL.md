@@ -153,7 +153,7 @@ Score the six pillars item by item. Record for each:
 | A2 | `README.md` contains project background/quick start/deployment requirements | 5 | model |
 | A3 | `.docs/architecture.md` contains architecture diagram/module boundaries/tech debt | 5 | model |
 | A4 | `.docs/` regulations library covers the core docs: `architecture.md`, `relationship.md`, `coding-style.md`, `code-review.md`, `glossary.md`, `failures.md`, `logging.md`, `unittest/unittest.md`, `integration_test/integration_test.md`; plus subdirectory docs `apis/index.md`, `sqls/README.md`, `devops/deployment.md`, `devops/development.md`, `devops/env.md`, `devops/test-env-deploy.md` (on demand; projects without APIs/DB may omit, see pillar A scoring standard §equivalent recognition). **Judgment emphasizes "content substance" rather than mere file existence** (placeholder templates count as missing, see pillar A scoring standard §placeholder recognition) | 5 | code |
-| A5 | Detect which AI-tool symlinks the project already has (CODEBUDDY.md / CLAUDE.md → AGENTS.md); at least 1 exists and is not gitignored; **the project is not required to add symlinks for unused AI tools** | 2 | code |
+| A5 | `AGENTS.md` exists at the repo root and is not gitignored (the generic AI collaboration entry shared by all agents) | 2 | code |
 | A6 | `make dev` or an equivalent one-command start command exists and runs | 3 | code |
 | A7 | Env config template (`.env.example` or equivalent) exists; new developers need not guess config | 2 | code |
 

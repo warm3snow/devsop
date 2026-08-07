@@ -142,46 +142,23 @@ echo "Required(non-skeleton): $req_ok/$req_total (skeleton: $skeleton)"
 
 ---
 
-### A5: Multi-tool symlinks checked in (2 points)
+### A5: Generic AI entry committed (AGENTS.md, 2 points)
 
-**DEVSOP basis**: §1.2 "abstract tool differences (symlink approach)"
+**DEVSOP basis**: AGENTS.md is the single generic AI collaboration entry shared by all AI coding agents (Claude Code / Codex / Cursor / CodeBuddy etc.); tool-specific entry symlinks (CODEBUDDY.md / CLAUDE.md) are optional and not required for scoring.
 
 **Code Grader**:
 ```bash
-# candidate symlink paths (only detect tools whose config dirs exist)
-# - CODEBUDDY.md: detect when the .codebuddy/ dir exists
-# - CLAUDE.md (repo root): detect when the .claude/ dir exists
-
-ok=0; total=0
-check_link() {
-  local dir="$1" link="$2"
-  [ -d "$dir" ] || return   # tool unused, skip
-  total=$((total+1))
-  if [ -L "$link" ] && [ "$(readlink "$link")" = "AGENTS.md" -o "$(readlink "$link")" = "../AGENTS.md" ]; then
-    ok=$((ok+1)); echo "OK $link"
-  else
-    echo "MISSING/WRONG $link"
-  fi
-}
-check_link ".codebuddy" "CODEBUDDY.md"
-check_link ".claude"    "CLAUDE.md"
-
-# if no tool dirs exist, at least check CODEBUDDY.md (the most common)
-if [ "$total" -eq 0 ]; then
-  total=1
-  [ -L "CODEBUDDY.md" ] && ok=1
-fi
+# AGENTS.md exists at the repo root (regular file or symlink)
+[ -e "AGENTS.md" ] && echo "OK AGENTS.md" || echo "MISSING AGENTS.md"
 
 # check key files are not gitignored
 grep -E "AGENTS\.md|ARCHITECTURE\.md|\.docs/" .gitignore 2>/dev/null && echo "FAIL: key files are gitignored"
 ```
 
-**Judgment** (score only the AI tools the project actually uses; do not require creating symlinks for unused tools):
-- ✅ PASS: all symlinks for used tools are correct + key files not ignored
-- ⚠️ PARTIAL: 1 symlink for a used tool is missing/wrong, or the symlinks are correct but .gitignore includes key files
-- ❌ FAIL: ≥2 symlinks for used tools missing, or AGENTS.md is ignored
-
-> **Important**: do not suggest the project add symlinks for AI tools it does not use (e.g. if the team does not use Claude Code, do not suggest creating CLAUDE.md). Only give improvement suggestions for the case where "the tool dir exists but the symlink is missing".
+**Judgment**:
+- ✅ PASS: `AGENTS.md` exists at the repo root and key files are not gitignored
+- ⚠️ PARTIAL: `AGENTS.md` exists but `.gitignore` includes key files
+- ❌ FAIL: `AGENTS.md` is missing or ignored
 
 ---
 

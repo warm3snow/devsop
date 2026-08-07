@@ -64,16 +64,12 @@ echo "commits_60d: $(git log --since='60 days ago' --oneline -- .docs/ 2>/dev/nu
 echo "commits_90d_failures: $(git log --since='90 days ago' --oneline -- .docs/failures.md 2>/dev/null | wc -l | tr -d ' ')"
 
 echo ""
-echo "=== SYMLINKS ==="
-for link in CODEBUDDY.md CLAUDE.md; do
-  if [ -L "$link" ]; then
-    echo "SYMLINK $link -> $(readlink "$link")"
-  elif [ -f "$link" ]; then
-    echo "FILE_NOT_LINK $link"
-  else
-    echo "MISSING $link"
-  fi
-done
+echo "=== AGENTS_ENTRY ==="
+if [ -L "AGENTS.md" ] || [ -f "AGENTS.md" ]; then
+  echo "AGENTS.md present"
+else
+  echo "AGENTS.md missing"
+fi
 
 echo ""
 echo "=== SKILLS ==="

@@ -1,6 +1,6 @@
 # devsop.init · Usage guide
 
-> **In one sentence**: lays down a `.docs/` DEVSOP skeleton + an `AGENTS.md` AI entry point (the single source of truth, with CODEBUDDY.md / CLAUDE.md as its symlinks) for any code project in one go, turning the 9-stage process of "requirement → clarify → plan → implement → unit test → deploy → integration test → docs → review → commit" into an artifact structure that an AI Agent can continuously drive forward.
+> **In one sentence**: lays down a `.docs/` DEVSOP skeleton + an `AGENTS.md` AI entry point (the single source of truth shared by all AI coding agents) for any code project in one go, turning the 9-stage process of "requirement → clarify → plan → implement → unit test → deploy → integration test → docs → review → commit" into an artifact structure that an AI Agent can continuously drive forward.
 
 ---
 
@@ -8,7 +8,7 @@
 
 | Pain point | devsop.init's response |
 |------------|---------------------|
-| AI collaboration has to re-align project conventions every time; the process is unstable | Generate `AGENTS.md` at the repository root as the **single source of truth entry point** (CODEBUDDY.md / CLAUDE.md are both its symlinks), with all conventions / DEVSOP / red lines written out explicitly |
+| AI collaboration has to re-align project conventions every time; the process is unstable | Generate `AGENTS.md` at the repository root as the **single source of truth entry point** shared by all AI coding agents, with all conventions / DEVSOP / red lines written out explicitly |
 | Multi-person parallel development; global task overview files conflict | **No longer generate** a global `plan.md`; each task carries its own `00-overview.md` as the single source of truth |
 | Requirements get done with no docs left behind, and everything has to be re-explained next time | Each of the 9 stages has a fixed artifact file (`0N-<step>.md`); the task leaves a trail as soon as it ends |
 | Unit/integration test conventions scattered everywhere | `.docs/unittest/` + `.docs/integration_test/` standard three-part format (environment / test cases / run & debug) |
@@ -35,8 +35,8 @@ After running, these artifacts appear in the repo (existing files are not overwr
 ```
 <repo_root>/
 ├── AGENTS.md                    # AI collaboration single source of truth entry (four sections: quick index / DEVSOP / development conventions / forbidden red lines)
-├── CODEBUDDY.md                 # symlink → AGENTS.md (recognized by CodeBuddy)
-├── CLAUDE.md                    # symlink → AGENTS.md (recognized by Claude Code)
+├── CODEBUDDY.md                 # optional: symlink → AGENTS.md (only with --with-agent-links, for CodeBuddy)
+├── CLAUDE.md                    # optional: symlink → AGENTS.md (only with --with-agent-links, for Claude Code)
 ├── .codebuddy/
 │   └── skills/clarify/          # dialogue protocol skill supporting Stage 01 (auto-installed)
 ├── scripts/                     # copies of Git Hook scripts (pre-commit / pre-push / commit-msg)
@@ -91,7 +91,7 @@ Script key points:
 - `--has-api=false` / `--has-db=false` only affect gap-filling copies (skipping `.docs/apis/` / `.docs/sqls/`); they **do not delete** existing files; flag values are usually determined by the AI via detection per `references/special-agent-detect.md`.
 - **All files** under `plans/_template/` follow the "overwrite directly if different" strategy, ensuring newly created tasks get the latest template structure after a skill upgrade; already-created task directories (`plans/<task>/`) are never touched.
 - `AGENTS.md` already exists → **divide and conquer by section**: only force-refresh the "2. DEVSOP" section (the core DEVSOP contract), keeping "1. Quick index", "3. Development conventions", and "4. Forbidden red lines" unchanged and undeleted; update only when section two actually differs (Git-managed, no backup needed).
-- `CODEBUDDY.md` / `CLAUDE.md` already symlinks → rebuild directly; real files → delete then rebuild as symlinks (dual-agent entry, recoverable via Git).
+- `AGENTS.md` is the single generic AI entry; `CODEBUDDY.md` / `CLAUDE.md` symlinks are created only with `--with-agent-links` (existing symlinks rebuilt directly; real files deleted then rebuilt, recoverable via Git).
 - `.docs/devops/test-env-deploy.md` is divided by section: the skill-managed region is force-refreshed, the `## Project-specific` section is preserved.
 - Go projects (where `go.mod` exists) automatically copy `.golangci.yml` to the repo root (skipped if it already exists).
 - Install Git Hooks idempotently via `setup_hooks.sh`: first copy the 3 hook scripts to the target repo's `scripts/` (skipped if they exist), then create symlinks under `.git/hooks/` pointing to `../../scripts/<script>` (pre-commit / pre-push / commit-msg).
@@ -217,7 +217,7 @@ skills/devsop.init/
 └── assets/                      # copied into the target repo for use; AI does not load into context
     ├── docs-skeleton/        # `.docs/` skeleton (review.md + 20 doc files at the top level + plans/)
     ├── plans-template/          # 10-file task template
-    ├── agents.md.tmpl           # AGENTS.md template (four sections; CODEBUDDY.md/CLAUDE.md are both its symlinks)
+    ├── agents.md.tmpl           # AGENTS.md template (four sections; tool-specific entry symlinks optional)
     ├── ARCHITECTURE.md.tmpl     # project architecture doc template (13 sections)
     ├── README.md.tmpl           # project README template (manually copied on demand, not auto-generated)
     ├── clarify-skill/           # clarify skill template supporting Stage 01

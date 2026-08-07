@@ -68,7 +68,7 @@ python3 $SKILL_DIR/scripts/review_secret_leak.py extract \
     /path/to/repo all all [--path=subdir] [--out=diff.txt]
 #   Equivalent: ALL / * (case-insensitive)
 
-# Step B: the caller (CodeBuddy) dispatches a sub-agent
+# Step B: the caller (an AI coding agent) dispatches a sub-agent
 #   Read $SKILL_DIR/references/secret-leak-review-prompt.md as the sub-agent instructions,
 #   inject the diff text from the previous step; the sub-agent returns findings JSON (not written to disk).
 #   Use the Agent tool, run_in_background=true, constraints: read-only, no git writes, no file writes.

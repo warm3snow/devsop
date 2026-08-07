@@ -2,17 +2,19 @@
 # init_docs.sh —— DEVSOP initialization / upgrade script (idempotent).
 #
 # Usage:
-#   bash init_docs.sh [repo_root] [--has-api=true|false] [--has-db=true|false]
+#   bash init_docs.sh [repo_root] [--has-api=true|false] [--has-db=true|false] [--with-agent-links]
 #
 #   --has-api   when false, skips copying the skeleton apis/ (default true, backward compatible)
 #   --has-db    when false, skips copying the skeleton sqls/ (default true, backward compatible)
 #   The two flags only affect the "gap-filling copy" phase; existing apis//sqls/ files in the target project are always kept, never deleted.
+#   --with-agent-links   additionally create CODEBUDDY.md / CLAUDE.md symlinks → AGENTS.md
+#                        (default: AGENTS.md is the only generic AI entry)
 #
 # Features (shared by new-project init and old-project upgrade):
 #   1. Gap-fill: copy the Skill's `.docs/` skeleton and `plans/_template` into the target repo (existing files are not overwritten)
 #   2. Refresh contractual files: 00-overview / 05-deploy / 06-it / test-env-deploy (overwrite directly when different)
-#   3. Smart merge of CODEBUDDY.md: refresh chapters 1-2 (skill-controlled), keep chapters 3-4 (project-custom)
-#   4. Ensure CODEBUDDY.md / CLAUDE.md symlinks → AGENTS.md (dual agent entry: CodeBuddy + Claude Code)
+#   3. Smart merge of AGENTS.md: refresh §2 (DEVSOP) only, keep §1 / §3 / §4 (project-custom)
+#   4. AGENTS.md is the single generic AI entry; CODEBUDDY.md / CLAUDE.md symlinks are optional (only with --with-agent-links)
 #   5. Install the clarify skill to .codebuddy/skills/clarify/ (skip if it exists)
 
 set -euo pipefail
@@ -24,12 +26,14 @@ set -euo pipefail
 REPO_ROOT=""
 HAS_API=true
 HAS_DB=true
+WITH_AGENT_LINKS=false
 for arg in "$@"; do
     case "$arg" in
         --has-api=*) HAS_API="${arg#--has-api=}" ;;
         --has-db=*)  HAS_DB="${arg#--has-db=}" ;;
+        --with-agent-links) WITH_AGENT_LINKS=true ;;
         --*)
-            echo "[ERROR] Unknown argument: $arg (only --has-api= / --has-db= are supported)" >&2
+            echo "[ERROR] Unknown argument: $arg (only --has-api= / --has-db= / --with-agent-links are supported)" >&2
             exit 2
             ;;
         *)
@@ -161,7 +165,7 @@ done
 # This file contains the env-management CLI tool readiness checks + install guidance,
 # plus the team env-management Skill / team test-tool Skill usage instructions; it is part of the toolchain conventions.
 #
-# Update strategy (consistent with CODEBUDDY.md):
+# Update strategy (consistent with the AGENTS.md chapter-divided merge):
 #   - use "## Project Customization" as the divider:
 #     skill-controlled area (start ~ before "## Project Customization") → force-refresh to the latest
 #     project-custom area ("## Project Customization" and after ~ end of file) → keep as-is, no change/no delete
@@ -283,11 +287,13 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# Repo-root AI entry docs: AGENTS.md (single source of truth) + CODEBUDDY.md / CLAUDE.md dual symlinks
+# Repo-root AI entry: AGENTS.md (single source of truth, generic across all AI agents)
 #
-# Goal: give CodeBuddy / Claude Code / Codex CLI / Cursor and other agents a unified entry.
+# Goal: give all AI coding agents a unified entry via AGENTS.md (Claude Code / Codex /
+# Cursor / CodeBuddy etc. all support reading AGENTS.md). Agent-specific entry files
+# (CODEBUDDY.md / CLAUDE.md) are NOT created by default; pass --with-agent-links to
+# create them as symlinks for tool-specific compatibility.
 # Generated from the template $SKILL_DIR/assets/agents.md.tmpl, replacing only {{PROJECT_NAME}}.
-# AGENTS.md is the single source of truth; CODEBUDDY.md / CLAUDE.md are both symlinks to AGENTS.md.
 #
 # Update strategy (chapter-divided):
 #   - AGENTS.md does not exist  → generate fully from the template
@@ -296,8 +302,8 @@ fi
 #       segment B (§2 DEVSOP)                    → force-refresh to the latest template version (core DEVSOP contract)
 #       segment C (§3 dev guidelines + §4 forbidden red lines) → keep existing (project-custom; no change/no delete)
 #     update only when segment B differs.
-#   - CODEBUDDY.md / CLAUDE.md if symlinks    → delete and rebuild directly
-#   - CODEBUDDY.md / CLAUDE.md if real files  → delete then rebuild as symlinks
+#   - (with --with-agent-links) CODEBUDDY.md / CLAUDE.md if symlinks → delete and rebuild directly;
+#     if real files → delete then rebuild as symlinks
 # ---------------------------------------------------------------------------
 AGENTS_TMPL="$SKILL_DIR/assets/agents.md.tmpl"
 AGENTS_MD="$REPO_ROOT/AGENTS.md"
@@ -363,7 +369,9 @@ else
     fi
 fi
 
-# CODEBUDDY.md / CLAUDE.md: always rebuild as symlinks to AGENTS.md, ensuring consistent multi-agent entries.
+# CODEBUDDY.md / CLAUDE.md: optional agent-specific entry symlinks → AGENTS.md.
+# Only created when --with-agent-links is passed; AGENTS.md alone is the generic
+# entry shared by all AI coding agents.
 #   - CODEBUDDY.md → recognized by CodeBuddy
 #   - CLAUDE.md    → recognized by Claude Code
 ensure_ai_agent_symlink() {
@@ -382,9 +390,13 @@ ensure_ai_agent_symlink() {
     echo "[OK] $link_name → AGENTS.md symlink ready"
 }
 
-for AGENT_LINK in CODEBUDDY.md CLAUDE.md; do
-    ensure_ai_agent_symlink "$AGENT_LINK"
-done
+if [[ "$WITH_AGENT_LINKS" == "true" ]]; then
+    for AGENT_LINK in CODEBUDDY.md CLAUDE.md; do
+        ensure_ai_agent_symlink "$AGENT_LINK"
+    done
+else
+    echo "[OK] AGENTS.md is the single generic AI entry (pass --with-agent-links to create CODEBUDDY.md / CLAUDE.md symlinks)"
+fi
 
 echo ""
 echo "═══════════════════════════════════════════════════════════════"
@@ -396,7 +408,7 @@ if [[ $IS_UPGRADE -eq 1 ]]; then
     echo "    • Contractual templates (00-overview / 05-deploy / 06-it) → overwritten directly when different"
     echo "    • test-env-deploy.md → chapter-divided: skill-controlled area refreshed, \"## Project Customization\" kept"
     echo "    • AGENTS.md → only chapter 2 (DEVSOP) refreshed; chapters 1/3/4 kept (see [REFRESH] or [SKIP] above)"
-    echo "    • CODEBUDDY.md / CLAUDE.md → symlinks to AGENTS.md ensured (dual agent entry)"
+    echo "    • AGENTS.md → single generic AI entry ensured (CODEBUDDY.md / CLAUDE.md symlinks optional via --with-agent-links)"
     echo "    • clarify skill → installed if missing"
 else
     echo "  ✅ DEVSOP initialization complete"

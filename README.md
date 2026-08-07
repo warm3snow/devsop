@@ -2,16 +2,16 @@
 
 ## Project Background and Business Goals
 
-This repository is the team R&D DEVSOP (Standard Operating Procedures) **CodeBuddy Skills library**, not a business application. It accumulates and distributes reusable AI collaboration conventions and quality-assessment capabilities for installation and use by business projects, with the goal of keeping the AI entry and R&D conventions consistent across multiple tools (CodeBuddy / Claude Code / Cursor / Gemini, etc.) and multi-person collaboration.
+This repository is the team R&D DEVSOP (Standard Operating Procedures) **AI Skills library**, not a business application. It accumulates and distributes reusable AI collaboration conventions and quality-assessment capabilities for use by business projects, with the goal of keeping the AI entry and R&D conventions consistent across AI coding agents (CodeBuddy / Claude Code / Cursor / Codex / Gemini, etc.) and multi-person collaboration.
 
 Problems it solves:
-- Scattered, duplicated AI entry files → unified as a single source of truth in `AGENTS.md` + symlinks to abstract tool differences.
+- Scattered, duplicated AI entry files → unified as a single source of truth in `AGENTS.md` (the generic entry shared by all AI agents).
 - Projects lacking AI-friendly structure, quality gates, and change flows → one-command scaffolding with `devsop.init`, quantified maturity with `devsop.eval`.
 - No unified quantitative standard for Go project code quality → `go-quality-scorer` provides six-dimension scoring.
 
 ## Core Feature List
 
-- **`devsop.init`**: one-command creation of the DEVSOP directory structure in the target project (`AGENTS.md` / `README.md` / `ARCHITECTURE.md` / `.docs/` regulations library + Git Hooks + symlinks).
+- **`devsop.init`**: one-command creation of the DEVSOP directory structure in the target project (`AGENTS.md` / `README.md` / `.docs/` regulations library + Git Hooks; optional tool-specific entry symlinks via `--with-agent-links`).
 - **`devsop.eval`**: read-only DEVSOP compliance audit of the target project (six pillars, 28 Eval items, anti-pattern detection), producing `.docs/devsop_report.md`.
 - **`go-quality-scorer`**: six-dimension code-quality scoring of Go projects (correctness / security / maintainability & scale-complexity / testing / architecture / performance), outputting a JSON report.
 
@@ -42,7 +42,7 @@ Also under `skills/`:
 
 ## Installation and Invocation
 
-Skills are discovered and invoked by CodeBuddy in the target project by the `skills/<name>` path. This repository itself needs no build or running service.
+Skills are discovered and invoked by the AI coding agent in the target project by the `skills/<name>` path. This repository itself needs no build or running service.
 
 Entry-point invocation of each Skill (run at the target project root):
 
@@ -68,4 +68,4 @@ cat go-quality-report-v1.1.json | jq '.overall_score, .rating'
 - **`$SKILL_DIR` and `$REPO_ROOT` are strictly separated**: Skills only read the install directory and write only to the target project directory; never write to this repository or `$HOME`.
 - **No auto-commit**: `devsop.init` / `devsop.eval` do not run `git add` / `git commit`; changes are left for the user to review.
 - **Tool-agnostic audit**: the DEVSOP audit does not mandate a specific CI / issue-tracker / dependency-management stack. It evaluates whether the project consistently uses its team-designated tools (any of Jenkins, GitHub Actions, GitLab CI, TAPD, GitHub Issues, Jira, Renovate, Dependabot, etc.), and the commit-message ticket reference convention is configurable (default `--story=<id>` / `--bug=<id>`, GitHub-style `#<id>` also accepted).
-- The AI collaboration entry for this repository is [CODEBUDDY.md](CODEBUDDY.md).
+- The AI collaboration entry for this repository is [AGENTS.md](AGENTS.md).

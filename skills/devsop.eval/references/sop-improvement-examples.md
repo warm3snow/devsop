@@ -51,12 +51,13 @@ This document provides `devsop.eval` with a lookup library for "FAIL/PARTIAL →
 
 ### A5 Symlinks missing or gitignored
 
-> **Principle**: only add symlinks for AI tools the project **actually uses**. The judgment basis is whether the tool's config dir (`.codebuddy/`, `.claude/`) already exists in the repo. **Forbidden**: suggesting the project add symlinks for unused tools (e.g. do not create `.claude/` if the team does not use Claude Code).
+> **Principle**: `AGENTS.md` at the repo root is the generic AI collaboration entry shared by all AI coding agents; tool-specific entry symlinks (CODEBUDDY.md / CLAUDE.md) are **optional** — only suggest them for tools the team **actually uses** (judge by whether the tool's config dir exists in the repo, e.g. `.codebuddy/`, `.claude/`). **Forbidden**: suggesting the project add symlinks for unused tools.
 
 | Current state | Improvement action |
 |---------------|--------------------|
-| `.codebuddy/` exists but `CODEBUDDY.md` missing | `ln -sf AGENTS.md CODEBUDDY.md` |
-| `.claude/` exists but the root `CLAUDE.md` missing | `ln -s AGENTS.md CLAUDE.md` |
+| `AGENTS.md` missing | Generate it via `devsop.init` (the single generic AI entry) |
+| `.codebuddy/` exists but `CODEBUDDY.md` missing (team uses CodeBuddy) | `ln -sf AGENTS.md CODEBUDDY.md` |
+| `.claude/` exists but the root `CLAUDE.md` missing (team uses Claude Code) | `ln -s AGENTS.md CLAUDE.md` |
 | The symlink is a regular file rather than a symbolic link | Back up the original then rebuild: `mv CODEBUDDY.md CODEBUDDY.md.bak && ln -sf AGENTS.md CODEBUDDY.md` |
 | Key files gitignored | Remove the `AGENTS.md` / `.docs/` entries from .gitignore |
 

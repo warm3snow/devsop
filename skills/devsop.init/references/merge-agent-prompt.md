@@ -1,6 +1,6 @@
 # Normalization merge sub-agent prompt
 
-> This file is read by the main agent during the "pre-check / environment probing" stage when it detects multiple scattered plain-file AI entry points at the repository root (`CODEBUDDY.md` / `CLAUDE.md` that are not symlinks); it serves as the complete instruction set for the merge sub-agent.
+> This file is read by the main agent during the "pre-check / environment probing" stage when it detects multiple scattered plain-file AI entry points at the repository root (e.g. `CODEBUDDY.md` / `CLAUDE.md` that are not symlinks); it serves as the complete instruction set for the merge sub-agent.
 
 ---
 
@@ -50,7 +50,7 @@ After merging, scan once more and force-mark any still-conflicting rules as TODO
 
 ### 6. Delete the original entry files
 
-Directly `rm` each merged plain file (other than `AGENTS.md` itself) (paths relative to `$REPO_ROOT`; **strictly forbidden** to touch any file inside `$SKILL_DIR`). `init_docs.sh` will subsequently rebuild `CODEBUDDY.md` / `CLAUDE.md` → `AGENTS.md` as symlinks (see the `ensure_ai_agent_symlink` function in `init_docs.sh`).
+Directly `rm` each merged plain file (other than `AGENTS.md` itself) (paths relative to `$REPO_ROOT`; **strictly forbidden** to touch any file inside `$SKILL_DIR`). `AGENTS.md` is the single generic AI entry; `init_docs.sh` only recreates `CODEBUDDY.md` / `CLAUDE.md` symlinks when invoked with `--with-agent-links`.
 
 > Git history is a more reliable fallback; no `.bak` backup is needed. If the user has not yet committed the previous entry files, they can be recovered via `git stash` / `git restore`.
 

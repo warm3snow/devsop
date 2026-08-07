@@ -32,7 +32,7 @@ When clarify starts, **first locate the `01-clarify.md` in the current DEVSOP ta
 
 > ⚠️ This project does **not** maintain a global `.docs/plan.md` — task discovery relies entirely on the `plans/` directory + each `00-overview.md`.
 
-If any of the following occurs, **do not** create a task directory yourself; instead **prompt the user** to first establish the task directory per the "DEVSOP startup prerequisites: branch and task determination" flow in `CODEBUDDY.md` (including filling the Meta `branch` field of `00-overview.md`), then restart clarify:
+If any of the following occurs, **do not** create a task directory yourself; instead **prompt the user** to first establish the task directory per the "DEVSOP startup prerequisites: branch and task determination" flow in `AGENTS.md` (including filling the Meta `branch` field of `00-overview.md`), then restart clarify:
 - currently on `master` or another non-`feature/` branch
 - the `feature/xxx` branch matches no Meta in any `00-overview.md`
 - no matching task directory can be found

@@ -1,6 +1,6 @@
 # devsop — Team R&D DEVSOP Skills Library
 
-> This file is the **single source of truth** for AI collaboration (AGENTS.md). CODEBUDDY.md / CLAUDE.md are symlinks pointing to this file, so all AI tools read the same content through the symlinks.
+> This file is the **single source of truth** for AI collaboration (AGENTS.md), the generic entry shared by all AI coding agents. Tool-specific entry files (CODEBUDDY.md / CLAUDE.md) can be symlinked to this file if your agent requires them.
 > This file is only an index + recovery protocol + project-specific red lines. The DEVSOP conventions themselves are provided by the skills in this repository.
 
 ---
@@ -10,7 +10,7 @@
 | Topic | Location |
 |-------|----------|
 | Project background, features, installation | `README.md` |
-| AI collaboration entry | `AGENTS.md` (this file; `CODEBUDDY.md` / `CLAUDE.md` are symlinks) |
+| AI collaboration entry | `AGENTS.md` (this file; the generic entry shared by all AI coding agents) |
 | DEVSOP scaffolding skill (create `.docs/` skeleton in target projects) | `skills/devsop.init/SKILL.md` |
 | DEVSOP maturity audit skill | `skills/devsop.eval/SKILL.md` |
 | Go code quality scoring skill | `skills/go-quality-scorer/SKILL.md` |

@@ -97,7 +97,7 @@ description: DEVSOP initialization
 1. **Project type detection**: detect whether it is a library project in priority order Go → Rust → Java (no `package main` / `[[bin]]` / main class).
 2. **Framework identification**: detect the core framework (Go: go-zero✓/gin△/kratos△ etc.), recording `$FRAMEWORK`. If `$FRAMEWORK` matches `references/framework-<name>.md`, the main Agent automatically loads the corresponding sections of that file as extra requirements when dispatching the relevant sub-agents (coding-style / api-standards / unittest / development) (see "Attached resources / references").
 3. **Maintainer inference**: use `git shortlog -sne --since="6 months ago" HEAD` to get the top committer of the last six months.
-4. **AI entry four-state scan**: detect the state of `AGENTS.md` / `CODEBUDDY.md` / `CLAUDE.md` (missing / regular file / correct symlink / wrong symlink).
+4. **AI entry scan**: check whether `AGENTS.md` exists at the repo root (AGENTS.md is the generic entry shared by all AI coding agents; tool-specific entries like CODEBUDDY.md / CLAUDE.md are optional).
 
 **Library project differentiated handling**: when `project.type == library` is detected:
 - Skip creating `api-standards.md` / `database.md` / `deployment.md` (a library project has no standalone API/DB/deployment).
@@ -132,9 +132,8 @@ description: DEVSOP initialization
 2. The script additionally handles repo-root entry points, Git Hooks, Lint configuration, and companion skills:
    - Generate `AGENTS.md` from `assets/agents.md.tmpl` (**the single source-of-truth entry**), containing four chapters (I. Quick Index / II. DEVSOP / III. Development Guidelines / IV. Forbidden Red Lines).
      - **If `AGENTS.md` already exists**: divide and conquer by chapter — only forcibly refresh the "II. DEVSOP" chapter (the core DEVSOP contract), keep "I. Quick Index", "III. Development Guidelines", "IV. Forbidden Red Lines" unchanged and undeleted (project-custom content); only update when chapter 2 differs (Git-managed, no backup needed).
-  - Create symlinks from `CODEBUDDY.md` → `AGENTS.md` (for CodeBuddy compatibility).
-  - Create symlinks from `CLAUDE.md` → `AGENTS.md` (for Claude Code compatibility).
-    - **If it is already a symlink**: rebuild it directly; **if it is a regular file**: delete it then rebuild as a symlink (recoverable via Git).
+  - `AGENTS.md` is the **single generic AI entry** shared by all AI coding agents (Claude Code / Codex / Cursor / CodeBuddy etc. all support reading it); no tool-specific entry files are created by default.
+    - (Optional) pass `--with-agent-links` to additionally create `CODEBUDDY.md` → `AGENTS.md` / `CLAUDE.md` → `AGENTS.md` symlinks for tool-specific compatibility (a symlink or regular file is rebuilt as a symlink; recoverable via Git).
    - Install Git Hooks: idempotently install symlinks for the three hooks pre-commit / pre-push / commit-msg into `.git/hooks/` via `scripts/setup_hooks.sh`.
    - Inject Lint config: for Go projects (`go.mod` present), automatically copy `assets/.golangci.yml` to the repo root (skip if it already exists).
    - Install the `clarify` skill into the target repo's `.codebuddy/skills/clarify/` (skip if it already exists).
@@ -147,7 +146,7 @@ description: DEVSOP initialization
 
    **Agent A: optimize AGENTS.md**
 
-   Role: CODEBUDDY.md/AGENTS.md optimization expert. Full prompt in `$SKILL_DIR/references/special-agent-agents.md`: optimize AGENTS.md into an AI entry file following the progressive-disclosure principle (hard cap of ≤300 lines, ≤200 is the excellence target, details sink into `.docs/` or `.codebuddy/rules/`; "II. DEVSOP" is the skill-managed contract chapter, read-only, restored verbatim from the template if drifted), writing directly back to AGENTS.md (Git is the safety net, no backup needed).
+   Role: AGENTS.md optimization expert. Full prompt in `$SKILL_DIR/references/special-agent-agents.md`: optimize AGENTS.md into an AI entry file following the progressive-disclosure principle (hard cap of ≤300 lines, ≤200 is the excellence target, details sink into `.docs/` or `.codebuddy/rules/`; "II. DEVSOP" is the skill-managed contract chapter, read-only, restored verbatim from the template if drifted), writing directly back to AGENTS.md (Git is the safety net, no backup needed).
 
    **Agent B: rewrite ARCHITECTURE.md**
 
@@ -311,7 +310,7 @@ description: DEVSOP initialization
 ### `assets/` — copied into the target repo for use, not read into context
 - `assets/docs-skeleton/` — the `.docs/` skeleton (`review.md` + 20 template files at the `.docs/` top level + `plans/`).
 - `assets/plans-template/` — the 10-file task template.
-- `assets/agents.md.tmpl` — the template for the repo-root `AGENTS.md` (four chapters: Quick Index / DEVSOP / Development Guidelines / Forbidden Red Lines). AGENTS.md is the single source of truth; CODEBUDDY.md / CLAUDE.md are both symlinks.
+- `assets/agents.md.tmpl` — the template for the repo-root `AGENTS.md` (four chapters: Quick Index / DEVSOP / Development Guidelines / Forbidden Red Lines). AGENTS.md is the single generic AI entry; CODEBUDDY.md / CLAUDE.md are optional tool-specific symlinks (created only with `--with-agent-links`).
 - `assets/README.md.tmpl` — the project README template. **Not auto-generated** (red line 3 forbids pre-generating README.md); copied manually by the user to the target repo root as needed, filling in the `{{...}}` placeholders.
 - `assets/ARCHITECTURE.md.tmpl` — the project architecture doc template (used by Agent B as the 13-section skeleton reference when generating `.docs/architecture.md`; not copied directly to the target root).
 - `assets/clarify-skill/` — the `clarify` skill template used in Stage 01.
@@ -326,7 +325,7 @@ After initialization, it is recommended to run the following validations (either
 | # | Validation | Check content | Threshold |
 |---|--------|---------|------|
 | V1 | Line count & existence | `wc -l AGENTS.md` >300 lines→WARN; README/ARCHITECTURE missing→BLOCK | ≤300 |
-| V2 | Symlink correctness | CODEBUDDY.md / CLAUDE.md must be correct symlinks pointing to AGENTS.md | all correct |
+| V2 | AI entry present | AGENTS.md exists at the repo root (regular file or symlink; the generic entry shared by all agents) | present |
 | V3 | AGENTS.md chapter completeness | diff chapters against the template; missing→WARN | chapters complete |
 | V4 | TODO count gate | `TODO(devsop.init)` total >30→WARN, >60→BLOCK | ≤30 |
 | V5 | docs back-references + dead links | .docs/*.md must be referenced by the AGENTS.md Index; .docs links in AGENTS.md must exist | no dead links |

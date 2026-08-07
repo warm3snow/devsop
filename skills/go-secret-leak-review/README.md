@@ -27,7 +27,7 @@ SKILL_DIR=skills/go-secret-leak-review
 python3 $SKILL_DIR/scripts/review_secret_leak.py extract \
     /path/to/repo <commitA> <commitB> [--path=subdir] [--out=diff.txt]
 
-# Step B: the caller (CodeBuddy) dispatches a sub-agent
+# Step B: the caller (an AI coding agent) dispatches a sub-agent
 #   instruction file: $SKILL_DIR/references/secret-leak-review-prompt.md
 #   input: REPO_ROOT + the diff text from Step A
 #   constraints: read-only, no git writes, no file writes; returns findings JSON
