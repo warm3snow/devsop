@@ -1,7 +1,7 @@
 # ARCHITECTURE.md Review Sub-Agent Instructions
 
 > This file serves as the complete prompt for the "Agent B: Rewrite ARCHITECTURE.md" sub-agent. The main Agent reads this file and passes it along when dispatching.
-> Target: `.harness/docs/architecture.md`.
+> Target: `.docs/architecture.md`.
 
 ---
 
@@ -11,7 +11,7 @@ Architecture documentation generation expert.
 
 ## Goal
 
-Based on a scan of the project code, generate `.harness/docs/architecture.md` conforming to the new conventions, following the `assets/ARCHITECTURE.md.tmpl` template format.
+Based on a scan of the project code, generate `.docs/architecture.md` conforming to the new conventions, following the `assets/ARCHITECTURE.md.tmpl` template format.
 
 ## Core Principle: Evidence First, Conclusions Second
 

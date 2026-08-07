@@ -8,26 +8,26 @@
 
 ## 1. Mandatory Checklist
 
-> Actual paths must first be confirmed from the `.harness/docs/` directory. Fill "➖ Not applicable" for items that do not apply.
+> Actual paths must first be confirmed from the `.docs/` directory. Fill "➖ Not applicable" for items that do not apply.
 
 **Architecture and upstream/downstream**
-- [ ] `.harness/docs/architecture.md` — system architecture (when adding modules / changing call chains / changing concurrency models)
-- [ ] `.harness/docs/relationship.md` — upstream/downstream / integrator relationships (when adding dependencies / adjusting topology)
+- [ ] `.docs/architecture.md` — system architecture (when adding modules / changing call chains / changing concurrency models)
+- [ ] `.docs/relationship.md` — upstream/downstream / integrator relationships (when adding dependencies / adjusting topology)
 
 **External interfaces / contracts**
-- [ ] API docs `.harness/docs/apis/<module>/<Action>.md` (must change when adding / modifying interfaces)
-- [ ] API master index `.harness/docs/apis/index.md` (append when adding interfaces)
+- [ ] API docs `.docs/apis/<module>/<Action>.md` (must change when adding / modifying interfaces)
+- [ ] API master index `.docs/apis/index.md` (append when adding interfaces)
 
 **Data / persistence**
-- [ ] DB schema / migration `.harness/docs/sqls/<...>` (must change on DDL changes)
+- [ ] DB schema / migration `.docs/sqls/<...>` (must change on DDL changes)
 
 **Test standards**
-- [ ] `.harness/docs/unittest/unittest.md` (when test conventions / naming / mock strategy change)
+- [ ] `.docs/unittest/unittest.md` (when test conventions / naming / mock strategy change)
 - [ ] If `.codebuddy/rules/unittest_*.md` exists in the repo, revise it in sync as the authoritative source
 
 **Environment / deployment**
-- [ ] `.harness/docs/devops/env.md` (when environment setup / startup methods change)
-- [ ] `.harness/docs/devops/test-env-deploy.md` (when test environment deployment / sync flow changes)
+- [ ] `.docs/devops/env.md` (when environment setup / startup methods change)
+- [ ] `.docs/devops/test-env-deploy.md` (when test environment deployment / sync flow changes)
 
 **Global**
 - [ ] External README / user guide — changes visible to users

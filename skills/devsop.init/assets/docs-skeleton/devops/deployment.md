@@ -212,6 +212,6 @@ When there is no need to actually bring up upstream/downstream services, use the
 
 ## References
 
-- Upstream/downstream dependencies: [dependency-map.md](dependency-map.md)
+- Upstream/downstream dependencies: [relationship.md](../relationship.md)
 - Failure cases: [failures.md](failures.md)
 - Coding and security: [coding-style.md](coding-style.md)

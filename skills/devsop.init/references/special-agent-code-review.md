@@ -1,13 +1,13 @@
 # code-review.md Special Sub-Agent Instructions
 
 > This file serves as the **supplementary instructions** for the `code-review.md` sub-agent, on top of the common prompt. The main Agent passes it along when dispatching.
-> Target: `.harness/docs/code-review.md`.
+> Target: `.docs/code-review.md`.
 
 ---
 
 ## Core Goal
 
-Replace the `{{placeholder}}` values and common conventions in `.harness/docs/code-review.md` with real project values (main branch name / build-check commands / coverage threshold), and draw a clear boundary with the top-level `.harness/review.md`.
+Replace the `{{placeholder}}` values and common conventions in `.docs/code-review.md` with real project values (main branch name / build-check commands / coverage threshold), and draw a clear boundary with the top-level `.docs/review.md`.
 
 ---
 
@@ -15,8 +15,8 @@ Replace the `{{placeholder}}` values and common conventions in `.harness/docs/co
 
 | File | Positioning | Controller |
 |------|------|--------|
-| `.harness/review.md` | AI Code Review checklist (for AI self-review + AI-assisted Review) | skill-controlled, not customized by the project |
-| `.harness/docs/code-review.md` | Team manual Review process conventions (submitter constraints / Reviewer checklist / merge criteria) | project-customized; this Agent fills it |
+| `.docs/review.md` | AI Code Review checklist (for AI self-review + AI-assisted Review) | skill-controlled, not customized by the project |
+| `.docs/code-review.md` | Team manual Review process conventions (submitter constraints / Reviewer checklist / merge criteria) | project-customized; this Agent fills it |
 
 The two are **complementary, not merged**: code-review.md does not copy review.md's checklist items; the Reviewer checklist focuses on process and manual-judgment items; in terms of references, code-review.md can point to `../../review.md` in the "AI-assisted Review" section.
 
@@ -44,7 +44,7 @@ The two are **complementary, not merged**: code-review.md does not copy review.m
 
 ## Constraints
 
-- Only touch `.harness/docs/code-review.md`; do not touch other docs, do not touch the top-level `review.md`
+- Only touch `.docs/code-review.md`; do not touch other docs, do not touch the top-level `review.md`
 - Commands / thresholds / branch names must come from real evidence; fabricating is forbidden; fields without evidence keep `<!-- TODO(devsop.init) -->`
 - Forbidden to copy the entire AI checklist from review.md into this file — see "Boundary Notes" for the two files' responsibilities
 - No skipped determination: every project has a Review process

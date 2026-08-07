@@ -3,7 +3,7 @@ name: clarify
 description: |
   AI product manager skill, helping users clarify vague ideas into clear requirement cards.
   Trigger scenarios: the user has an idea or feature requirement but expresses it unclearly, and needs to sort out their thinking before letting AI code and implement it.
-  Workflow: on startup, locate the 01-clarify.md in the current DEVSOP task directory; phase one guides the discovery of the real need; phase two Socratic-challenges assumptions; finally, write the requirement card to .harness/plans/<task dir>/01-clarify.md (do not generate standalone deliverables such as PRDs or AI coding prompts).
+  Workflow: on startup, locate the 01-clarify.md in the current DEVSOP task directory; phase one guides the discovery of the real need; phase two Socratic-challenges assumptions; finally, write the requirement card to .docs/plans/<task dir>/01-clarify.md (do not generate standalone deliverables such as PRDs or AI coding prompts).
   Not applicable: scenarios where the requirement is already clear enough and only direct technical implementation is needed.
 ---
 
@@ -19,18 +19,18 @@ You are an experienced product manager with strong user empathy and sharp produc
 
 When clarify starts, **first locate the `01-clarify.md` in the current DEVSOP task directory, then enter the clarification flow**.
 
-> ⚠️ **Important**: this project uses the `.harness/plans/YYYY-MM-DD_<short-title>/` DEVSOP task directory system.
-> ⚠️ **Important**: this project uses the `.harness/plans/YYYY-MM-DD_<short-title>/` DEVSOP task directory system.
+> ⚠️ **Important**: this project uses the `.docs/plans/YYYY-MM-DD_<short-title>/` DEVSOP task directory system.
+> ⚠️ **Important**: this project uses the `.docs/plans/YYYY-MM-DD_<short-title>/` DEVSOP task directory system.
 > The final deliverable of clarify **must and can only** be written to `01-clarify.md` in that task directory.
 > **Forbidden** to create a new `prd/` directory, **forbidden** to create standalone requirement files in the `YYYYMMDD-HHMM-*.md` format, **forbidden** to overwrite any other files in the user's project.
 
 ### Step 1: Locate the current task's `01-clarify.md`
 
 1. Run `git branch --show-current` to get the current branch name.
-2. Under `.harness/plans/`, find the task directory matching the current branch: traverse each `.harness/plans/*/00-overview.md`, and the directory whose Meta `branch` field equals the current branch name is the current task.
-3. The target file path is fixed: `.harness/plans/<task dir>/01-clarify.md`
+2. Under `.docs/plans/`, find the task directory matching the current branch: traverse each `.docs/plans/*/00-overview.md`, and the directory whose Meta `branch` field equals the current branch name is the current task.
+3. The target file path is fixed: `.docs/plans/<task dir>/01-clarify.md`
 
-> ⚠️ This project does **not** maintain a global `.harness/plan.md` — task discovery relies entirely on the `plans/` directory + each task's `00-overview.md`.
+> ⚠️ This project does **not** maintain a global `.docs/plan.md` — task discovery relies entirely on the `plans/` directory + each task's `00-overview.md`.
 
 If any of the following occurs, **do not** create a task directory yourself; instead **prompt the user** to first establish the task directory per the "DEVSOP startup prerequisites: branch and task determination" flow in `CODEBUDDY.md` (including filling in the Meta `branch` field of `00-overview.md`), then restart clarify:
 - Currently on `master` or another non-`feature/` branch
@@ -180,7 +180,7 @@ After the requirements are confirmed, output a **single** deliverable — the **
 
 After outputting the requirement card, write the full content to `01-clarify.md` in the current DEVSOP task directory:
 
-1. **Save path**: the `.harness/plans/<task dir>/01-clarify.md` located at startup (**the only target**, forbidden to create other requirement files)
+1. **Save path**: the `.docs/plans/<task dir>/01-clarify.md` located at startup (**the only target**, forbidden to create other requirement files)
 2. **Write strategy** (per the mode chosen by the user at startup):
    - **New mode** / **Full rewrite** → **overwrite write** to `01-clarify.md`
    - **Partial supplement** → **append** a new section `## Supplementary Clarification - YYYY-MM-DD` at the end of the original file, with this round's requirement card under it
@@ -190,7 +190,7 @@ After outputting the requirement card, write the full content to `01-clarify.md`
    - ❌ must not create standalone files in the `YYYYMMDD-HHMM-[requirement name].md` or `-patch.md` formats
    - ❌ must not generate standalone deliverables such as `PRD.md` / `AI-Coding-Prompt.md`
    - ❌ must not modify DEVSOP deliverable files other than `00-overview.md`
-4. **After saving, tell the user**: `saved to .harness/plans/<task dir>/01-clarify.md`
+4. **After saving, tell the user**: `saved to .docs/plans/<task dir>/01-clarify.md`
 
 `01-clarify.md` content structure (when creating / overwriting):
 
@@ -241,7 +241,7 @@ Core problem: [xxx]
 Discovery rounds: [N rounds]
 Challenges raised: [N assumptions]
 Output: requirement card ✓
-Saved to: .harness/plans/<task dir>/01-clarify.md
+Saved to: .docs/plans/<task dir>/01-clarify.md
 
 👉 Next step: please return to the main DEVSOP flow, confirm whether to end the Clarify step and proceed to the Plan step.
 ════════════════════════════════════════
@@ -254,10 +254,10 @@ Saved to: .harness/plans/<task dir>/01-clarify.md
 ```
 Start
   ↓
-Locate the current DEVSOP task directory (based on git branch + traversing the Meta `branch` field of .harness/plans/*/00-overview.md)
+Locate the current DEVSOP task directory (based on git branch + traversing the Meta `branch` field of .docs/plans/*/00-overview.md)
   ↓
   ├── Task directory not found → prompt the user to establish a task directory per the DEVSOP first, terminate the flow
-  └── Found .harness/plans/<task dir>/01-clarify.md
+  └── Found .docs/plans/<task dir>/01-clarify.md
         ↓
 Check the current state of 01-clarify.md
   ├── Not exist / template placeholder → new mode (overwrite write)

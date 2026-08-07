@@ -1,13 +1,13 @@
 # Integration Test Review Sub-Agent Instructions
 
 > This file serves as the **supplementary instructions** for the `integration_test` review sub-agent, on top of the common prompt. The main Agent passes it along when dispatching.
-> Target: `.harness/docs/integration_test/integration_test.md`.
+> Target: `.docs/integration_test/integration_test.md`.
 
 ---
 
 ## Core Goal
 
-Fill `.harness/docs/integration_test/integration_test.md` into an integration test convention for **real chains, interface / E2E level**, aligned with `relationship.md` and `devops/test-env-deploy.md`.
+Fill `.docs/integration_test/integration_test.md` into an integration test convention for **real chains, interface / E2E level**, aligned with `relationship.md` and `devops/test-env-deploy.md`.
 
 ---
 

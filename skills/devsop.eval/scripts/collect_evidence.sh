@@ -14,18 +14,18 @@ set -u
 
 echo "=== FILE_EXISTS ==="
 for f in AGENTS.md README.md \
-         .harness/review.md \
-         .harness/docs/architecture.md .harness/docs/relationship.md \
-         .harness/docs/coding-style.md \
-         .harness/docs/unittest/unittest.md .harness/docs/integration_test/integration_test.md \
-         .harness/docs/code-review.md \
-         .harness/docs/glossary.md .harness/docs/failures.md \
-         .harness/docs/logging.md \
-         .harness/docs/apis/index.md .harness/docs/apis/api-standards.md \
-         .harness/docs/sqls/README.md .harness/docs/sqls/database.md \
-         .harness/docs/devops/deployment.md .harness/docs/devops/development.md \
-         .harness/docs/devops/env.md .harness/docs/devops/test-env-deploy.md \
-         .harness/devsop_report.md .env.example Makefile lefthook.yml \
+         .docs/review.md \
+         .docs/architecture.md .docs/relationship.md \
+         .docs/coding-style.md \
+         .docs/unittest/unittest.md .docs/integration_test/integration_test.md \
+         .docs/code-review.md \
+         .docs/glossary.md .docs/failures.md \
+         .docs/logging.md \
+         .docs/apis/index.md .docs/apis/api-standards.md \
+         .docs/sqls/README.md .docs/sqls/database.md \
+         .docs/devops/deployment.md .docs/devops/development.md \
+         .docs/devops/env.md .docs/devops/test-env-deploy.md \
+         .docs/devsop_report.md .env.example Makefile lefthook.yml \
          .golangci.yml .golangci.yaml \
          .pre-commit-config.yaml .gitignore \
          Jenkinsfile Jenkinsfile.ci Jenkinsfile.cd \
@@ -40,9 +40,9 @@ done
 
 echo ""
 echo "=== DIR_EXISTS ==="
-for d in .harness .harness/docs .harness/docs/apis .harness/docs/sqls \
-         .harness/docs/unittest .harness/docs/integration_test .harness/docs/devops \
-         .harness/plans .harness/plans/_template \
+for d in .docs .docs/apis .docs/sqls \
+         .docs/unittest .docs/integration_test .docs/devops \
+         .docs/plans .docs/plans/_template \
          .codebuddy/skills .codebuddy/rules \
          tests/integration test/integration tests/e2e \
          jenkins .jenkins .github/workflows docs; do
@@ -51,7 +51,7 @@ done
 
 echo ""
 echo "=== GIT_RECENCY ==="
-for f in $(find .harness -name '*.md' 2>/dev/null); do
+for f in $(find .docs -name '*.md' 2>/dev/null); do
   if [ -f "$f" ]; then
     ts=$(git log -1 --format='%cI' -- "$f" 2>/dev/null || echo 'NO_HISTORY')
     echo "$f: $ts"
@@ -59,9 +59,9 @@ for f in $(find .harness -name '*.md' 2>/dev/null); do
 done
 
 echo ""
-echo "=== HARNESS_ACTIVITY ==="
-echo "commits_60d: $(git log --since='60 days ago' --oneline -- .harness/ 2>/dev/null | wc -l | tr -d ' ')"
-echo "commits_90d_failures: $(git log --since='90 days ago' --oneline -- .harness/docs/failures.md 2>/dev/null | wc -l | tr -d ' ')"
+echo "=== DOCS_ACTIVITY ==="
+echo "commits_60d: $(git log --since='60 days ago' --oneline -- .docs/ 2>/dev/null | wc -l | tr -d ' ')"
+echo "commits_90d_failures: $(git log --since='90 days ago' --oneline -- .docs/failures.md 2>/dev/null | wc -l | tr -d ' ')"
 
 echo ""
 echo "=== SYMLINKS ==="
@@ -97,15 +97,15 @@ echo "session_transcripts_30d: ${sessions_30d:-0}"
 
 echo ""
 echo "=== PLANS ==="
-task_count=$(find .harness/plans -mindepth 1 -maxdepth 1 -type d -not -name '_template' 2>/dev/null | wc -l | tr -d ' ')
+task_count=$(find .docs/plans -mindepth 1 -maxdepth 1 -type d -not -name '_template' 2>/dev/null | wc -l | tr -d ' ')
 echo "plan_task_dirs: $task_count"
-template_files=$(ls .harness/plans/_template/ 2>/dev/null | wc -l | tr -d ' ')
+template_files=$(ls .docs/plans/_template/ 2>/dev/null | wc -l | tr -d ' ')
 echo "plan_template_files: $template_files"
 
 echo ""
 echo "=== PLANS_ACTIVITY ==="
 # check the latest update of 00-overview.md under plans
-latest_overview=$(find .harness/plans -name 00-overview.md -not -path '*/_template/*' \
+latest_overview=$(find .docs/plans -name 00-overview.md -not -path '*/_template/*' \
   -exec git log -1 --format='%cI' {} \; 2>/dev/null | sort -r | head -1)
 echo "latest_00-overview_update: ${latest_overview:-NONE}"
 
@@ -118,7 +118,7 @@ echo "github_actions_dir: $( { [ -d .github/workflows ]; } && echo YES || echo N
 
 # Path ②: README/development.md contains CI platform URLs (any CI / deployment platform)
 ci_urls=$(grep -ihE 'https?://[^ )]*(jenkins|argocd|argo-cd|github\.com/.*/(actions|workflows)|gitlab|travis|circleci|zhiyan)' \
-  README.md .harness/docs/devops/development.md .harness/docs/devops/deployment.md AGENTS.md 2>/dev/null | head -5 || true)
+  README.md .docs/devops/development.md .docs/devops/deployment.md AGENTS.md 2>/dev/null | head -5 || true)
 if [ -n "$ci_urls" ]; then
   echo "ci_url_found: YES"
   echo "$ci_urls" | sed 's/^/  /'
@@ -128,14 +128,14 @@ fi
 
 # platform name only, no URL (PARTIAL signal)
 ci_name_only=$(grep -ihE '\b(jenkins|github[ -]?actions|gitlab[ -]?ci|argo[ -]?cd|zhiyan|travis|circleci)\b' \
-  README.md .harness/docs/devops/development.md .harness/docs/devops/deployment.md AGENTS.md 2>/dev/null | grep -vE 'https?://' | head -3 || true)
+  README.md .docs/devops/development.md .docs/devops/deployment.md AGENTS.md 2>/dev/null | grep -vE 'https?://' | head -3 || true)
 [ -n "$ci_name_only" ] && echo "ci_name_no_url: YES" || echo "ci_name_no_url: NO"
 
 echo ""
 echo "=== ISSUE_TRACKER ==="
 # Generic issue-tracker URL traces (GitHub Issues / GitLab / Jira / TAPD / etc.)
 tracker_urls=$(grep -ihE 'https?://[^ )]*(github\.com/[^ )]*/(issues|projects)|gitlab\.com/.*/-/issues|jira|tapd\.(cn|woa\.com|oa\.com)|linear)' \
-  README.md AGENTS.md .harness/docs/devops/development.md .harness/docs/code-review.md 2>/dev/null | head -3 || true)
+  README.md AGENTS.md .docs/devops/development.md .docs/code-review.md 2>/dev/null | head -3 || true)
 if [ -n "$tracker_urls" ]; then
   echo "issue_tracker_url_found: YES"
   echo "$tracker_urls" | sed 's/^/  /'
@@ -149,40 +149,9 @@ echo "ticket_commit_refs_90d: ${ticket_commits:-0}"
 
 echo ""
 echo "=== DEVSOP_REPORT_HISTORY ==="
-echo "commits: $(git log --oneline -- .harness/devsop_report.md 2>/dev/null | wc -l | tr -d ' ')"
+echo "commits: $(git log --oneline -- .docs/devsop_report.md 2>/dev/null | wc -l | tr -d ' ')"
 
-echo ""
-echo "=== LEGACY_HARNESS ==="
-# old devsop.init artifact recognition (needs migration to the new .harness/ layout)
-# ① legacy non-hidden harness/ dir (the new layout is .harness/)
-if [ -d "harness" ]; then
-  echo "LEGACY_DIR harness/ (non-hidden; the new layout should be .harness/)"
-else
-  echo "legacy_dir_harness: NONE"
-fi
-# ② legacy root ARCHITECTURE.md (the new layout moves it to .harness/docs/architecture.md)
-if [ -f "ARCHITECTURE.md" ]; then
-  echo "LEGACY_FILE ARCHITECTURE.md (root-level; the new layout should be .harness/docs/architecture.md)"
-else
-  echo "legacy_file_architecture_md: NONE"
-fi
-# ③ legacy doc names remaining (dependency-map.md / testing.md)
-legacy_docs=""
-for f in .harness/docs/dependency-map.md .harness/dependency-map.md harness/dependency-map.md \
-         .harness/docs/testing.md .harness/testing.md harness/testing.md; do
-  [ -f "$f" ] && legacy_docs="$legacy_docs $f"
-done
-if [ -n "$legacy_docs" ]; then
-  echo "LEGACY_DOCS:$legacy_docs"
-else
-  echo "legacy_docs: NONE"
-fi
-# ④ legacy global plan.md remaining (the new layout forbids a global plan.md; task overviews sink into 00-overview.md)
-if [ -f ".harness/plan.md" ] || [ -f "harness/plan.md" ]; then
-  echo "LEGACY_FILE plan.md (the new layout forbids a global plan.md)"
-else
-  echo "legacy_plan_md: NONE"
-fi
+
 
 echo ""
 echo "=== MEMORY_RULES ==="

@@ -130,7 +130,7 @@ check_sensitive_files() {
   local violations=()
   for f in "${STAGED_FILES[@]}"; do
     # Exclude documentation/test/spec directories (false positives)
-    [[ "$f" =~ ^(docs/|specs/|README|CHANGELOG|test/fixtures/|tests/fixtures/|__fixtures__/) ]] && continue
+    [[ "$f" =~ ^(.docs/|docs/|specs/|README|CHANGELOG|test/fixtures/|tests/fixtures/|__fixtures__/) ]] && continue
     for p in "${patterns[@]}"; do
       if echo "$f" | grep -iE "$p" >/dev/null 2>&1; then
         violations+=("$f")

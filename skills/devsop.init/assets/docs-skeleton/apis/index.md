@@ -7,7 +7,7 @@
 
 ## Naming Conventions
 
-- Path: `docs/apis/<module>/<ActionName>.md`
+- Path: `.docs/apis/<module>/<ActionName>.md`
 - Filename = interface name (PascalCase or the project's existing style)
 - Each document must include at least: description, input parameters, output parameters, error codes, examples, change log
 

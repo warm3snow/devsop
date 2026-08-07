@@ -1,10 +1,10 @@
 # references/docs-generation.md
 
-> `.harness/docs/` generation methodology. **Generic version** — not tied to any language, framework, or domain.
+> `.docs/` generation methodology. **Generic version** — not tied to any language, framework, or domain.
 >
 > When to load:
 > 1. **After Scenario A**: the project has just been initialized, and the empty skeleton needs to be filled in
-> 2. **Reverse-filling an existing project**: the project already exists but `docs/` is still empty
+> 2. **Reverse-filling an existing project**: the project already exists but `.docs/` is still empty
 > 3. **Stage 07 Docs**: when a task reaches the documentation synchronization step, as a decision reference
 
 ---
@@ -26,7 +26,7 @@ Which files a specific project ends up with, and which tools are used for extrac
 
 ## 1. Core Principles
 
-`.harness/docs/` is not a "project introduction / README enhanced version"; it is the **minimal knowledge set needed for a brand-new person (or AI Agent) to understand, modify, and operate this project without reading the source code**.
+`.docs/` is not a "project introduction / README enhanced version"; it is the **minimal knowledge set needed for a brand-new person (or AI Agent) to understand, modify, and operate this project without reading the source code**.
 
 Four principles, independent of project type:
 
@@ -127,12 +127,12 @@ If inconsistencies are found: **fix the extraction script**, regenerate everythi
 
 | Trigger scenario | Corresponding action | Output location |
 |------------------|----------------------|-----------------|
-| **Project just initialized (Scenario A)** | In L1 → L2/L3 → L4 order, generate drafts layer by layer + user review | All of `.harness/docs/` |
+| **Project just initialized (Scenario A)** | In L1 → L2/L3 → L4 order, generate drafts layer by layer + user review | All of `.docs/` |
 | **First-time backfill of an existing project** | Same as above, **in batches by module**: fill in core modules first; stop for review every N contract-layer docs | Same as above |
 | **Task reaches Stage 07 Docs** | Derive **incremental** updates from this change's code diff; only touch the docs affected by this task | Only the docs involved this time |
 | **Quarterly / version health check** | Sample-check (names / default values / error codes); open a chore task for inconsistencies | Exposed problems → task → fix |
-| **After a major refactor / architecture evolution** | Forcibly trigger full Stage 07; add a new ADR to record decisions when necessary | `.harness/docs/` + `.harness/adr/` |
-| **Major dependency version upgrade** | Regenerate the L4 environment / deployment docs, cross-check against the new version's commands / configuration | `.harness/docs/<L4 file>` |
+| **After a major refactor / architecture evolution** | Forcibly trigger full Stage 07; add a new ADR to record decisions when necessary | `.docs/` + `.docs/adr/` |
+| **Major dependency version upgrade** | Regenerate the L4 environment / deployment docs, cross-check against the new version's commands / configuration | `.docs/<L4 file>` |
 
 ---
 
@@ -155,26 +155,26 @@ If inconsistencies are found: **fix the extraction script**, regenerate everythi
 
 ## 6. Physical layout of this skeleton
 
-> This skill's skeleton is fully consistent with the team's current `.harness/`. All docs land in the following fixed physical paths:
+> This skill's skeleton is fully consistent with the team's current `.docs/`. All docs land in the following fixed physical paths:
 
 | Purpose | Physical path |
 |---------|---------------|
-| System architecture | `.harness/docs/architecture.md` |
-| Upstream / downstream & integrations | `.harness/docs/relationship.md` |
-| Coding style (line length/complexity/naming/security) | `.harness/docs/coding-style.md` |
-| Team manual Code Review process | `.harness/docs/code-review.md` |
-| Business glossary | `.harness/docs/glossary.md` |
-| Pitfalls log | `.harness/docs/failures.md` |
-| Logging standards | `.harness/docs/logging.md` |
-| External interfaces | `.harness/docs/apis/<module>/<Action>.md` + `apis/index.md` + `apis/_template.md` + `apis/api-standards.md` |
-| Data / Schema | `.harness/docs/sqls/README.md` + `sqls/database.md` |
-| Unit testing standards | `.harness/docs/unittest/unittest.md` |
-| Integration testing standards | `.harness/docs/integration_test/integration_test.md` |
-| Environment setup | `.harness/docs/devops/env.md` |
-| Test environment deployment | `.harness/docs/devops/test-env-deploy.md` |
-| Deployment & run standards | `.harness/docs/devops/deployment.md` |
-| Local development environment standards | `.harness/docs/devops/development.md` |
-| AI Code Review guidance standards | `.harness/review.md` (top level, not under docs/) |
+| System architecture | `.docs/architecture.md` |
+| Upstream / downstream & integrations | `.docs/relationship.md` |
+| Coding style (line length/complexity/naming/security) | `.docs/coding-style.md` |
+| Team manual Code Review process | `.docs/code-review.md` |
+| Business glossary | `.docs/glossary.md` |
+| Pitfalls log | `.docs/failures.md` |
+| Logging standards | `.docs/logging.md` |
+| External interfaces | `.docs/apis/<module>/<Action>.md` + `apis/index.md` + `apis/_template.md` + `apis/api-standards.md` |
+| Data / Schema | `.docs/sqls/README.md` + `sqls/database.md` |
+| Unit testing standards | `.docs/unittest/unittest.md` |
+| Integration testing standards | `.docs/integration_test/integration_test.md` |
+| Environment setup | `.docs/devops/env.md` |
+| Test environment deployment | `.docs/devops/test-env-deploy.md` |
+| Deployment & run standards | `.docs/devops/deployment.md` |
+| Local development environment standards | `.docs/devops/development.md` |
+| AI Code Review guidance standards | `.docs/review.md` (at the `.docs/` top level) |
 
 > "L1 Orientation / L2 Contract / L3 Internals / L4 Operability" are methodology labels to help the AI think about "what should be written" —
 > **physical directory names are fixed as `architecture.md / relationship.md / apis/ / sqls/ / unittest/ / integration_test/ / devops/`; do not create a parallel `contracts/internals/operability` set just to "match the labels"**.
@@ -192,7 +192,7 @@ If inconsistencies are found: **fix the extraction script**, regenerate everythi
 
 ## 7. On-demand loading and directory conventions
 
-`.harness/docs/` grows on demand; do not create all placeholder files at once. But these conventions must be followed:
+`.docs/` grows on demand; do not create all placeholder files at once. But these conventions must be followed:
 
 1. **The first 5 lines of each doc** include:
    - a one-sentence summary
@@ -202,7 +202,7 @@ If inconsistencies are found: **fix the extraction script**, regenerate everythi
    - links to related upper / lower docs
 2. **`apis/` list-type directory** must have an `index.md` master table that maps 1:1 to the official document list.
 3. **Project-specific rules take priority**: if `.codebuddy/rules/<topic>_*.md` exists at the repository root (e.g. `unittest_rule.md`, `cls_mcp_rule.md`), they are the **authoritative source** for that topic —
-   - same-named docs under `docs/<topic>/` should **excerpt + link**, not copy-paste;
+   - same-named docs under `.docs/<topic>/` should **excerpt + link**, not copy-paste;
    - on conflict, `.codebuddy/rules/` wins;
    - revising rules requires syncing docs and vice versa; stages such as the task template 04-ut.md / 05-deploy.md force reading both.
 4. **Do not pre-generate placeholders** like `README.md` / `conventions.md` / `glossary.md` / `risks.md` / `adr/` / `PROFILES.md` just to "look complete" — add them on demand when actually used.
@@ -218,7 +218,7 @@ Step 1  Generate architecture.md / relationship.md drafts (architecture diagram 
 Step 2  Generate sqls/ drafts (persistence schema, key state machines) → DBA / maintainer review
 Step 3  Generate apis/ drafts, batched by module, N=10 per batch → sample-check 2 against the code
 Step 4  Generate unittest/unittest.md + integration_test/integration_test.md + devops/{env.md, test-env-deploy.md} (including run commands) → actually run once to verify the commands work
-Step 5  Fill in other docs/<topic>/ files on demand
+Step 5  Fill in other .docs/<topic>/ files on demand
 ```
 
 ---
@@ -259,15 +259,15 @@ Minimum standard for docs to be considered "complete":
 ## 10. Relationship with other DEVSOP stages
 
 ```
-Stage 02 Plan        → must read L1 / L2 of docs/ before designing the solution
-Stage 03 Implement   → implement cross-checked against L3 (schema / state machine) of docs/
-Stage 04 UT          → write tests per L4 (unittest standards) of docs/
-Stage 05 Deploy      → execute per L4 (deployment / rollback) of docs/
-Stage 06 IT          → run integration tests per L4 (integration_test standards) of docs/
-Stage 07 Docs        → incrementally update docs/, one-to-one with this change's code modifications
+Stage 02 Plan        → must read L1 / L2 of .docs/ before designing the solution
+Stage 03 Implement   → implement cross-checked against L3 (schema / state machine) of .docs/
+Stage 04 UT          → write tests per L4 (unittest standards) of .docs/
+Stage 05 Deploy      → execute per L4 (deployment / rollback) of .docs/
+Stage 06 IT          → run integration tests per L4 (integration_test standards) of .docs/
+Stage 07 Docs        → incrementally update .docs/, one-to-one with this change's code modifications
 ```
 
-`.harness/docs/` is not a write-once-and-done thing; **it is the blood-supply system of the DEVSOP** — every stage reads it, Stage 07 replenishes it, and it becomes more accurate over time.
+`.docs/` is not a write-once-and-done thing; **it is the blood-supply system of the DEVSOP** — every stage reads it, Stage 07 replenishes it, and it becomes more accurate over time.
 
 ---
 
@@ -275,8 +275,8 @@ Stage 07 Docs        → incrementally update docs/, one-to-one with this change
 
 If the project is just starting and time is tight so only the minimal set can be done, the **3 things that cannot be cut** are:
 
-1. `.harness/docs/architecture.md` — one diagram plus one paragraph to clearly explain "what this is" (at least 1 Mermaid diagram + system positioning)
-2. `.harness/docs/relationship.md` — upstream / downstream & integration relationships (upstream callers + downstream dependency table, even if each row only has names)
-3. `.harness/docs/apis/index.md` — at least list the full external exposure surface (names alone are fine, details can be added later; for projects without APIs, Agent C deletes the `apis/` directory, so this item can be omitted)
+1. `.docs/architecture.md` — one diagram plus one paragraph to clearly explain "what this is" (at least 1 Mermaid diagram + system positioning)
+2. `.docs/relationship.md` — upstream / downstream & integration relationships (upstream callers + downstream dependency table, even if each row only has names)
+3. `.docs/apis/index.md` — at least list the full external exposure surface (names alone are fine, details can be added later; for projects without APIs, Agent C deletes the `apis/` directory, so this item can be omitted)
 
-The rest may be temporarily missing, but each temporarily missing doc should keep a `<!-- TODO(devsop.init): ... -->` placeholder in the corresponding file to avoid omissions. **Strictly forbidden** to pre-generate `.harness/docs/README.md` / `conventions.md` / `glossary.md` / `risks.md` / `adr/` placeholders (red line 3) — create them on demand.
+The rest may be temporarily missing, but each temporarily missing doc should keep a `<!-- TODO(devsop.init): ... -->` placeholder in the corresponding file to avoid omissions. **Strictly forbidden** to pre-generate `.docs/README.md` / `conventions.md` / `glossary.md` / `risks.md` / `adr/` placeholders (red line 3) — create them on demand.

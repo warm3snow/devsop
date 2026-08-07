@@ -79,7 +79,7 @@ Ask script (**default recommended path A**):
 |---|------|------|
 | 1 | Write commit message | Lands in the "2. Actual Commit This Time" section |
 | 2 | **Update `00-overview.md`** | Time-tracking row 09 **end time** (= the moment "all prep is written") + duration; append to key decision log `Commit: <subject>` + `Ticket: <ID> @ Developing` (the real status before commit, **do not** pre-fill CR — CR is auto-triggered by the MR after push, **not** backfilled later) + key change points; Meta status ✅; check off Progress 09 (**do not** write the commit ID) — completing steps 1+2 = **boundary point A** |
-| 3 | One-time `git add` | Code + `plans/<task>/*.md` (including the just-updated 00-overview.md and 09-commit.md) + `.harness/docs/**` increments (**forbidden** to add only code) |
+| 3 | One-time `git add` | Code + `plans/<task>/*.md` (including the just-updated 00-overview.md and 09-commit.md) + `.docs/**` increments (**forbidden** to add only code) |
 | 4 | `git commit` (**first time only**) | Use the message from the "2. Actual Commit This Time" section |
 | 5 | `git push` + create MR | After pushing to remote and creating the MR, the **tracker automatically** advances the ticket status (e.g. "Developing → CR"); if CI passes and no fixes are needed, proceed to **boundary point B** |
 | 6 | **(Optional, repeatable) code fixes** | CI failure / review comments / follow-up fixes: change code → amend (§2) → force-push; **only change code, do not touch md files**; repeatable until the MR merges |

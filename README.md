@@ -11,8 +11,8 @@ Problems it solves:
 
 ## Core Feature List
 
-- **`devsop.init`**: one-command creation of the DEVSOP directory structure in the target project (`AGENTS.md` / `README.md` / `ARCHITECTURE.md` / `.harness/` regulations library + Git Hooks + symlinks).
-- **`devsop.eval`**: read-only DEVSOP compliance audit of the target project (six pillars, 28 Eval items, anti-pattern detection), producing `.harness/devsop_report.md`.
+- **`devsop.init`**: one-command creation of the DEVSOP directory structure in the target project (`AGENTS.md` / `README.md` / `ARCHITECTURE.md` / `.docs/` regulations library + Git Hooks + symlinks).
+- **`devsop.eval`**: read-only DEVSOP compliance audit of the target project (six pillars, 28 Eval items, anti-pattern detection), producing `.docs/devsop_report.md`.
 - **`go-quality-scorer`**: six-dimension code-quality scoring of Go projects (correctness / security / maintainability & scale-complexity / testing / architecture / performance), outputting a JSON report.
 
 ## Repository Structure

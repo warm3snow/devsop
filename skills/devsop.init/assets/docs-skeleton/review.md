@@ -59,7 +59,7 @@
 ## Suggested Items (low severity)
 
 - [ ] Comments explain "why" rather than "what"
-- [ ] Documentation kept in sync (`docs/apis/`, `docs/sqls/`, `docs/architecture.md`, `docs/devops/`, `docs/unittest/` etc., supplemented per the directories affected by the change)
+- [ ] Documentation kept in sync (`.docs/apis/`, `.docs/sqls/`, `.docs/architecture.md`, `.docs/devops/`, `.docs/unittest/` etc., supplemented per the directories affected by the change)
 - [ ] Test data realistic
 
 ---

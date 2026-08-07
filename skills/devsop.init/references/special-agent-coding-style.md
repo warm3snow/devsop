@@ -1,13 +1,13 @@
 # coding-style.md Special Sub-Agent Instructions
 
 > This file serves as the **supplementary instructions** for the `coding-style.md` sub-agent, on top of the common prompt. The main Agent passes it along when dispatching.
-> Target: `.harness/docs/coding-style.md`.
+> Target: `.docs/coding-style.md`.
 
 ---
 
 ## Core Goal
 
-**Trim and apply** `.harness/docs/coding-style.md` from the multi-language common template into coding conventions for this project's actual language and toolchain — replace all `{{placeholder}}` values in the template with real project values, and delete entire language sections that do not apply.
+**Trim and apply** `.docs/coding-style.md` from the multi-language common template into coding conventions for this project's actual language and toolchain — replace all `{{placeholder}}` values in the template with real project values, and delete entire language sections that do not apply.
 
 ---
 
@@ -46,7 +46,7 @@
 
 ## Constraints
 
-- Only touch `.harness/docs/coding-style.md`; do not touch other docs
+- Only touch `.docs/coding-style.md`; do not touch other docs
 - All tool names / thresholds / commands must come from real config file evidence; fabricating is forbidden; fields without evidence keep the `<!-- TODO(devsop.init) -->` placeholder
 - Language-section trimming must delete entire sections; do not leave platitudes like "this project does not involve this"
 - If the project already has an authoritative coding-conventions file (in `.codebuddy/rules/` or a team Wiki link): change the corresponding section of this document to an excerpt + link, noting the authoritative source, and do not copy conflicting content

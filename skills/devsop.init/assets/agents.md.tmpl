@@ -1,7 +1,7 @@
 # {{PROJECT_NAME}} — AI Collaboration Entry Point
 
 > This file is the **single source of truth entry point** for AI collaboration (AGENTS.md). CODEBUDDY.md / CLAUDE.md are both symlinks pointing to this file; all AI tools read the same content through the symlinks.
-> Specific technical docs are maintained in `.harness/docs/`, task deliverables in `.harness/plans/<task dir>/`; this file only serves as an index + recovery protocol + project-specific red lines.
+> Specific technical docs are maintained in `.docs/`, task deliverables in `.docs/plans/<task dir>/`; this file only serves as an index + recovery protocol + project-specific red lines.
 
 ---
 
@@ -9,22 +9,22 @@
 
 | What you want to know | Document Location |
 |-----------|---------|
-| Overall project architecture, module division, key flows | `.harness/docs/architecture.md` |
-| Upstream/downstream / integrator relationships | `.harness/docs/relationship.md` |
-| API docs (organized by module) | `.harness/docs/apis/<module>/<API name>.md` |
-| API docs master index | `.harness/docs/apis/index.md` |
-| Database / persistence schema | `.harness/docs/sqls/` |
-| **Unit test standards (environment / generation / run & debug, three parts)** | **`.harness/docs/unittest/unittest.md`** (if project-specific rules exist, `.codebuddy/rules/unittest_*.md` is authoritative) |
-| **Integration test standards (environment / cases / run & debug, three parts)** | **`.harness/docs/integration_test/integration_test.md`** (if project-specific rules exist, `.codebuddy/rules/integration_test_*.md` is authoritative) |
-| Environment setup and startup | `.harness/docs/devops/env.md` |
-| Test environment deployment / code sync | `.harness/docs/devops/test-env-deploy.md` |
-| Coding standards (line length / complexity / naming / secure coding) | `.harness/docs/coding-style.md` |
-| Team manual Code Review flow and merge criteria | `.harness/docs/code-review.md` |
-| Logging standards (levels / must-log scenarios / desensitization / trace) | `.harness/docs/logging.md` |
-| AI Code Review guidance standards | `.harness/review.md` |
-| All task lists | `ls .harness/plans/` (one directory per task, non-interfering) |
-| Overview & progress of a single task (**single source of truth**) | `.harness/plans/YYYY-MM-DD_<title>/00-overview.md` |
-| Per-stage deliverables of a single task | `.harness/plans/YYYY-MM-DD_<title>/0N-<step>.md` |
+| Overall project architecture, module division, key flows | `.docs/architecture.md` |
+| Upstream/downstream / integrator relationships | `.docs/relationship.md` |
+| API docs (organized by module) | `.docs/apis/<module>/<API name>.md` |
+| API docs master index | `.docs/apis/index.md` |
+| Database / persistence schema | `.docs/sqls/` |
+| **Unit test standards (environment / generation / run & debug, three parts)** | **`.docs/unittest/unittest.md`** (if project-specific rules exist, `.codebuddy/rules/unittest_*.md` is authoritative) |
+| **Integration test standards (environment / cases / run & debug, three parts)** | **`.docs/integration_test/integration_test.md`** (if project-specific rules exist, `.codebuddy/rules/integration_test_*.md` is authoritative) |
+| Environment setup and startup | `.docs/devops/env.md` |
+| Test environment deployment / code sync | `.docs/devops/test-env-deploy.md` |
+| Coding standards (line length / complexity / naming / secure coding) | `.docs/coding-style.md` |
+| Team manual Code Review flow and merge criteria | `.docs/code-review.md` |
+| Logging standards (levels / must-log scenarios / desensitization / trace) | `.docs/logging.md` |
+| AI Code Review guidance standards | `.docs/review.md` |
+| All task lists | `ls .docs/plans/` (one directory per task, non-interfering) |
+| Overview & progress of a single task (**single source of truth**) | `.docs/plans/YYYY-MM-DD_<title>/00-overview.md` |
+| Per-stage deliverables of a single task | `.docs/plans/YYYY-MM-DD_<title>/0N-<step>.md` |
 
 ---
 
@@ -35,20 +35,20 @@
 
 ### Context Recovery (must do every session/clear/compact)
 
-> 1. Read `AGENTS.md` → 2. `git branch --show-current` → 3. Traverse `.harness/plans/*/00-overview.md` to match the branch → 4. Read the current task's `00-overview.md` → 5. Lazy-load the current stage md → 6. Report progress to the user.
+> 1. Read `AGENTS.md` → 2. `git branch --show-current` → 3. Traverse `.docs/plans/*/00-overview.md` to match the branch → 4. Read the current task's `00-overview.md` → 5. Lazy-load the current stage md → 6. Report progress to the user.
 > No match → handle per the "DEVSOP Startup Prerequisites".
 
 ### Task Isolation (mandatory)
 
-> **Strictly forbidden** for AI to proactively read/reference any md under **other** task directories `.harness/plans/<other task>/`. Tasks are physically isolated and each is an independent source of truth; cross-task references will contaminate design judgment.
+> **Strictly forbidden** for AI to proactively read/reference any md under **other** task directories `.docs/plans/<other task>/`. Tasks are physically isolated and each is an independent source of truth; cross-task references will contaminate design judgment.
 > **The only exception**: the user **explicitly** says "reference task X" → read only the specified directory; the content stays in the conversation context, and **writing back to the current task's deliverables automatically is forbidden**.
 
 ### DEVSOP Startup Prerequisites: Branch and Task Determination
 
 > 1. `git branch --show-current` to get the branch name
-> 2. Match the branch under `.harness/plans/`:
+> 2. Match the branch under `.docs/plans/`:
 >    - **Has a matching task** → continue per `00-overview.md`
->    - **None + on master/main** → brand-new requirement: `git checkout -b feature/<name> origin/master` → `cp -r .harness/plans/_template .harness/plans/YYYY-MM-DD_<title>` → **simplify the comments** (see ③ below) → fill in Meta → enter the entry determination
+>    - **None + on master/main** → brand-new requirement: `git checkout -b feature/<name> origin/master` → `cp -r .docs/plans/_template .docs/plans/YYYY-MM-DD_<title>` → **simplify the comments** (see ③ below) → fill in Meta → enter the entry determination
 >    - **None + on a feature/ branch** → "Collaborative Development Detection"
 > 3. **After copying _template/, the comments must be simplified** (applies to brand-new requirements / collaborative development, **AI must execute**): open the new `plans/<task>/00-overview.md`, delete **entirely** all HTML comment blocks marked with `<!-- TEMPLATE-ONLY-DO-NOT-COPY: -->` (including the marker lines), replacing them with a single-line pointer to `_template/00-overview.md`; also delete **entirely** the header "⚠️ TEMPLATE ONLY" section. DEVSOP rules are maintained only in `_template/`; it is **forbidden** to repeat ~30 lines of rules in every task file (noise + version drift). See the top of `_template/00-overview.md` for details.
 >
@@ -57,7 +57,7 @@
 ### Collaborative Development Detection (design.md-driven)
 
 > Trigger: current branch is non-master/main and has no matching task.
-> - `.harness/design.md` exists and the user confirms using it → create the task directory (also simplify _template/ comments per ③ above) → fully derive `01-clarify.md` + `02-plan.md` from design.md (forbidden to just write "see design.md") → fill in Meta (`Development mode`=collaborative, `Test environment`) → after self-check, delete design.md → start from Step 3
+> - `.docs/design.md` exists and the user confirms using it → create the task directory (also simplify _template/ comments per ③ above) → fully derive `01-clarify.md` + `02-plan.md` from design.md (forbidden to just write "see design.md") → fill in Meta (`Development mode`=collaborative, `Test environment`) → after self-check, delete design.md → start from Step 3
 > - design.md does not exist → standard flow
 
 ### The 9 Step Definitions
@@ -70,7 +70,7 @@
 | 4 | **UT** | `04-ut.md` | Cases aligned item by item with Plan §6, coverage, uncovered lines |
 | 5 | **Deploy** | `05-deploy.md` | Hot-deploy code to the test environment via the team environment management Skill |
 | 6 | **IT** | `06-it.md` | Paste key logs (with reqid) for each case; not skipped in collaborative mode |
-| 7 | **Docs** | `07-docs.md` | Incrementally update `.harness/docs/` |
+| 7 | **Docs** | `07-docs.md` | Incrementally update `.docs/` |
 | 8 | **Review** | `08-review.md` | Code review results |
 | 9 | **Commit** | `09-commit.md` | ① Ask about the issue/task ticket → ② Release the environment → ③ Advance the ticket status to "Developing" → ④ Write commit message → ⑤ Update overview (boundary point A) → ⑥ One-time `git add` → ⑦ `git commit` (first time only) → ⑧ `git push` creates the MR, triggering the ticket status "Developing→CR" → ⑨ (repeatable until the MR merges) amend to accumulate fixes (one MR one commit principle) |
 
@@ -134,7 +134,7 @@
 Append project-specific development standards here, e.g.:
 - Standard steps for adding new interfaces / new pages / new services
 - API naming style (e.g. AWS-style PascalCase, RESTful kebab-case)
-- DB interaction guidelines (must hit indexes, sync field definitions to `.harness/docs/sqls/`)
+- DB interaction guidelines (must hit indexes, sync field definitions to `.docs/sqls/`)
 - Code check commands (lint / format / type check)
 - Language / framework version constraints (e.g. Go 1.22, go-zero v1.6.x)
 - Security baseline (SQL parameterization, no hardcoded credentials, etc.)
@@ -176,5 +176,5 @@ Append project-specific development standards here, e.g.:
 
 | # | Red Line | Consequence |
 |---|------|------|
-| 1 | **Strictly forbidden for AI to proactively read/reference md deliverables under other `.harness/plans/<other task dir>/`** (including `00-overview.md`, `01-clarify.md` … `09-commit.md`, `.harness/design.md`, etc.); only when the user **explicitly** specifies "reference task X" may the specified task directory be read, and the referenced content is forbidden from being automatically written back to the current task. See the "Task Isolation Principle (mandatory)" section above. | Task single source of truth contaminated; cross-task context interferes with the current task's design; conflicts with concurrent development |
+| 1 | **Strictly forbidden for AI to proactively read/reference md deliverables under other `.docs/plans/<other task dir>/`** (including `00-overview.md`, `01-clarify.md` … `09-commit.md`, `.docs/design.md`, etc.); only when the user **explicitly** specifies "reference task X" may the specified task directory be read, and the referenced content is forbidden from being automatically written back to the current task. See the "Task Isolation Principle (mandatory)" section above. | Task single source of truth contaminated; cross-task context interferes with the current task's design; conflicts with concurrent development |
 | 2 |  |  |

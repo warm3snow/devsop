@@ -55,7 +55,7 @@
 |----|------|---------|---------|
 |  |  |  |  |
 
-> Persistence structure changes must also update the corresponding file under `.harness/docs/sqls/` (DB schema / migration / protocol frames / config schema, etc.).
+> Persistence structure changes must also update the corresponding file under `.docs/sqls/` (DB schema / migration / protocol frames / config schema, etc.).
 
 ### 5.3 Protocol / Interface Contract
 

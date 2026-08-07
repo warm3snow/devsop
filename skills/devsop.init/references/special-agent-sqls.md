@@ -1,13 +1,13 @@
 # SQLs Review Sub-Agent Instructions
 
 > This file serves as the **supplementary instructions** for the `sqls` review sub-agent, on top of the common prompt. The main Agent passes it along when dispatching.
-> Target: `.harness/docs/sqls/` (persistence structure documentation area).
+> Target: `.docs/sqls/` (persistence structure documentation area).
 
 ---
 
 ## Core Goal
 
-Based on the project's real persistence structures, fill `.harness/docs/sqls/` into documentation for DB schema / table design / migration conventions.
+Based on the project's real persistence structures, fill `.docs/sqls/` into documentation for DB schema / table design / migration conventions.
 
 ---
 
@@ -27,7 +27,7 @@ find . \( -name "*.go" \) -not -path "*/vendor/*" 2>/dev/null | xargs grep -lE "
 ```
 
 - **No evidence of any persistence** (no DB driver dependency / no migration / no schema / pure in-memory or pure computation library) → judged a **project without a database**:
-  1. **Delete** the entire `.harness/docs/sqls/` directory (`rm -rf`).
+  1. **Delete** the entire `.docs/sqls/` directory (`rm -rf`).
   2. Output `skipped(no database)` and end.
 - Evidence exists → enter create/update mode.
 

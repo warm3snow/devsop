@@ -1,13 +1,13 @@
 # APIs Review Sub-Agent Instructions
 
 > This file serves as the **supplementary instructions** for the `apis` review sub-agent, on top of the common prompt. The main Agent passes it along when dispatching.
-> Target: `.harness/docs/apis/` (the external API documentation area).
+> Target: `.docs/apis/` (the external API documentation area).
 
 ---
 
 ## Core Goal
 
-Based on the real interfaces in the code, fill `.harness/docs/apis/` into an interface documentation set written from the **caller's perspective**:
+Based on the real interfaces in the code, fill `.docs/apis/` into an interface documentation set written from the **caller's perspective**:
 - `apis/index.md` master index (1:1 correspondence with the official API docs)
 - `apis/<module>/<Action>.md` one doc per exposed Action (following the `_template.md` structure)
 - `apis/api-standards.md` keep it if it has substantive content; only supplement this project's protocol/path/version conventions
@@ -29,7 +29,7 @@ find . \( -name "router*" -o -name "route*" -o -name "*handler*.go" -o -name "co
 ```
 
 - **No evidence of any external interface** (no proto / no HTTP-RPC framework / no route registration / pure library without exported interfaces) → judged a **project without APIs**:
-  1. **Delete** the entire `.harness/docs/apis/` directory (`rm -rf`).
+  1. **Delete** the entire `.docs/apis/` directory (`rm -rf`).
   2. Output `skipped(no external API)` and end.
 - Evidence exists → enter create/update mode.
 

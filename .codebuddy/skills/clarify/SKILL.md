@@ -3,7 +3,7 @@ name: clarify
 description: |
   AI product manager skill that helps users clarify vague ideas into clear requirement cards.
   Trigger scenario: the user has an idea or feature requirement but expresses it unclearly; they need to sort out their thinking before having AI implement it in code.
-  Workflow: on startup, locate the 01-clarify.md under the current DEVSOP task directory; phase one guides requirement discovery, phase two challenges assumptions Socratically; finally write the requirement card into .harness/plans/<task directory>/01-clarify.md (no separate PRD, AI coding prompt, or other standalone artifacts).
+  Workflow: on startup, locate the 01-clarify.md under the current DEVSOP task directory; phase one guides requirement discovery, phase two challenges assumptions Socratically; finally write the requirement card into .docs/plans/<task directory>/01-clarify.md (no separate PRD, AI coding prompt, or other standalone artifacts).
   Not applicable: scenarios where the requirement is already clear enough and only needs direct technical implementation.
 ---
 
@@ -19,18 +19,18 @@ You are an experienced product manager with strong user empathy and sharp produc
 
 When clarify starts, **first locate the `01-clarify.md` in the current DEVSOP task directory, then enter the clarification flow**.
 
-> ⚠️ **Important**: this project uses the `.harness/plans/YYYY-MM-DD_<short-title>/` DEVSOP task directory system.
-> ⚠️ **Important**: this project uses the `.harness/plans/YYYY-MM-DD_<short-title>/` DEVSOP task directory system.
+> ⚠️ **Important**: this project uses the `.docs/plans/YYYY-MM-DD_<short-title>/` DEVSOP task directory system.
+> ⚠️ **Important**: this project uses the `.docs/plans/YYYY-MM-DD_<short-title>/` DEVSOP task directory system.
 > The final artifact of clarify **must and can only** be written into `01-clarify.md` under that task directory.
 > **Forbidden**: creating a `prd/` directory, creating standalone requirement files in the `YYYYMMDD-HHMM-*.md` format, or overwriting other files in the user's project.
 
 ### Step 1: Locate the current task's `01-clarify.md`
 
 1. Run `git branch --show-current` to get the current branch name.
-2. Search under `.harness/plans/` for the task directory matching the current branch: iterate over each `.harness/plans/*/00-overview.md` and match the directory whose Meta `branch` field equals the current branch name — that directory is the current task.
-3. The target file path is fixed as: `.harness/plans/<task directory>/01-clarify.md`
+2. Search under `.docs/plans/` for the task directory matching the current branch: iterate over each `.docs/plans/*/00-overview.md` and match the directory whose Meta `branch` field equals the current branch name — that directory is the current task.
+3. The target file path is fixed as: `.docs/plans/<task directory>/01-clarify.md`
 
-> ⚠️ This project does **not** maintain a global `.harness/plan.md` — task discovery relies entirely on the `plans/` directory + each `00-overview.md`.
+> ⚠️ This project does **not** maintain a global `.docs/plan.md` — task discovery relies entirely on the `plans/` directory + each `00-overview.md`.
 
 If any of the following occurs, **do not** create a task directory yourself; instead **prompt the user** to first establish the task directory per the "DEVSOP startup prerequisites: branch and task determination" flow in `CODEBUDDY.md` (including filling the Meta `branch` field of `00-overview.md`), then restart clarify:
 - currently on `master` or another non-`feature/` branch
@@ -180,7 +180,7 @@ After the requirement is confirmed, output a **single** artifact — the **requi
 
 After outputting the requirement card, write the full content into the `01-clarify.md` of the current DEVSOP task directory:
 
-1. **Save path**: the `.harness/plans/<task directory>/01-clarify.md` located at startup (**the only target**; creating other requirement files is forbidden)
+1. **Save path**: the `.docs/plans/<task directory>/01-clarify.md` located at startup (**the only target**; creating other requirement files is forbidden)
 2. **Write strategy** (per the mode the user chose at startup):
    - **New mode** / **full rewrite** → **overwrite write** `01-clarify.md`
    - **Partial supplement** → **append** a new section `## Supplementary Clarification - YYYY-MM-DD` at the end of the original file, placing this requirement card under it
@@ -190,7 +190,7 @@ After outputting the requirement card, write the full content into the `01-clari
    - ❌ Must not create standalone files in the `YYYYMMDD-HHMM-[requirement name].md` or `-patch.md` formats
    - ❌ Must not generate standalone artifacts such as `PRD.md` / `AI-Coding-Prompt.md`
    - ❌ Must not modify DEVSOP artifact files other than `00-overview.md`
-4. **After saving, inform the user**: `saved to .harness/plans/<task directory>/01-clarify.md`
+4. **After saving, inform the user**: `saved to .docs/plans/<task directory>/01-clarify.md`
 
 `01-clarify.md` file content structure (for new/overwrite mode):
 
@@ -241,7 +241,7 @@ Core problem: [xxx]
 Discovery rounds: [N rounds]
 Challenge count: [N assumptions]
 Output: requirement card ✓
-Saved: .harness/plans/<task directory>/01-clarify.md
+Saved: .docs/plans/<task directory>/01-clarify.md
 
 👉 Next step: return to the main DEVSOP flow and confirm whether to end the Clarify step and enter the Plan step.
 ════════════════════════════════════════
@@ -254,10 +254,10 @@ Saved: .harness/plans/<task directory>/01-clarify.md
 ```
 Start
   ↓
-Locate the current DEVSOP task directory (based on the git branch + iterating the Meta `branch` field of .harness/plans/*/00-overview.md)
+Locate the current DEVSOP task directory (based on the git branch + iterating the Meta `branch` field of .docs/plans/*/00-overview.md)
   ↓
   ├── Task directory not found → prompt the user to create a task directory per DEVSOP, terminate the flow
-  └── Found .harness/plans/<task directory>/01-clarify.md
+  └── Found .docs/plans/<task directory>/01-clarify.md
         ↓
 Check the state of 01-clarify.md
   ├── Does not exist / template placeholder → new mode (overwrite write)

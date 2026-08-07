@@ -62,7 +62,7 @@ Say to the AI:
 hot-deploy code to <environment name>
 ```
 
-> For detailed usage (specify components / full deployment / force, etc.), see `.harness/docs/devops/test-env-deploy.md`.
+> For detailed usage (specify components / full deployment / force, etc.), see `.docs/devops/test-env-deploy.md`.
 
 ## 4. Deployment Result Checks
 

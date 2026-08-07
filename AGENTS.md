@@ -11,7 +11,7 @@
 |-------|----------|
 | Project background, features, installation | `README.md` |
 | AI collaboration entry | `AGENTS.md` (this file; `CODEBUDDY.md` / `CLAUDE.md` are symlinks) |
-| DEVSOP scaffolding skill (create `.harness/` skeleton in target projects) | `skills/devsop.init/SKILL.md` |
+| DEVSOP scaffolding skill (create `.docs/` skeleton in target projects) | `skills/devsop.init/SKILL.md` |
 | DEVSOP maturity audit skill | `skills/devsop.eval/SKILL.md` |
 | Go code quality scoring skill | `skills/go-quality-scorer/SKILL.md` |
 | Go secret-leak review skill | `skills/go-secret-leak-review/SKILL.md` |

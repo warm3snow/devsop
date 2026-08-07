@@ -25,7 +25,7 @@ You are the DEVSOP entry normalization merge sub-agent; your goal is to merge mu
 
 Use the section outline of the `$SKILL_DIR/assets/agents.md.tmpl` template as the skeleton (four sections: 1. Quick index / 2. DEVSOP / 3. Development conventions / 4. Forbidden red lines), and map the content of each candidate file to the corresponding section.
 
-> **DEVSOP contract section protection (highest priority)**: the sole source of the "2. DEVSOP" section = `$SKILL_DIR/assets/agents.md.tmpl`, **adopt the template version verbatim**. DEVSOP-related content in candidate files (development flow, commit conventions, task management, etc.) is **not merged into section two**; process rules that are genuinely project-specific and not covered by the template DEVSOP → move to "3. Development conventions" or mark `<!-- TODO(devsop.init): the relationship with the template DEVSOP requires manual arbitration -->`. Rationale: `init_harness.sh` divides by section, and every run force-refreshes "2. DEVSOP" to the template version — any rewriting of it during a merge would be rolled back, and free-form rewriting is guaranteed to lose the essence of the DEVSOP.
+> **DEVSOP contract section protection (highest priority)**: the sole source of the "2. DEVSOP" section = `$SKILL_DIR/assets/agents.md.tmpl`, **adopt the template version verbatim**. DEVSOP-related content in candidate files (development flow, commit conventions, task management, etc.) is **not merged into section two**; process rules that are genuinely project-specific and not covered by the template DEVSOP → move to "3. Development conventions" or mark `<!-- TODO(devsop.init): the relationship with the template DEVSOP requires manual arbitration -->`. Rationale: `init_docs.sh` divides by section, and every run force-refreshes "2. DEVSOP" to the template version — any rewriting of it during a merge would be rolled back, and free-form rewriting is guaranteed to lose the essence of the DEVSOP.
 
 ### 3. Per-section merge strategy
 
@@ -46,11 +46,11 @@ After merging, scan once more and force-mark any still-conflicting rules as TODO
 - Scenario b (existing AGENTS.md + other entries): overwrite the existing one
 - Scenario e (no AGENTS.md + ≥2 entries): create a new one
 
-**Size control**: hard cap **≤300 lines** (aligned with `special-agent-agents.md`); **≤200 lines is the excellence target**. The "2. DEVSOP" contract section does not participate in line-count compression and is not demoted. If the merged result exceeds 200 lines, demote low-priority content (tool-specific notes, detailed configuration commands, verbose examples) to the corresponding files under `.harness/docs/` (e.g. `.harness/docs/coding-style.md`, `.harness/docs/devops/development.md`), keeping only index references in AGENTS.md (e.g. `see [.harness/docs/coding-style.md](.harness/docs/coding-style.md)`).
+**Size control**: hard cap **≤300 lines** (aligned with `special-agent-agents.md`); **≤200 lines is the excellence target**. The "2. DEVSOP" contract section does not participate in line-count compression and is not demoted. If the merged result exceeds 200 lines, demote low-priority content (tool-specific notes, detailed configuration commands, verbose examples) to the corresponding files under `.docs/` (e.g. `.docs/coding-style.md`, `.docs/devops/development.md`), keeping only index references in AGENTS.md (e.g. `see [.docs/coding-style.md](.docs/coding-style.md)`).
 
 ### 6. Delete the original entry files
 
-Directly `rm` each merged plain file (other than `AGENTS.md` itself) (paths relative to `$REPO_ROOT`; **strictly forbidden** to touch any file inside `$SKILL_DIR`). `init_harness.sh` will subsequently rebuild `CODEBUDDY.md` / `CLAUDE.md` → `AGENTS.md` as symlinks (see the `ensure_ai_agent_symlink` function in `init_harness.sh`).
+Directly `rm` each merged plain file (other than `AGENTS.md` itself) (paths relative to `$REPO_ROOT`; **strictly forbidden** to touch any file inside `$SKILL_DIR`). `init_docs.sh` will subsequently rebuild `CODEBUDDY.md` / `CLAUDE.md` → `AGENTS.md` as symlinks (see the `ensure_ai_agent_symlink` function in `init_docs.sh`).
 
 > Git history is a more reliable fallback; no `.bak` backup is needed. If the user has not yet committed the previous entry files, they can be recovered via `git stash` / `git restore`.
 
@@ -69,4 +69,4 @@ Directly `rm` each merged plain file (other than `AGENTS.md` itself) (paths rela
 - **Do not touch** any files other than AGENTS.md and the merged entries
 - **Do not delete** any original content (even if it looks redundant), unless it is a literal exact duplicate
 - **No git operations** (no add, no commit)
-- The AGENTS.md produced by the merge will also be refined by Agent A (`references/special-agent-agents.md`) in "optimization mode" during batch one — progressive disclosure, hard cap ≤300 lines (≤200 is the excellence target), details demoted to `.harness/docs/` or `.codebuddy/rules/`; the "2. DEVSOP" contract section is read-only in both steps
+- The AGENTS.md produced by the merge will also be refined by Agent A (`references/special-agent-agents.md`) in "optimization mode" during batch one — progressive disclosure, hard cap ≤300 lines (≤200 is the excellence target), details demoted to `.docs/` or `.codebuddy/rules/`; the "2. DEVSOP" contract section is read-only in both steps

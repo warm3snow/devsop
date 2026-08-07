@@ -1,6 +1,6 @@
 # DEVSOP Evaluation Report Template
 
-This template is used by the `devsop.eval` skill to render the final report, **target path: `.harness/devsop_report.md`**.
+This template is used by the `devsop.eval` skill to render the final report, **target path: `.docs/devsop_report.md`**.
 
 > Rendering rules:
 > - `{placeholders}` are filled in by the main agent
@@ -65,8 +65,8 @@ This template is used by the `devsop.eval` skill to render the final report, **t
 |------|-----------|----------|--------|
 | A1 AGENTS.md exists and ≤300 lines | ✅/⚠️/❌ | {file path / line count} | code |
 | A2 README.md complete | ✅/⚠️/❌ | {covered section list} | model |
-| A3 .harness/docs/architecture.md complete | ✅/⚠️/❌ | {covered section list} | model |
-| A4 .harness/docs/ regulations library covers the new core docs (incl. content substance) | ✅/⚠️/❌ | {present/missing/placeholder file list} | code+model |
+| A3 .docs/architecture.md complete | ✅/⚠️/❌ | {covered section list} | model |
+| A4 .docs/ regulations library covers the new core docs (incl. content substance) | ✅/⚠️/❌ | {present/missing/placeholder file list} | code+model |
 | A5 Multi-tool symlinks + checked in | ✅/⚠️/❌ | {link status + .gitignore check} | code |
 | A6 One-command start | ✅/⚠️/❌ | {Makefile target / package.json scripts} | code |
 | A7 Environment config template | ✅/⚠️/❌ | {.env.example status / README env-var docs} | code |
@@ -115,11 +115,11 @@ This template is used by the `devsop.eval` skill to render the final report, **t
 
 ### D. Design & change management（{score}/15）
 
-> **Evaluation system**: based on the 10-file DEVSOP system under `.harness/plans/<task>/` (new specs-devsop; task overviews sink into each `00-overview.md`, no global plan.md)
+> **Evaluation system**: based on the 10-file DEVSOP system under `.docs/plans/<task>/` (new devsop.init; task overviews sink into each `00-overview.md`, no global plan.md)
 
 | Eval | Conclusion | Evidence | Grader |
 |------|-----------|----------|--------|
-| D1 Task directories exist with substantive content (≥1 with the full 10 files) | ✅/⚠️/❌ | {task directory count under .harness/plans/ + file completeness} | code |
+| D1 Task directories exist with substantive content (≥1 with the full 10 files) | ✅/⚠️/❌ | {task directory count under .docs/plans/ + file completeness} | code |
 | D2 00-overview.md maintenance activity (updated in the last 90 days) | ✅/⚠️/❌ | {latest task 00-overview.md update time} | code+model |
 | D3 Small-change TDD/regression testing + template completeness (_template/ has the 10 files + TDD documented in unittest/unittest.md) | ✅/⚠️/❌ | {_template/ file count + unittest TDD section} | code+model |
 | D4 Change-classification standard documented | ✅/⚠️/❌ | {classification definition doc path + criteria content} | model |
@@ -151,7 +151,7 @@ This template is used by the `devsop.eval` skill to render the final report, **t
 |------|-----------|----------|--------|
 | F1 devsop_report.md exists and is updated regularly | ✅/⚠️/❌ | {file path + latest update} | code |
 | F2 AI session/memory/failure-case retention (CodeBuddy memory store / logs/ai-sessions / failures.md in git, choose one of three) | ✅/⚠️/❌ | {hit path + file count} | code |
-| F3 .harness/ doc changes traceable | ✅/⚠️/❌ | {commit count in 60 days} | code |
+| F3 .docs/ doc changes traceable | ✅/⚠️/❌ | {commit count in 60 days} | code |
 | F4 Improvement-loop closure | ✅/⚠️/❌ | {historical evaluation count + improved items} | code+model |
 
 **Evaluation confidence**: 🟢 high / 🟡 medium / 🔴 low
@@ -165,13 +165,12 @@ This template is used by the `devsop.eval` skill to render the final report, **t
 
 | Anti-pattern | Status | Notes |
 |--------------|--------|-------|
-| Docs severely out of sync with code (.harness/ not updated in >60 days) | 🟢 not found / 🔴 present | {git log output summary} |
+| Docs severely out of sync with code (.docs/ not updated in >60 days) | 🟢 not found / 🔴 present | {git log output summary} |
 | Excessive test mocking | 🟢 not found / 🔴 present | {mock vs integration test file ratio} |
 | Sensitive files or artifacts committed | 🟢 not found / 🔴 present | {hit file list} |
 | Important decisions not captured in docs | 🟢 not found / 🔴 present | {sampled PR commit summary} |
 | failures.md long empty | 🟢 not found / 🔴 present | {line count + last modified time} |
 | AGENTS.md shallow | 🟢 not found / 🔴 present | {line count + chapter keyword check} |
-| Legacy harness residue not migrated (non-hidden harness/ dir, root ARCHITECTURE.md, legacy dependency-map.md/testing.md, global plan.md) | 🟢 not found / 🔴 present | {collect_evidence.sh LEGACY_HARNESS section output} |
 
 > Anti-patterns do not affect pillar scores, but a 🔴 status is emphasized in the "Core Conclusions".
 
@@ -181,7 +180,7 @@ This template is used by the `devsop.eval` skill to render the final report, **t
 
 | Metric | Current value | Healthy threshold | Rating |
 |--------|---------------|-------------------|--------|
-| .harness/ file update median days-to-today | {X days} | <60 days | 🟢/🟡/🔴 |
+| .docs/ file update median days-to-today | {X days} | <60 days | 🟢/🟡/🔴 |
 | Mock health (mock file count / integration test file count) | {mock: X, integration: Y} | integration tests >0 | 🟢/🟡/🔴 |
 | failures.md commit count in 90 days | {X} | ≥1 | 🟢/🟡/🔴 |
 | Regulation docs commit count in 60 days | {X} | ≥3 | 🟢/🟡/🔴 |

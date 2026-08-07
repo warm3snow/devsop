@@ -105,10 +105,10 @@ Replace "service topology diagram" with "module dependency graph"
 The current `AGENTS.md` template (`assets/agents.md.tmpl`) has four sections: 1. Quick index / 2. DEVSOP / 3. Development conventions / 4. Forbidden red lines. Library projects are differentiated as follows (executed by Agent A in batch one, see `special-agent-agents.md`):
 
 ### Section 1. Quick index (delete lines)
-- Delete the "Database / persistence schema" line (`.harness/docs/sqls/`)
-- Delete the "Test environment deployment / code sync" line (`.harness/docs/devops/test-env-deploy.md`)
-- Delete the "Integration testing standards" line (`.harness/docs/integration_test/integration_test.md`) — library projects have no standalone runtime environment
-- Keep the "Unit testing standards" line (`.harness/docs/unittest/unittest.md`; libraries still need unit tests)
+- Delete the "Database / persistence schema" line (`.docs/sqls/`)
+- Delete the "Test environment deployment / code sync" line (`.docs/devops/test-env-deploy.md`)
+- Delete the "Integration testing standards" line (`.docs/integration_test/integration_test.md`) — library projects have no standalone runtime environment
+- Keep the "Unit testing standards" line (`.docs/unittest/unittest.md`; libraries still need unit tests)
 
 ### Section 2. DEVSOP
 - The 9-stage process is kept, but Step 5 Deploy / Step 6 IT can be skipped for library projects (no standalone runtime environment, no external service interfaces)

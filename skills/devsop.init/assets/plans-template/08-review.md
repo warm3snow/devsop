@@ -1,7 +1,7 @@
 # 08. Review
 
 > **Purpose**: Human / AI review as a safety net, the last gate before Commit.
-> **Reference**: the checklist in `.harness/review.md`
+> **Reference**: the checklist in `.docs/review.md`
 
 ---
 
@@ -16,7 +16,7 @@
 
 ## 2. Self-Check (author first)
 
-> The author self-checks against the mandatory items in `.harness/review.md`; only then may the Review be initiated.
+> The author self-checks against the mandatory items in `.docs/review.md`; only then may the Review be initiated.
 
 ### 2.1 Security
 - [ ] SQL parameterized

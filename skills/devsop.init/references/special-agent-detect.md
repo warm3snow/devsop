@@ -7,7 +7,7 @@
 
 ## Core Goal
 
-Determine whether the target project **exposes APIs externally** and **has database / persistence definitions**, and return two boolean values in a fixed format for the main Agent to pass to `init_harness.sh --has-api= --has-db=`.
+Determine whether the target project **exposes APIs externally** and **has database / persistence definitions**, and return two boolean values in a fixed format for the main Agent to pass to `init_docs.sh --has-api= --has-db=`.
 
 ---
 

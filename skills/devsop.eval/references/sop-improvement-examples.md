@@ -16,9 +16,9 @@ This document provides `devsop.eval` with a lookup library for "FAIL/PARTIAL →
 | Current state | Improvement action |
 |---------------|--------------------|
 | Does not exist | Run the `devsop.init` skill to auto-generate; or create AGENTS.md manually, at least including: tech stack / directory structure / regulations index / quick start / core conventions / prohibited items |
-| Line count >300 | Split detailed chapters into `.harness/docs/` sub-regulations or `rules/*.mdc`; AGENTS.md keeps only the index and core constraints (refer to the slimming experience of mature projects) |
-| Line count <30 (shallow) | Add the following sections: ① tech stack versions ② directory structure ③ .harness/docs/ regulation links ④ one-command start ⑤ 5+ prohibited items |
-| Four chapters incomplete (1-2 of quick index/DEVSOP/dev guidelines/forbidden red lines missing) | Add the missing chapters: ① quick index table (incl. .harness/docs/ doc location mapping) ② §2 DEVSOP (incl. 9-step plans flow, context recovery, task isolation, scale branching) ③ §3 dev guidelines (fill per the project's actual situation) ④ §4 forbidden red lines (≥5 hard constraints). Reference the `assets/agents.md.tmpl` template structure of the `devsop.init` skill |
+| Line count >300 | Split detailed chapters into `.docs/` sub-regulations or `rules/*.mdc`; AGENTS.md keeps only the index and core constraints (refer to the slimming experience of mature projects) |
+| Line count <30 (shallow) | Add the following sections: ① tech stack versions ② directory structure ③ .docs/ regulation links ④ one-command start ⑤ 5+ prohibited items |
+| Four chapters incomplete (1-2 of quick index/DEVSOP/dev guidelines/forbidden red lines missing) | Add the missing chapters: ① quick index table (incl. .docs/ doc location mapping) ② §2 DEVSOP (incl. 9-step plans flow, context recovery, task isolation, scale branching) ③ §3 dev guidelines (fill per the project's actual situation) ④ §4 forbidden red lines (≥5 hard constraints). Reference the `assets/agents.md.tmpl` template structure of the `devsop.init` skill |
 
 ### A2 README.md incomplete
 
@@ -31,22 +31,22 @@ This document provides `devsop.eval` with a lookup library for "FAIL/PARTIAL →
 | Deployment environment requirements | Add "## Environment Requirements", listing Go/Node/Python versions, required service dependencies, and minimal hardware config |
 | Notes | Add "## Notes", listing known limitations, incompatible scenarios, and pitfall-avoidance tips |
 
-### A3 .harness/docs/architecture.md incomplete
+### A3 .docs/architecture.md incomplete
 
 | Missing section | Improvement action |
 |-----------------|--------------------|
-| Overall architecture diagram | Draw a layered architecture diagram with mermaid `graph TD` (frontend → gateway → service → DB), embedded in `.harness/docs/architecture.md` (the new specs-devsop has moved it into docs/; a root-level ARCHITECTURE.md is legacy residue and should be migrated) |
+| Overall architecture diagram | Draw a layered architecture diagram with mermaid `graph TD` (frontend → gateway → service → DB), embedded in `.docs/architecture.md` |
 | Module division and boundaries | List the top-level directory tree; describe each module's responsibility and what it should not do in 1-2 sentences |
 | Data flow | Draw 1-2 core-scenario data-flow sequence diagrams (e.g. "user login", "core business interface") |
 | Tech selection rationale | For each key technology (framework/middleware/storage) write "what + why + alternatives and why they were rejected" |
 | Core design decisions | List 3-5 project-level key decisions (e.g. "why event-driven", "why monolith rather than microservices") |
 | Known tech debt | Add "## Known Tech Debt", listing currently-known but unfixed issues and their planned handling time |
 
-### A4 .harness/docs/ regulations library incomplete
+### A4 .docs/ regulations library incomplete
 
 | Missing file | Improvement action |
 |--------------|--------------------|
-| Any new core doc missing | Run the `devsop.init` skill to auto-fill; or manually create the files under `.harness/docs/` per the new DEVSOP requirements (relationship.md replaces the old dependency-map.md; unittest/unittest.md replaces the old testing.md) |
+| Any new core doc missing | Run the `devsop.init` skill to auto-fill; or manually create the files under `.docs/` per the DEVSOP requirements |
 | File exists but ≤10 lines (skeleton) | Fill in per the file's topic: architecture → architecture diagram/modules/tech debt; relationship → upstream/downstream dependency graph/failure propagation; coding-style → naming/format/security rules; unittest → test strategy/coverage/run commands; integration_test → integration test scope/how to run; code-review → Review checklist; glossary → business glossary; failures → pitfall records (≥3 items); logging → log levels/format/redaction. Each at least 30 lines of substantive content; avoid placeholders |
 
 ### A5 Symlinks missing or gitignored
@@ -58,7 +58,7 @@ This document provides `devsop.eval` with a lookup library for "FAIL/PARTIAL →
 | `.codebuddy/` exists but `CODEBUDDY.md` missing | `ln -sf AGENTS.md CODEBUDDY.md` |
 | `.claude/` exists but the root `CLAUDE.md` missing | `ln -s AGENTS.md CLAUDE.md` |
 | The symlink is a regular file rather than a symbolic link | Back up the original then rebuild: `mv CODEBUDDY.md CODEBUDDY.md.bak && ln -sf AGENTS.md CODEBUDDY.md` |
-| Key files gitignored | Remove the `AGENTS.md` / `.harness/` entries from .gitignore; if a legacy root `ARCHITECTURE.md` still exists, migrate it to `.harness/docs/architecture.md` and delete it (the legacy residue temporarily needs to be excluded from ignore) |
+| Key files gitignored | Remove the `AGENTS.md` / `.docs/` entries from .gitignore |
 
 ### A6 No one-command start
 
@@ -73,7 +73,7 @@ This document provides `devsop.eval` with a lookup library for "FAIL/PARTIAL →
 | Current state | Improvement action |
 |---------------|--------------------|
 | No .env.example | Export the required env vars from the current runtime and create `.env.example`: `env | grep -E "^(DB_|REDIS_|APP_|PORT)" > .env.example`, then manually clean sensitive values into placeholders |
-| Env vars scattered in multiple places | Add a "## Environment Variables" section in `.harness/docs/devops/development.md` listing all required vars (name + description + example value + whether required) |
+| Env vars scattered in multiple places | Add a "## Environment Variables" section in `.docs/devops/development.md` listing all required vars (name + description + example value + whether required) |
 | docker-compose.yml exists but no explanation | Add a line to the README quick-start section: "for environment variable configuration, see .env.example or the environment section of docker-compose.yml" |
 
 ---
@@ -83,7 +83,7 @@ This document provides `devsop.eval` with a lookup library for "FAIL/PARTIAL →
 ### B1 9-step R&D flow not documented
 
 **Improvement action**: add the 9-step plans flow description to the "§2 DEVSOP" section of `AGENTS.md`, explaining for each step:
-- The corresponding artifact file (`.harness/plans/<task>/0N-xxx.md`)
+- The corresponding artifact file (`.docs/plans/<task>/0N-xxx.md`)
 - Input/output
 - Confirmation points (start confirmation + end confirmation)
 - Time-record requirements
@@ -97,16 +97,16 @@ Refer to the "DEVSOP startup prerequisites" and "step execution rules" sections 
 ### B3 Phase deliverable ownership unclear
 
 **Improvement action**:
-- Task directories: uniformly under `.harness/plans/<YYYY-MM-DD_task-title>/`, each task with the 10 files (00-overview through 09-commit)
-- Design docs: accumulate in `.harness/docs/architecture.md` + `.harness/docs/apis/`
-- Unit test conventions: state "same directory as source / standalone `tests/` dir" in `.harness/docs/unittest/unittest.md`
-- Task discovery: `ls .harness/plans/` or `find .harness/plans -maxdepth 2 -name 00-overview.md`
+- Task directories: uniformly under `.docs/plans/<YYYY-MM-DD_task-title>/`, each task with the 10 files (00-overview through 09-commit)
+- Design docs: accumulate in `.docs/architecture.md` + `.docs/apis/`
+- Unit test conventions: state "same directory as source / standalone `tests/` dir" in `.docs/unittest/unittest.md`
+- Task discovery: `ls .docs/plans/` or `find .docs/plans -maxdepth 2 -name 00-overview.md`
 
 ### B4 Branch/Commit conventions not documented
 
 **Improvement action**:
 
-1. **Document commit conventions**: add a "## Commit Conventions" section to `.harness/docs/devops/development.md` or `.harness/docs/code-review.md`:
+1. **Document commit conventions**: add a "## Commit Conventions" section to `.docs/devops/development.md` or `.docs/code-review.md`:
    ```markdown
    ## Commit Conventions
 
@@ -171,7 +171,7 @@ Refer to the "DEVSOP startup prerequisites" and "step execution rules" sections 
 | Current state | Improvement action |
 |---------------|--------------------|
 | Path ①: CI config checked in | Create a CI workflow at the repo root (e.g. `.github/workflows/ci.yml` / `.gitlab-ci.yml` / `Jenkinsfile`), stages: Checkout → Build → Lint → UnitTest → Coverage → IntegrationTest. Skeleton below |
-| Path ②: pipeline configured on the CI platform, not in the repo | Add a "## CI Pipeline" section to `README.md` or `.harness/docs/devops/deployment.md`, which must include: CI platform name + **clickable URL** (http(s)://) + trigger conditions + stage list + failure contact. Platform name only without URL does not count |
+| Path ②: pipeline configured on the CI platform, not in the repo | Add a "## CI Pipeline" section to `README.md` or `.docs/devops/deployment.md`, which must include: CI platform name + **clickable URL** (http(s)://) + trigger conditions + stage list + failure contact. Platform name only without URL does not count |
 | Platform name only, no URL | Add the URL: the pipeline page of the CI platform in use — paste it into deployment.md |
 | No coverage gate | Add `COVERAGE_THRESHOLD := 60` to the Makefile; in the CI config, after `sh 'go test -coverprofile=coverage.out ./...'`, validate with a shell `awk` check; on failure mark the build UNSTABLE |
 
@@ -222,11 +222,11 @@ jobs:
          run: |
            git diff --cached --name-only | grep -E '\.(env|pem|key)$' && exit 1 || exit 0
    ```
-3. **List the prohibited items in `.harness/docs/code-review.md`**: copy the 12 prohibited items from DEVSOP §3.2
+3. **List the prohibited items in `.docs/code-review.md`**: copy the 12 prohibited items from DEVSOP §3.2
 
 ### C4 Branch protection and Review flow not documented
 
-**Improvement action**: add a section to `.harness/docs/code-review.md` listing:
+**Improvement action**: add a section to `.docs/code-review.md` listing:
 - No direct pushes to main / master (always feature branch + MR)
 - MRs must reference an issue-tracker ticket (MR title/description contains the ticket reference, e.g. `--story=<id>` / `--bug=<id>` or `#<id>`, per the team's tracker convention)
 - MR line count ≤500; anything larger must be split
@@ -238,7 +238,7 @@ If using a code platform that supports Branch Protection (e.g. Gongfeng), config
 ### C5 failures.md long empty
 
 **Improvement action**:
-1. **Add 3 recent pitfall records this week**: use the following template in `.harness/docs/failures.md`:
+1. **Add 3 recent pitfall records this week**: use the following template in `.docs/failures.md`:
    ```markdown
    ## 2026-05-18 — short title
    **Symptom**: ...
@@ -308,20 +308,20 @@ Call `make security` in CI (GitHub Actions / GitLab CI / Jenkinsfile all work th
           docker-compose -f docker-compose.test.yml down
    ```
 
-4. **Add conventions to `.harness/docs/unittest/unittest.md` (unit tests) and `.harness/docs/integration_test/integration_test.md` (integration tests)**: explain the integration test scope, how to run it, and how it differs from unit tests
+4. **Add conventions to `.docs/unittest/unittest.md` (unit tests) and `.docs/integration_test/integration_test.md` (integration tests)**: explain the integration test scope, how to run it, and how it differs from unit tests
 
 ---
 
 ## Pillar D: Design & change management
 
-> The new devsop.init uniformly uses the 10-file DEVSOP system under `.harness/plans/<task>/`. Evaluation is based on task-directory existence, template completeness, and TDD documentation.
+> The new devsop.init uniformly uses the 10-file DEVSOP system under `.docs/plans/<task>/`. Evaluation is based on task-directory existence, template completeness, and TDD documentation.
 
 ### D1 No task directories or incomplete artifacts
 
 | Current state | Improvement action |
 |---------------|--------------------|
-| No `.harness/plans/` directory | Run the `devsop.init` skill to initialize the DEVSOP system |
-| Has `_template/` but no historical tasks | Pick an in-progress feature and run: `cp -r .harness/plans/_template .harness/plans/YYYY-MM-DD_<task-title>`, then fill the Meta info of 00-overview.md per the DEVSOP flow |
+| No `.docs/plans/` directory | Run the `devsop.init` skill to initialize the DEVSOP system |
+| Has `_template/` but no historical tasks | Pick an in-progress feature and run: `cp -r .docs/plans/_template .docs/plans/YYYY-MM-DD_<task-title>`, then fill the Meta info of 00-overview.md per the DEVSOP flow |
 | Task directory exists but files incomplete (<8 step files) | Rebuild the missing step files from `_template/`, ensuring 00-09 = 10 files complete |
 
 ### D2 00-overview.md maintenance inactive
@@ -336,19 +336,19 @@ Call `make security` in CI (GitHub Actions / GitLab CI / Jenkinsfile all work th
 | Current state | Improvement action |
 |---------------|--------------------|
 | `_template/` file count <10 | Re-run the `devsop.init` skill to refresh `_template/` (idempotent; it fills gaps) |
-| TDD requirement not documented | Add a TDD principles section to `.harness/docs/unittest/unittest.md` (see the TDD content in the A1 improvement suggestion) |
+| TDD requirement not documented | Add a TDD principles section to `.docs/unittest/unittest.md` (see the TDD content in the A1 improvement suggestion) |
 
 ### D4 Change-classification standard not documented
 
-**Improvement action**: add a "## Change Classification Standard" section to the "§3 Dev Guidelines" of `AGENTS.md` or to `.harness/docs/devops/development.md`:
+**Improvement action**: add a "## Change Classification Standard" section to the "§3 Dev Guidelines" of `AGENTS.md` or to `.docs/devops/development.md`:
 
 ```markdown
 ## Change Classification Standard
 
 | Level | Judgment criteria | Corresponding flow | Deliverables |
 |-------|-------------------|--------------------|--------------|
-| **Large** | ≥5 person-days, or affecting ≥3 modules | full 9-step DEVSOP (01-09) | full artifacts under `.harness/plans/<task>/` |
-| **Medium** | 1-5 person-days, affecting 1-2 modules | standard DEVSOP (some step confirmations may be merged) | `.harness/plans/<task>/` |
+| **Large** | ≥5 person-days, or affecting ≥3 modules | full 9-step DEVSOP (01-09) | full artifacts under `.docs/plans/<task>/` |
+| **Medium** | 1-5 person-days, affecting 1-2 modules | standard DEVSOP (some step confirmations may be merged) | `.docs/plans/<task>/` |
 | **Small** | <1 person-day, bug fixes, config changes | small-requirement mode (≤10-line changes may merge 03-04, 07-09 confirmations) | regression tests + MR |
 ```
 
@@ -379,7 +379,7 @@ mkdir -p .codebuddy/skills
 - Shared Skill / Hook repo links
 - Business-standards exemplar repos
 
-**Path ③ build an in-project knowledge base**: accumulate ≥10 business/technical docs in the `docs/` or `knowledge/` directory, indexed in the AGENTS.md Index section.
+**Path ③ build an in-project knowledge base**: accumulate ≥10 business/technical docs in the `.docs/` or `knowledge/` directory, indexed in the AGENTS.md Index section.
 
 If all three are missing, start with Path ① — local spec accumulation is the most efficient knowledge form in the AI-collaboration era.
 
@@ -392,7 +392,7 @@ If all three are missing, start with Path ① — local spec accumulation is the
 **Improvement action**:
 1. **Running devsop.eval this time updates the file** (creating it satisfies the requirement)
 2. **Establish a monthly evaluation mechanism**: add "run devsop.eval in the first week of each month" to the team weekly meeting agenda
-3. **Configure a scheduled CI job** (optional): add a scheduled job on the project's CI platform (e.g. GitHub Actions `schedule`/`cron`) triggering on the 1st of each month, run `devsop.eval --dry-run`, archive `.harness/devsop_report.md`, and mark the build UNSTABLE when the total drops below the threshold — alert but do not block
+3. **Configure a scheduled CI job** (optional): add a scheduled job on the project's CI platform (e.g. GitHub Actions `schedule`/`cron`) triggering on the 1st of each month, run `devsop.eval --dry-run`, archive `.docs/devsop_report.md`, and mark the build UNSTABLE when the total drops below the threshold — alert but do not block
 
 ### F2 No AI session/memory/failure-case retention
 
@@ -417,15 +417,15 @@ Convention: after each significant feature development, save the AI session as `
 
 **Path ③ keep failures.md in git and maintained**:
 ```bash
-git add .harness/docs/failures.md && git commit -m "docs: track failures log"
+git add .docs/failures.md && git commit -m "docs: track failures log"
 ```
 Convention: append after each pitfall fix so historical issues are traceable in git history.
 
-### F3 .harness/docs/ doc changes stalled
+### F3 .docs/ doc changes stalled
 
 **Improvement action**:
 1. Check whether there really was no regulation-change need in 60 days (normal if the project is stable)
-2. If there were changes but not captured: organize recent code-review feedback and pitfall lessons into the corresponding `.harness/docs/` regulations
+2. If there were changes but not captured: organize recent code-review feedback and pitfall lessons into the corresponding `.docs/` regulations
 3. Establish a mechanism: review at the end of each month, identifying ≥1 regulation update point
 
 ### F4 Improvement actions not closed-loop
@@ -436,7 +436,7 @@ Convention: append after each pitfall fix so historical issues are traceable in 
 3. **Establish a closure mechanism**: add a "DEVSOP improvement tracking" agenda item to the team monthly meeting:
    - Have the previous FAIL/PARTIAL items been fixed?
    - After fixing, re-run `devsop.eval` to verify whether they upgraded to PASS
-4. **Mark the improvement trajectory in `.harness/devsop_report.md`**: after each evaluation, compare with the previous result and record the change in the "comparison with the previous evaluation" section
+4. **Mark the improvement trajectory in `.docs/devsop_report.md`**: after each evaluation, compare with the previous result and record the change in the "comparison with the previous evaluation" section
 
 ---
 
@@ -445,7 +445,7 @@ Convention: append after each pitfall fix so historical issues are traceable in 
 ### Docs severely out of sync with code
 
 **Improvement action**:
-1. Sample-verify 5 rules in `.harness/docs/` to confirm they match the current code
+1. Sample-verify 5 rules in `.docs/` to confirm they match the current code
 2. For mismatches: either update the docs, or fix the code to comply with the regulations
 3. For long-unmaintained regulation files: mark with `<!-- TODO: expired, to be updated in 2026-Qx -->` or delete them
 
@@ -454,7 +454,7 @@ Convention: append after each pitfall fix so historical issues are traceable in 
 **Improvement action**:
 1. Identify directories with a high mock ratio (e.g. `*_mock.go` accounting for >70% of `*_test.go`)
 2. Add 1 real integration test per core business flow (using an in-memory SQLite DB / testcontainers)
-3. Make it explicit in `.harness/docs/unittest/unittest.md`: the DAL/Repository layer must not mock the DB; use a real test DB
+3. Make it explicit in `.docs/unittest/unittest.md`: the DAL/Repository layer must not mock the DB; use a real test DB
 
 ### Sensitive files or artifacts committed
 
@@ -472,8 +472,8 @@ git commit -m "chore: remove leaked sensitive files"
 ### Important decisions not captured in docs
 
 **Improvement action**:
-1. Spot-check the 5 most recent large PRs and sync the design decisions from the PR descriptions to the "core design decisions" section of `.harness/docs/architecture.md`
-2. Add a PR Review checklist item to `.harness/docs/code-review.md`: "have design decisions been captured in architecture.md or a spec?"
+1. Spot-check the 5 most recent large PRs and sync the design decisions from the PR descriptions to the "core design decisions" section of `.docs/architecture.md`
+2. Add a PR Review checklist item to `.docs/code-review.md`: "have design decisions been captured in architecture.md or a spec?"
 
 ### AGENTS.md shallow
 

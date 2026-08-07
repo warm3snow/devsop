@@ -55,11 +55,11 @@ grep -c "^## §4 Forbidden Red Lines" AGENTS.md
 
 ---
 
-### A3: .harness/docs/architecture.md complete (5 points)
+### A3: .docs/architecture.md complete (5 points)
 
-**DEVSOP basis**: the new specs-devsop moves the architecture doc to `.harness/docs/architecture.md` (a root-level `ARCHITECTURE.md` is legacy residue, handled via the migration anti-pattern). Content requirements: overall architecture diagram, module division and boundaries, data flow, tech selection rationale, core design decisions, known tech debt.
+**DEVSOP basis**: the architecture doc lives at `.docs/architecture.md`. Content requirements: overall architecture diagram, module division and boundaries, data flow, tech selection rationale, core design decisions, known tech debt.
 
-**Model Grader**: scan whether `.harness/docs/architecture.md` covers:
+**Model Grader**: scan whether `.docs/architecture.md` covers:
 1. Overall architecture diagram (text description or image reference / Mermaid)
 2. Module division and boundaries
 3. Data flow
@@ -76,13 +76,13 @@ grep -c "^## §4 Forbidden Red Lines" AGENTS.md
 
 ---
 
-### A4: .harness/docs/ regulations library covers the new core docs (5 points)
+### A4: .docs/ regulations library covers the new core docs (5 points)
 
-**DEVSOP basis**: the new specs-devsop's `.harness/docs/` standard layout (§1.2 core docs + subdirectory docs).
+**DEVSOP basis**: the new devsop.init's `.docs/` standard layout (§1.2 core docs + subdirectory docs).
 
 **Required core docs (count OK if present and non-placeholder)**:
 - `architecture.md` (system positioning/module division/views)
-- `relationship.md` (upstream/downstream relationships, **replaces the old `dependency-map.md`**)
+- `relationship.md` (upstream/downstream relationships)
 - `coding-style.md`
 - `code-review.md`
 - `glossary.md`
@@ -104,8 +104,8 @@ grep -c "^## §4 Forbidden Red Lines" AGENTS.md
 REQUIRED="architecture relationship coding-style code-review glossary failures logging unittest/unittest integration_test/integration_test"
 req_ok=0; req_total=9; skeleton=0
 for f in $REQUIRED; do
-  if [ -f .harness/docs/$f.md ]; then
-    lines=$(wc -l < .harness/docs/$f.md)
+  if [ -f .docs/$f.md ]; then
+    lines=$(wc -l < .docs/$f.md)
     # placeholder judgment: ≤10 lines or almost entirely placeholders/empty tables
     if [ "$lines" -le 10 ]; then
       skeleton=$((skeleton+1)); echo "SKELETON $f ($lines lines)"
@@ -118,10 +118,10 @@ for f in $REQUIRED; do
 done
 
 # on-demand subdirectory docs (report only, does not affect judgment; trimmed per project capability)
-for f in .harness/docs/apis/index.md .harness/docs/sqls/README.md \
-         .harness/docs/devops/deployment.md .harness/docs/devops/development.md \
-         .harness/docs/devops/env.md .harness/docs/devops/test-env-deploy.md \
-         .harness/review.md; do
+for f in .docs/apis/index.md .docs/sqls/README.md \
+         .docs/devops/deployment.md .docs/devops/development.md \
+         .docs/devops/env.md .docs/devops/test-env-deploy.md \
+         .docs/review.md; do
   if [ -f "$f" ]; then
     lines=$(wc -l < "$f")
     [ "$lines" -gt 10 ] && echo "OPTIONAL_OK $f"
@@ -136,7 +136,7 @@ echo "Required(non-skeleton): $req_ok/$req_total (skeleton: $skeleton)"
 - ⚠️ PARTIAL: 5-8 of the required docs exist and are non-placeholder (skeleton counts as missing), or all 9 exist but ≥3 are empty skeletons (≤10 lines/pure placeholder)
 - ❌ FAIL: ≤4 required docs exist or are non-placeholder
 
-> **Equivalent recognition**: if a project uses `docs/design.md` instead of `architecture.md`, or another naming carrying equivalent content, treat it equally as long as the information is equivalent; do not double-deduct (following the specs-checklist evaluation philosophy).
+> **Equivalent recognition**: if a project uses `.docs/design.md` instead of `architecture.md`, or another naming carrying equivalent content, treat it equally as long as the information is equivalent; do not double-deduct (following the specs-checklist evaluation philosophy).
 > Note: `devsop_report.md` does not count toward this item (it is this Skill's own output, evaluated by F1).
 > Note: missing on-demand docs do not affect the PASS/PARTIAL/FAIL judgment.
 
@@ -173,7 +173,7 @@ if [ "$total" -eq 0 ]; then
 fi
 
 # check key files are not gitignored
-grep -E "AGENTS\.md|ARCHITECTURE\.md|\.harness/" .gitignore 2>/dev/null && echo "FAIL: key files are gitignored"
+grep -E "AGENTS\.md|ARCHITECTURE\.md|\.docs/" .gitignore 2>/dev/null && echo "FAIL: key files are gitignored"
 ```
 
 **Judgment** (score only the AI tools the project actually uses; do not require creating symlinks for unused tools):
@@ -215,7 +215,7 @@ grep -E '(dev|start)' Makefile pyproject.toml 2>/dev/null
 **Code Grader**:
 ```bash
 ls .env.example .env.template .env.sample env.example 2>/dev/null
-grep -l "environment variable\|ENV\|config" README.md .harness/docs/devops/development.md 2>/dev/null
+grep -l "environment variable\|ENV\|config" README.md .docs/devops/development.md 2>/dev/null
 ls docker-compose.yml docker-compose.yaml 2>/dev/null
 ```
 
@@ -250,7 +250,7 @@ grep -cE "Clarify|Plan|Implement|UT|Deploy|IT|Docs|Review|Commit" AGENTS.md
 
 **DEVSOP basis**: § (role responsibility division) product/test/R&D, 4-6 responsibilities each
 
-**Model Grader**: search for keywords such as "role responsibilities", "product manager", "QA", "R&D" and locate them in AGENTS.md / README.md / docs/.
+**Model Grader**: search for keywords such as "role responsibilities", "product manager", "QA", "R&D" and locate them in AGENTS.md / README.md / .docs/.
 
 **Judgment**:
 - ✅ PASS: all three roles (PM/QA/RD) have ≥3 concrete responsibility items each
@@ -264,20 +264,20 @@ grep -cE "Clarify|Plan|Implement|UT|Deploy|IT|Docs|Review|Commit" AGENTS.md
 **DEVSOP basis**: §2.1 each phase (design, subtasks, unit tests) needs an explicit deliverable location
 
 **Code Grader + model**:
-- Check whether the `.harness/plans/` directory exists
-- Check whether the `.harness/plans/_template/` template directory exists (with the 10 files)
+- Check whether the `.docs/plans/` directory exists
+- Check whether the `.docs/plans/_template/` template directory exists (with the 10 files)
 - Check whether any created task directories exist (containing `00-overview.md`)
 
 ```bash
-ls -d .harness/plans/ 2>/dev/null
-ls -d .harness/plans/_template/ 2>/dev/null
-find .harness/plans -maxdepth 2 -name 00-overview.md 2>/dev/null | wc -l
+ls -d .docs/plans/ 2>/dev/null
+ls -d .docs/plans/_template/ 2>/dev/null
+find .docs/plans -maxdepth 2 -name 00-overview.md 2>/dev/null | wc -l
 ```
 
 **Judgment**:
-- ✅ PASS: `.harness/plans/_template/` exists + ≥1 created task directory (containing 00-overview.md)
+- ✅ PASS: `.docs/plans/_template/` exists + ≥1 created task directory (containing 00-overview.md)
 - ⚠️ PARTIAL: `_template/` exists but no historical task directories
-- ❌ FAIL: `.harness/plans/` does not exist or is empty
+- ❌ FAIL: `.docs/plans/` does not exist or is empty
 
 ---
 
@@ -292,7 +292,7 @@ ls commitlint.config.* .commitlintrc* .czrc 2>/dev/null
 grep -l "commit" lefthook.yml .husky/commit-msg 2>/dev/null
 
 # check branch naming convention docs
-grep -iE "branch|feat/|fix/|hotfix/|naming" .harness/docs/devops/development.md .harness/docs/code-review.md AGENTS.md 2>/dev/null
+grep -iE "branch|feat/|fix/|hotfix/|naming" .docs/devops/development.md .docs/code-review.md AGENTS.md 2>/dev/null
 ```
 
 **Judgment**:
@@ -345,11 +345,11 @@ grep -inE 'push|force-with-lease|MR|merge' AGENTS.md .codebuddy/rules/*.md 2>/de
 # Path ①: CI config checked into the repo (any platform — GitHub Actions / GitLab CI / Jenkinsfile / etc.)
 ls .github/workflows/ .gitlab-ci.yml Jenkinsfile Jenkinsfile.* jenkins/ .jenkins/ 2>/dev/null
 
-# Path ②: README.md or .harness/docs/devops/development.md explicitly writes the CI/CD platform URL
+# Path ②: README.md or .docs/devops/development.md explicitly writes the CI/CD platform URL
 #   recognized platforms: GitHub Actions / GitLab CI / Jenkins / ArgoCD / etc.
 #   match: the same line mentions the platform name and contains an http(s):// link (URL may be an IP address)
 grep -iE '(github.?actions|gitlab.?ci|jenkins|argocd|argo.?cd|travis|circleci).*https?://|https?://.*(github\.com/.*/(actions|workflows)|gitlab|jenkins|argocd|argo.?cd|travis|circleci)' \
-  README.md .harness/docs/devops/development.md AGENTS.md 2>/dev/null | head -5
+  README.md .docs/devops/development.md AGENTS.md 2>/dev/null | head -5
 
 # coverage gate (CI config/Makefile usually uses cobertura/jacoco or a shell check)
 grep -rE 'coverage|COVERAGE_THRESHOLD|cover|cobertura|jacoco' \
@@ -382,8 +382,8 @@ grep -E '\.env|\.pem|\.key|vendor/|node_modules/|dist/|\.exe' .gitignore
 # 2. are there already-committed violations
 git ls-files | grep -E '\.env$|\.pem$|\.key$|^vendor/|^node_modules/'
 
-# 3. are the prohibited items explicit in .harness/docs/code-review.md or a PreCommit Hook
-grep -iE 'forbid|not allowed|must not|never' .harness/docs/code-review.md .harness/docs/coding-style.md 2>/dev/null
+# 3. are the prohibited items explicit in .docs/code-review.md or a PreCommit Hook
+grep -iE 'forbid|not allowed|must not|never' .docs/code-review.md .docs/coding-style.md 2>/dev/null
 ```
 
 **Judgment**:
@@ -397,7 +397,7 @@ grep -iE 'forbid|not allowed|must not|never' .harness/docs/code-review.md .harne
 
 **DEVSOP basis**: §3.2 flow conventions (bypassing Review, direct pushes to main, PRs over 500 lines, commits without ticket references, etc.)
 
-**Model Grader**: look in `.harness/docs/code-review.md` or README/AGENTS for:
+**Model Grader**: look in `.docs/code-review.md` or README/AGENTS for:
 - no direct pushes to main / master
 - PRs must reference a requirement ticket
 - PR line-count limits
@@ -417,10 +417,10 @@ grep -iE 'forbid|not allowed|must not|never' .harness/docs/code-review.md .harne
 **Code Grader**:
 ```bash
 # file exists + line count
-wc -l .harness/docs/failures.md 2>/dev/null
+wc -l .docs/failures.md 2>/dev/null
 
 # commits in the last 90 days
-git log --since='90 days ago' --oneline -- .harness/docs/failures.md | wc -l
+git log --since='90 days ago' --oneline -- .docs/failures.md | wc -l
 ```
 
 **Judgment**:
@@ -450,12 +450,12 @@ ls .trivyignore .snyk 2>/dev/null
 grep -rE "trivy|snyk|renovate|npm.audit|safety|govulncheck|sonar" \
   Jenkinsfile jenkins/ Makefile lefthook.yml .github/ .gitlab-ci.yml 2>/dev/null
 
-# 3. check whether .harness/docs declares a security scan integrated in an external CI repo
+# 3. check whether .docs/ declares a security scan integrated in an external CI repo
 #   (security scan config may live in a separate CI/Argo Workflow repo; development.md must declare the repo address and tools)
 grep -iE 'gosec|golangci|trivy|snyk|sonar|govulncheck|security|vulnerability' \
-  .harness/docs/devops/development.md .harness/docs/devops/deployment.md 2>/dev/null
+  .docs/devops/development.md .docs/devops/deployment.md 2>/dev/null
 # confirm an external CI repo address is declared (a URL makes it traceable)
-grep -E 'https?://' .harness/docs/devops/development.md .harness/docs/devops/deployment.md 2>/dev/null | \
+grep -E 'https?://' .docs/devops/development.md .docs/devops/deployment.md 2>/dev/null | \
   grep -iE 'ci|workflow|pipeline|argo|security|scan'
 
 # 4. dependency-update / vulnerability tooling (Renovate / Dependabot / trivy etc.)
@@ -463,9 +463,9 @@ ls renovate.json renovate.json5 .renovaterc .github/dependabot.yml .trivyignore 
 ```
 
 **Judgment**:
-- ✅ PASS: satisfies any of — ① Go project `.golangci.yml` / `.golangci.yaml` exists and `gosec` is in `linters.enable` (not in the disable list); ② local security-scan tool config files exist; ③ local CI config (GitHub Actions/GitLab CI/Jenkinsfile/Makefile) includes security scanning; ④ security scanning integrated in Argo Workflow or external CI yaml; ⑤ .harness/docs explicitly declares the security scan is integrated in an external CI pipeline (with tool name and location); ⑥ dependency-update / vulnerability tooling exists (Renovate / Dependabot / trivy etc.)
-- ⚠️ PARTIAL: `.golangci.yml` exists but `gosec` not enabled (lint system present, security linter missing); or only dependency-update tooling without proactive vulnerability scanning; or .harness/docs mentions security scanning but does not state the specific tool/location; or the config exists but the rules are empty
-- ❌ FAIL: no `.golangci.yml` or the enable list is empty, no other security-scan config, and .harness/docs does not declare external-CI security scanning
+- ✅ PASS: satisfies any of — ① Go project `.golangci.yml` / `.golangci.yaml` exists and `gosec` is in `linters.enable` (not in the disable list); ② local security-scan tool config files exist; ③ local CI config (GitHub Actions/GitLab CI/Jenkinsfile/Makefile) includes security scanning; ④ security scanning integrated in Argo Workflow or external CI yaml; ⑤ .docs/ explicitly declares the security scan is integrated in an external CI pipeline (with tool name and location); ⑥ dependency-update / vulnerability tooling exists (Renovate / Dependabot / trivy etc.)
+- ⚠️ PARTIAL: `.golangci.yml` exists but `gosec` not enabled (lint system present, security linter missing); or only dependency-update tooling without proactive vulnerability scanning; or .docs/ mentions security scanning but does not state the specific tool/location; or the config exists but the rules are empty
+- ❌ FAIL: no `.golangci.yml` or the enable list is empty, no other security-scan config, and .docs/ does not declare external-CI security scanning
 
 ---
 
@@ -482,7 +482,7 @@ ls -d tests/e2e/ tests/integration/ test/e2e/ e2e/ integration/ 2>/dev/null
 find . -name '*integration*test*' -o -name '*e2e*test*' -o -name '*_integration_test.go' 2>/dev/null | head -5
 
 # check whether CI has an E2E/integration test stage (any CI platform)
-grep -iE "e2e|integration.test|interface test" Jenkinsfile jenkins/ Makefile .harness/docs/devops/deployment.md 2>/dev/null
+grep -iE "e2e|integration.test|interface test" Jenkinsfile jenkins/ Makefile .docs/devops/deployment.md 2>/dev/null
 grep -iE "e2e|integration.test|interface test" .github/workflows/*.yml .gitlab-ci.yml 2>/dev/null
 ```
 
@@ -495,21 +495,21 @@ grep -iE "e2e|integration.test|interface test" .github/workflows/*.yml .gitlab-c
 
 ## Pillar D: Design & change management (15 points)
 
-> Uniformly use the `.harness/plans/` system to manage all changes (Clarify → Plan → Implement → UT → Deploy → IT → Docs → Review → Commit).
+> Uniformly use the `.docs/plans/` system to manage all changes (Clarify → Plan → Implement → UT → Deploy → IT → Docs → Review → Commit).
 
 ---
 
 ### D1: Task directories exist with substantive content (4 points)
 
-**DEVSOP basis**: §4 "design before coding" — manage changes through the `.harness/plans/` system
+**DEVSOP basis**: §4 "design before coding" — manage changes through the `.docs/plans/` system
 
 **Code Grader**:
 ```bash
 # check the task directory count under plans/ (excluding _template)
-task_dirs=$(find .harness/plans -mindepth 1 -maxdepth 1 -type d -not -name '_template' 2>/dev/null | wc -l)
+task_dirs=$(find .docs/plans -mindepth 1 -maxdepth 1 -type d -not -name '_template' 2>/dev/null | wc -l)
 
 # check the 10-file completeness of each task directory
-find .harness/plans -mindepth 1 -maxdepth 1 -type d -not -name '_template' 2>/dev/null | while read d; do
+find .docs/plans -mindepth 1 -maxdepth 1 -type d -not -name '_template' 2>/dev/null | while read d; do
   files=$(ls "$d"/*.md 2>/dev/null | wc -l)
   echo "$d: $files step files"
 done
@@ -529,7 +529,7 @@ done
 **Code Grader**:
 ```bash
 # check the latest update of 00-overview.md under plans/
-find .harness/plans -name 00-overview.md -not -path '*/_template/*' -exec git log -1 --format='%cI' {} \; 2>/dev/null | sort -r | head -1
+find .docs/plans -name 00-overview.md -not -path '*/_template/*' -exec git log -1 --format='%cI' {} \; 2>/dev/null | sort -r | head -1
 ```
 
 **Judgment**:
@@ -546,15 +546,15 @@ find .harness/plans -name 00-overview.md -not -path '*/_template/*' -exec git lo
 **Code Grader + model**:
 ```bash
 # check the 10-file completeness under plans/_template/
-ls .harness/plans/_template/ 2>/dev/null | wc -l
+ls .docs/plans/_template/ 2>/dev/null | wc -l
 
-# TDD requirement (new version in unittest/unittest.md; the legacy testing.md counts as pending migration)
-grep -iE 'TDD|write tests first|regression' .harness/docs/unittest/unittest.md AGENTS.md 2>/dev/null
+# TDD requirement (documented in unittest/unittest.md)
+grep -iE 'TDD|write tests first|regression' .docs/unittest/unittest.md AGENTS.md 2>/dev/null
 ```
 
 **Judgment**:
 - ✅ PASS: `_template/` has the 10 files + TDD explicitly in `unittest/unittest.md` or `AGENTS.md`
-- ⚠️ PARTIAL: the template exists but <10 files, or TDD is only a verbal convention, or only in the legacy `testing.md` (pending migration)
+- ⚠️ PARTIAL: the template exists but <10 files, or TDD is only a verbal convention
 - ❌ FAIL: the template does not exist and there is no TDD requirement
 
 ---
@@ -566,10 +566,10 @@ grep -iE 'TDD|write tests first|regression' .harness/docs/unittest/unittest.md A
 **Model Grader**:
 ```bash
 grep -iE "classification|large|medium|small|person.day|change scale|impact scope" \
-  .harness/docs/devops/development.md AGENTS.md .harness/docs/code-review.md 2>/dev/null
+  .docs/devops/development.md AGENTS.md .docs/code-review.md 2>/dev/null
 ```
 
-Look for the change-classification definition in `.harness/docs/devops/development.md`, `AGENTS.md`, or `.harness/docs/code-review.md`.
+Look for the change-classification definition in `.docs/devops/development.md`, `AGENTS.md`, or `.docs/code-review.md`.
 
 **Judgment**:
 - ✅ PASS: the doc clearly defines how large/medium/small changes are judged (e.g. person-day thresholds, number of affected modules, code line counts) and points to the process for each level
@@ -599,16 +599,16 @@ ls .codebuddy/skills/*/SKILL.md 2>/dev/null | wc -l
 
 ### E2: Knowledge accumulation completeness (3 points)
 
-**DEVSOP basis**: §5 "shared knowledge base: build a shared knowledge-accumulation space" — the DEVSOP does not restrict where knowledge lives; local `.harness/docs/` in the repo and remote wikis have equal value, and local accumulation is even easier for AI to consume directly.
+**DEVSOP basis**: §5 "shared knowledge base: build a shared knowledge-accumulation space" — the DEVSOP does not restrict where knowledge lives; local `.docs/` in the repo and remote wikis have equal value, and local accumulation is even easier for AI to consume directly.
 
 **Criteria**: PASS when any of the following paths is satisfied (choose one of three).
 
-**Path ① `.harness/docs/` doc count (Code Grader)**:
+**Path ① `.docs/` doc count (Code Grader)**:
 ```bash
-# number of Markdown docs under .harness/docs/
-find .harness/docs/ -name '*.md' 2>/dev/null | wc -l
+# number of Markdown docs under .docs/
+find .docs/ -name '*.md' 2>/dev/null | wc -l
 ```
-- ≥10 Markdown docs under `.harness/docs/` → PASS
+- ≥10 Markdown docs under `.docs/` → PASS
 
 **Path ② remote team knowledge-base references (Code Grader + Model Grader)**:
 ```bash
@@ -620,16 +620,16 @@ grep -iE '(wiki|confluence|notion|yuque|feishu|knowledge|doc.center)' \
 - a line or file contains both a knowledge-platform keyword and an http(s):// link → Code Grader hit
 - Model Grader confirms: the link points to a valid team knowledge base with a usage description → PASS
 
-**Path ③ `.harness/plans/` task count (Code Grader)**:
+**Path ③ `.docs/plans/` task count (Code Grader)**:
 ```bash
-# task directory count under .harness/plans/ (excluding _template)
-find .harness/plans -mindepth 1 -maxdepth 1 -type d -not -name '_template' 2>/dev/null | wc -l
+# task directory count under .docs/plans/ (excluding _template)
+find .docs/plans -mindepth 1 -maxdepth 1 -type d -not -name '_template' 2>/dev/null | wc -l
 ```
 - ≥3 created task directories → PASS
 
 **Judgment**:
 - ✅ PASS: satisfies any of ①/②/③
-- ⚠️ PARTIAL: `.harness/docs/` has 1-9 docs, or external resources are only mentioned without links, or `.harness/plans/` has 1-2 task directories
+- ⚠️ PARTIAL: `.docs/` has 1-9 docs, or external resources are only mentioned without links, or `.docs/plans/` has 1-2 task directories
 - ❌ FAIL: no accumulation traces at all
 
 ---
@@ -646,8 +646,8 @@ This item is split into two sub-dimensions to resolve the self-referential parad
 
 **Code Grader**:
 ```bash
-[ -f .harness/devsop_report.md ] && \
-  git log --oneline -- .harness/devsop_report.md 2>/dev/null | wc -l
+[ -f .docs/devsop_report.md ] && \
+  git log --oneline -- .docs/devsop_report.md 2>/dev/null | wc -l
 ```
 
 **Judgment**:
@@ -662,10 +662,10 @@ This item is split into two sub-dimensions to resolve the self-referential parad
 **Code Grader + model**:
 ```bash
 # check whether the report has a non-empty "comparison with the previous evaluation" section
-grep -A5 "comparison with the previous evaluation" .harness/devsop_report.md 2>/dev/null | grep -E "↑|↓|PASS|PARTIAL|FAIL"
+grep -A5 "comparison with the previous evaluation" .docs/devsop_report.md 2>/dev/null | grep -E "↑|↓|PASS|PARTIAL|FAIL"
 
-# or check whether .harness/ has an improvement-tracking file
-ls .harness/devsop_improvements.md .harness/devsop_changelog.md 2>/dev/null
+# or check whether .docs/ has an improvement-tracking file
+ls .docs/devsop_improvements.md .docs/devsop_changelog.md 2>/dev/null
 ```
 
 **Judgment**:
@@ -708,8 +708,8 @@ find "$HOME/.codebuddy/projects/$slug" -maxdepth 1 -name '*.jsonl' -mtime -30 2>
 
 **Path ③ failure cases in git (Code Grader)**:
 ```bash
-git ls-files .harness/docs/failures.md >/dev/null 2>&1 && \
-  git log --since='90 days ago' --format='%cI' -- .harness/docs/failures.md | head -1
+git ls-files .docs/failures.md >/dev/null 2>&1 && \
+  git log --since='90 days ago' --format='%cI' -- .docs/failures.md | head -1
 ```
 - failures.md is tracked + has commits in the last 90 days → PASS
 
@@ -720,14 +720,14 @@ git ls-files .harness/docs/failures.md >/dev/null 2>&1 && \
 
 ---
 
-### F3: .harness/ doc changes traceable (3 points)
+### F3: .docs/ doc changes traceable (3 points)
 
 **DEVSOP basis**: §6.1 phase 2 "scan the change status of DEVSOP regulation docs to ensure the feedback mechanism operates effectively"
 
 **Code Grader**:
 ```bash
-git log --since='60 days ago' --format='%cI %s' -- .harness/ | wc -l
-git log --since='60 days ago' --format='%cI' -- .harness/ | head -1
+git log --since='60 days ago' --format='%cI %s' -- .docs/ | wc -l
+git log --since='60 days ago' --format='%cI' -- .docs/ | head -1
 ```
 
 **Judgment**:
@@ -744,7 +744,7 @@ git log --since='60 days ago' --format='%cI' -- .harness/ | head -1
 **Code Grader + model**:
 ```bash
 # check whether multiple historical evaluation records exist
-git log --oneline -- .harness/devsop_report.md 2>/dev/null | wc -l
+git log --oneline -- .docs/devsop_report.md 2>/dev/null | wc -l
 ```
 
 If there are ≥2 git commit records, read the current report and compare the FAIL/PARTIAL items against previous versions.

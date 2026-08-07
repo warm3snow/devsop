@@ -1,19 +1,19 @@
 # logging.md Special Sub-Agent Instructions
 
 > This file serves as the **supplementary instructions** for the `logging.md` sub-agent, on top of the common prompt. The main Agent passes it along when dispatching.
-> Target: `.harness/docs/logging.md`.
+> Target: `.docs/logging.md`.
 
 ---
 
 ## Core Goal
 
-Apply `.harness/docs/logging.md` from the common template into conventions for the project's actual logging system — logging library, level mapping, tracing fields, and masking rules all come from code evidence.
+Apply `.docs/logging.md` from the common template into conventions for the project's actual logging system — logging library, level mapping, tracing fields, and masking rules all come from code evidence.
 
 ---
 
 ## Relevance Determination (prerequisite)
 
-- No evidence of any logging output in the project (a pure library project that only returns errors without logging, no logging library dependency, no log calls found by grep) → judged a **project without logging**, delete `.harness/docs/logging.md` and output `skipped(no logging)`
+- No evidence of any logging output in the project (a pure library project that only returns errors without logging, no logging library dependency, no log calls found by grep) → judged a **project without logging**, delete `.docs/logging.md` and output `skipped(no logging)`
 - Evidence exists → proceed to the steps below
 
 ---
@@ -46,7 +46,7 @@ Apply `.harness/docs/logging.md` from the common template into conventions for t
 
 ## Constraints
 
-- Only touch `.harness/docs/logging.md`; do not touch other docs
+- Only touch `.docs/logging.md`; do not touch other docs
 - Logging library / field names / levels must come from code evidence; fabricating is forbidden; fields without evidence keep `<!-- TODO(devsop.init) -->`
 - Sensitive-information masking clauses align with `coding-style.md` §10, using references rather than copies to avoid dual-track drift
 - After deleting the file for a no-logging project, check whether the AGENTS.md index references `logging.md` — if it does, note "remove the logging.md index line" in the main Agent's summary report (this Agent does not touch AGENTS.md; that is handled by Agent A's output or the main Agent's wrap-up)

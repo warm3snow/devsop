@@ -4,7 +4,7 @@
 > Three-part structure: ① Environment and Dependencies / ② Test Case Design and Organization / ③ Running and Debugging.
 >
 > **Boundary with unit tests**:
-> - Unit tests (`.harness/docs/unittest/unittest.md`): function / module level, **no** real external calls, all mocked.
+> - Unit tests (`.docs/unittest/unittest.md`): function / module level, **no** real external calls, all mocked.
 > - Integration tests (this document): cross-module / cross-service / cross-process chains, **allowed** to call real test-environment dependencies (DB / MQ / upstream-downstream services / third-party SDK test stubs).
 >
 > **If the repository has `.codebuddy/rules/integration_test_*.md` or a synonymously named file (e.g. `it_rule.md`, `api_test_rule.md`), that is the authoritative source**: this document inherits it in the form of excerpts + links and does not introduce conflicting rules; adjusting this document must keep the rules in sync.
@@ -34,7 +34,7 @@
 
 ### 2. Test Environment Information
 
-> **Strongly depends on** `.harness/docs/devops/test-env-deploy.md`: the "how to create/deploy/sync" of the environment is in the devops document; this section only records the "environment form and connectivity information needed by integration tests".
+> **Strongly depends on** `.docs/devops/test-env-deploy.md`: the "how to create/deploy/sync" of the environment is in the devops document; this section only records the "environment form and connectivity information needed by integration tests".
 
 | Item | Description | Example / Actual Value |
 |----|------|--------------|
@@ -43,7 +43,7 @@
 | Authentication method | Token / certificate / IAM / temporary AKSK | <fill in> |
 | Data isolation policy | independent account / independent schema / independent namespace / tag isolation | <fill in> |
 | Cleanup policy | auto cleanup (TTL / label deletion) / manual cleanup / no cleanup | <fill in> |
-| Upstream/downstream dependencies | see `.harness/docs/relationship.md`, list the dependencies IT must reach | <fill in> |
+| Upstream/downstream dependencies | see `.docs/relationship.md`, list the dependencies IT must reach | <fill in> |
 
 ### 3. Prerequisite Dependency Check List (check first, then install)
 
@@ -140,7 +140,7 @@ Judgment logic: all 5 items pass → run IT directly; some item fails → **only
 
 - If the repository has `.codebuddy/rules/integration_test_*.md` / `it_*.md`: change §2 of this document to point to that rules anchor, do not duplicate
 - Otherwise use this document's standards as the minimum baseline
-- Used together with `.harness/plans/_template/06-it.md` (IT stage artifact template): this document writes "rules", 06-it.md writes "the execution results of this task"
+- Used together with `.docs/plans/_template/06-it.md` (IT stage artifact template): this document writes "rules", 06-it.md writes "the execution results of this task"
 
 ---
 
@@ -229,7 +229,7 @@ failed test case → take req_id / trace_id
 - IT should be **separated from UT** in CI as an independent stage/job: UT is fast and blocks PR; IT is slow, optionally blocking or scheduled
 - IT failures must **mandatorily block merging to the main branch** (feature branches may be relaxed, but review exemption required)
 - After IT failures, CI must automatically archive: `req_id` list, key logs, environment snapshot (retained ≥ 7 days)
-- Test environment deployment / sync process see `.harness/docs/devops/test-env-deploy.md`
+- Test environment deployment / sync process see `.docs/devops/test-env-deploy.md`
 
 ---
 

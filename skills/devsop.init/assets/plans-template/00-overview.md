@@ -8,21 +8,21 @@ This file contains two HTML comment blocks (Progress rules / time-tracking rules
 both of which are **DEVSOP rules**, shared across tasks and do not change with the task. When copying, it is **forbidden** to carry them over as-is.
 
 **Copy DEVSOP (AI must execute)**:
-  1. After `cp -r .harness/plans/_template .harness/plans/YYYY-MM-DD_<title>`
+  1. After `cp -r .docs/plans/_template .docs/plans/YYYY-MM-DD_<title>`
   2. Open the new `plans/<task>/00-overview.md`
   3. Find all comment blocks marked by `<!-- TEMPLATE-ONLY-DO-NOT-COPY: -->`
   4. Delete each block entirely (including the marker line), and replace it with the single-line pointer below (replace N times if it appears N times):
 
      <!-- For this file's structure / field definitions / Progress / time-tracking DEVSOP rules,
-          see .harness/plans/_template/00-overview.md; this task file is simplified and does not repeat them.
-          Rule changes only modify _template/; this task file is refreshed later by init_harness.sh
+          see .docs/plans/_template/00-overview.md; this task file is simplified and does not repeat them.
+          Rule changes only modify _template/; this task file is refreshed later by init_docs.sh
           and does not affect old tasks. -->
 
   5. The header "⚠️ TEMPLATE ONLY" block is **also deleted entirely** (exists only in _template/)
 
 **Why simplify**:
   - Task-file noise: ~30 lines of rules are repeated in every task; 10 tasks = 10 copies
-  - Version drift: only _template/ is synced via init_harness.sh when rules change; old task copies are not synced
+  - Version drift: only _template/ is synced via init_docs.sh when rules change; old task copies are not synced
   - Single source of truth: DEVSOP rules are maintained only in _template/; AI only looks at _template/ when checking rules
 ═══════════════════════════════════════════════════════════════════════════
 -->
@@ -30,7 +30,7 @@ both of which are **DEVSOP rules**, shared across tasks and do not change with t
 > **This file is the single source of truth for this task**: task meta-information, progress, current step, and key decisions all live here.
 > When resuming a session, first read this file to locate the current step, then load the corresponding stage file as needed.
 >
-> ⚠️ This project does **not** maintain a global `.harness/plan.md` — to view across tasks, list the `.harness/plans/` directory.
+> ⚠️ This project does **not** maintain a global `.docs/plan.md` — to view across tasks, list the `.docs/plans/` directory.
 > ⚠️ The `Branch` field in Meta is the only basis for locating a task when resuming context; it **must** exactly match the output of `git branch --show-current`.
 
 ---
@@ -139,7 +139,7 @@ Time-tracking update rules (AI must read, equally mandatory as Progress):
 
 ## Risk Overview
 
-> Task-level risk register. High-severity risks can be archived separately under `.harness/docs/` as needed, to avoid merge conflicts caused by sharing files across tasks.
+> Task-level risk register. High-severity risks can be archived separately under `.docs/` as needed, to avoid merge conflicts caused by sharing files across tasks.
 
 | # | Risk | Severity | Mitigation |
 |---|------|-------|------|

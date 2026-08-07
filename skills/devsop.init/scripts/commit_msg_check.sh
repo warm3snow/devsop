@@ -64,7 +64,7 @@ fi
 
 # ── Check 4: Conventional Commits format (enforced by default) ─────────
 # DEVSOP red line 4 / agents.md.tmpl Commit conventions enforce: <type>(<scope>): <subject>
-# Disable with: export DISABLE_CONV_COMMITS=1 (not recommended, transition only for legacy projects)
+# Disable with: export DISABLE_CONV_COMMITS=1 (not recommended, transition only)
 if [[ "${DISABLE_CONV_COMMITS:-}" != "1" ]]; then
   CONV_PATTERN='^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert|other)(\(.+\))?(!)?:[[:space:]].+'
   if ! echo "${MSG_TITLE}" | grep -E "${CONV_PATTERN}" >/dev/null 2>&1; then
@@ -104,9 +104,9 @@ fi
 #   1. `--<kind>=<id>` generic footer:   --story=123 / --bug=456 (kind: story / bug / task / test / other)
 #   2. GitHub-style `#<id>`:            Fixes #123 / #456
 # The pattern can be overridden with TICKET_FOOTER_PATTERN (a grep -E regex, matched against the message).
-# Disable with: export DISABLE_TICKET_FOOTER=1 (legacy alias: DISABLE_TAPD_FOOTER=1)
+# Disable with: export DISABLE_TICKET_FOOTER=1
 #   (only for non-team projects / no issue tracker; the reason must be recorded in the 00-overview.md key-decision notes)
-if [[ "${DISABLE_TICKET_FOOTER:-${DISABLE_TAPD_FOOTER:-}}" != "1" ]]; then
+if [[ "${DISABLE_TICKET_FOOTER:-}" != "1" ]]; then
   FOOTER_PATTERN="${TICKET_FOOTER_PATTERN:-(--(bug|story|task|test|other)=[0-9]+|(^|[[:space:]])#[0-9]+)}"
   if ! grep -E -- "${FOOTER_PATTERN}" "${COMMIT_MSG_FILE}" >/dev/null 2>&1; then
     error "Commit message is missing the issue-tracker ticket footer (mandatory per DEVSOP red line 4)."

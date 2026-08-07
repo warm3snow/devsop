@@ -1,13 +1,13 @@
 # DevOps Review Sub-Agent Instructions
 
 > This file serves as the **supplementary instructions** for the `devops` review sub-agent, on top of the common prompt. The main Agent passes it along when dispatching.
-> Target: `.harness/docs/devops/` (environment setup + test-environment deployment + release conventions area).
+> Target: `.docs/devops/` (environment setup + test-environment deployment + release conventions area).
 
 ---
 
 ## Core Goal
 
-Based on the project's real build / deploy / environment configuration, fill `.harness/docs/devops/` into a set of actionable operations documentation.
+Based on the project's real build / deploy / environment configuration, fill `.docs/devops/` into a set of actionable operations documentation.
 
 ---
 
