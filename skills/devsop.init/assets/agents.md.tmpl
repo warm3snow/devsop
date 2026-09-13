@@ -1,6 +1,6 @@
 # {{PROJECT_NAME}} — AI Collaboration Entry Point
 
-> This file is the **single source of truth entry point** for AI collaboration (AGENTS.md), shared by all AI coding agents (Claude Code / Codex / Cursor / CodeBuddy etc.). Tool-specific entry files (CODEBUDDY.md / CLAUDE.md) can be symlinked to this file if your agent requires them.
+> This file is the **single source of truth entry point** for AI collaboration (AGENTS.md), shared by all AI coding agents. No tool-specific entry files are required.
 > Specific technical docs are maintained in `.docs/`, task deliverables in `.docs/plans/<task dir>/`; this file only serves as an index + recovery protocol + project-specific red lines.
 
 ---
@@ -14,8 +14,8 @@
 | API docs (organized by module) | `.docs/apis/<module>/<API name>.md` |
 | API docs master index | `.docs/apis/index.md` |
 | Database / persistence schema | `.docs/sqls/` |
-| **Unit test standards (environment / generation / run & debug, three parts)** | **`.docs/unittest/unittest.md`** (if project-specific rules exist, `.codebuddy/rules/unittest_*.md` is authoritative) |
-| **Integration test standards (environment / cases / run & debug, three parts)** | **`.docs/integration_test/integration_test.md`** (if project-specific rules exist, `.codebuddy/rules/integration_test_*.md` is authoritative) |
+| **Unit test standards (environment / generation / run & debug, three parts)** | **`.docs/unittest/unittest.md`** (if project rules exist — `rules/unittest_*.md` — they are authoritative) |
+| **Integration test standards (environment / cases / run & debug, three parts)** | **`.docs/integration_test/integration_test.md`** (if project rules exist — `rules/integration_test_*.md` — they are authoritative) |
 | Environment setup and startup | `.docs/devops/env.md` |
 | Test environment deployment / code sync | `.docs/devops/test-env-deploy.md` |
 | Coding standards (line length / complexity / naming / secure coding) | `.docs/coding-style.md` |
@@ -26,6 +26,27 @@
 | Overview & progress of a single task (**single source of truth**) | `.docs/plans/YYYY-MM-DD_<title>/00-overview.md` |
 | Per-stage deliverables of a single task | `.docs/plans/YYYY-MM-DD_<title>/0N-<step>.md` |
 
+### Skill Trigger Matrix
+
+> If you think there is even a 1% chance a skill applies to what you are doing, you MUST use it. This is not optional and cannot be rationalized away.
+> **If your agent has no skill-loading mechanism**: skills are plain Markdown — read `.agents/skills/<name>/SKILL.md` directly and follow it (e.g. `.agents/skills/clarify/SKILL.md` as the Stage-01 clarification protocol).
+
+| What you are doing | Skill to use | Key principle |
+|--------------------|--------------|---------------|
+| Starting a requirement / the user describes a change | `devsop.init` (once per project) + `clarify` (per task, Stage 01) | Scaffold first; clarify before plan |
+| Planning / implementing / committing any task | The 9-step DEVSOP below (per-task md artifacts, TDD red-green) | Evidence in `.docs/plans/<task>/` |
+| Baseline or monthly compliance check | `devsop.eval` (supports `--dry-run` / `--only` / `--diff-from`) | Measure before you judge |
+| Reviewing incremental changes for secrets (any language) | `secret-leak-review` | Diff-scoped, read-only, L0-L4 levels |
+| Writing a new project skill | `devsop.skill-authoring` | Anatomy + verification + no tool lock-in |
+
+### Three-Tier Boundaries
+
+| Tier | Meaning | Examples (extend per project) |
+|------|---------|-------------------------------|
+| ✅ Always do | Non-negotiable defaults | Run lint+UT before commit; write per-stage md artifacts; follow `.docs/coding-style.md` |
+| ⚠️ Ask first | Higher-risk or user-preference-dependent | Hot-deploying to the test environment (Stage 05); changing public API; adding a dependency |
+| 🚫 Never do | Hard prohibitions | Commit secrets/credentials; skip TDD red-green; modify other tasks' md artifacts; `git push --force` (use `--force-with-lease`) |
+
 ---
 
 ## §2 DEVSOP (Standard Development Flow)
@@ -33,8 +54,12 @@
 > **Trigger**: when the user describes a requirement / says "start DEVSOP" / "create a task: <description>", enter automatically, advancing from Step 1 Clarify.
 > **Entry determination**: after establishing/locating the task directory, if `01-clarify.md` already has valid content → skip Clarify and go directly to Plan (requires user confirmation + mark the skip in `00-overview.md`).
 
-### Context Recovery (must do every session/clear/compact)
+### Context Recovery (MANDATORY every session / clear / compact)
 
+> <EXTREMELY-IMPORTANT>
+> This recovery protocol is non-negotiable. Skipping it because "I remember this project" is forbidden — state changes between sessions, and stale context corrupts the current task.
+> </EXTREMELY-IMPORTANT>
+>
 > 1. Read `AGENTS.md` → 2. `git branch --show-current` → 3. Traverse `.docs/plans/*/00-overview.md` to match the branch → 4. Read the current task's `00-overview.md` → 5. Lazy-load the current stage md → 6. Report progress to the user.
 > No match → handle per the "DEVSOP Startup Prerequisites".
 
@@ -140,13 +165,14 @@ Append project-specific development standards here, e.g.:
 - Security baseline (SQL parameterization, no hardcoded credentials, etc.)
 -->
 
-### Code Checks (CI mandatory)
+### Code Checks (CI mandatory · commands first)
 
-<!-- TODO: fill in this project's lint / format commands -->
+<!-- Adjust the targets to this project's real Makefile/CI; keep this block near the top of §3 -->
 ```bash
-# e.g.:
-# make check     # lint
-# make format    # formatter
+make build   # compile, must pass before commit
+make lint    # e.g. golangci-lint run (see .golangci.yml)
+make ut      # e.g. go test ./... (coverage threshold per CI)
+make format  # e.g. gofmt -w ./... or goimports
 ```
 
 | Rule | Requirement |

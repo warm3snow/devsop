@@ -1,6 +1,6 @@
 # SQLs Review Sub-Agent Instructions
 
-> This file serves as the **supplementary instructions** for the `sqls` review sub-agent, on top of the common prompt. The main Agent passes it along when dispatching.
+> This file serves as the **supplementary instructions** for the `sqls` review sub-agent, on top of the common prompt. The main agent passes it along when dispatching.
 > Target: `.docs/sqls/` (persistence structure documentation area).
 
 ---

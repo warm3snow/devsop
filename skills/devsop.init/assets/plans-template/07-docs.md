@@ -23,7 +23,7 @@
 
 **Test standards**
 - [ ] `.docs/unittest/unittest.md` (when test conventions / naming / mock strategy change)
-- [ ] If `.codebuddy/rules/unittest_*.md` exists in the repo, revise it in sync as the authoritative source
+- [ ] If unit-test project rules exist in the repo (`rules/unittest_*.md`), revise them in sync as the authoritative source
 
 **Environment / deployment**
 - [ ] `.docs/devops/env.md` (when environment setup / startup methods change)

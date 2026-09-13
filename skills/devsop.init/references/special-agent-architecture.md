@@ -1,6 +1,6 @@
 # ARCHITECTURE.md Review Sub-Agent Instructions
 
-> This file serves as the complete prompt for the "Agent B: Rewrite ARCHITECTURE.md" sub-agent. The main Agent reads this file and passes it along when dispatching.
+> This file serves as the complete prompt for the "Agent B: Rewrite ARCHITECTURE.md" sub-agent. The main agent reads this file and passes it along when dispatching.
 > Target: `.docs/architecture.md`.
 
 ---

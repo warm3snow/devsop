@@ -1,6 +1,6 @@
 # Unit Test Conventions Review Sub-Agent Instructions
 
-> This file serves as the **supplementary instructions** for the `unittest` review sub-agent, on top of the common prompt. The main Agent passes it along when dispatching.
+> This file serves as the **supplementary instructions** for the `unittest` review sub-agent, on top of the common prompt. The main agent passes it along when dispatching.
 > Target: `.docs/unittest/unittest.md`.
 
 ---
@@ -20,7 +20,7 @@ Fill `.docs/unittest/unittest.md` into an **actionable Go unit test convention**
 - Mock generation method: whether `//go:generate mockgen` comments / a `mock/` directory exist
 - Test run method: test targets in `Makefile` / test commands in CI config
 - CI coverage gate: `golangci-lint` config / coverage thresholds in CI pipelines
-- If `.codebuddy/rules/unittest_*.md` exists in the repository: read it and use it as the authoritative source
+- If project rules for unit tests exist in the repository (`rules/unittest_*.md`): read them and use them as the authoritative source
 
 ### 2. Generate / update the document
 
@@ -31,7 +31,7 @@ Fill in per the skeleton's three-part structure:
 
 ### 3. Align and reference
 
-- If `.codebuddy/rules/unittest_*.md` exists in the repository: change §2 of `unittest.md` to an excerpt + link, marking it as the "authoritative source", and do not copy-paste conflicting content
+- If project rules for unit tests exist in the repository (`rules/unittest_*.md`): change §2 of `unittest.md` to an excerpt + link, marking it as the "authoritative source", and do not copy-paste conflicting content
 - Test commands must come from real commands in `Makefile` / CI config; fabricating is forbidden
 - Coverage threshold comes from the actual value in CI config / `.golangci.yml`; default is ≥60%
 

@@ -66,6 +66,27 @@ Full list: `make help` or the `Makefile`.
 - Plugins: {{Go / ESLint / Prettier etc.}}
 - Configuration: {{`.editorconfig` / recommended settings}}
 
+## Parallel Tasks with Git Worktrees (optional)
+
+> The DEVSOP default model is "one branch ↔ one task directory" (see `AGENTS.md` §2). When you need multiple tasks in parallel with separate working trees (e.g. one task is blocked on review while another starts), `git worktree` is the complementary tool — each worktree is a full checkout on its own branch, and each has its own `.docs/plans/<task>/` artifacts. Task isolation still applies: **never read other tasks' md artifacts** even inside the same worktree.
+
+```bash
+# Create a worktree for a new task
+git worktree add -b feature/<task-b> ../<repo>-<task-b> origin/master
+cd ../<repo>-<task-b>
+
+# List worktrees
+git worktree list
+
+# Clean up after the task is merged (prune after merge)
+git worktree remove ../<repo>-<task-b>
+```
+
+Conventions:
+- Worktree path lives **outside** the main clone (sibling directory), never inside it.
+- One worktree = one branch = one `.docs/plans/<task>/` directory; do not run two tasks in one worktree.
+- After the branch is merged, remove the worktree; stale worktrees accumulate disk and confusion.
+
 ## Debugging
 
 - Startup: {{IDE Run/Debug configuration or dlv command}}

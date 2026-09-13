@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-go-secret-leak-review main entry (script-driven)
+secret-leak-review main entry (script-driven, language-agnostic)
 
 Responsibilities (does not call the LLM sub-agent itself; the sub-agent is dispatched by the caller per SKILL.md):
   1. extract : calls extract_diff.sh to extract the commitA..commitB incremental diff.
@@ -10,7 +10,7 @@ Typical flow (see SKILL.md):
   A. python3 review_secret_leak.py extract <repo> <A> <B> [--path=...] [--out=diff.txt]
        → get the incremental diff; if empty, directly produce a "no increment" report.
   B. The caller reads references/secret-leak-review-prompt.md and dispatches the sub-agent along with the diff
-     (Agent tool, run_in_background, read-only).
+     (via the agent's sub-agent mechanism; read-only).
   C. The sub-agent returns findings JSON → the caller saves it as findings.json.
   D. python3 review_secret_leak.py assemble <repo> <A> <B> --findings=findings.json [--out=report.json]
        → writes the final report.
@@ -37,7 +37,9 @@ _SINGLE_KEYWORDS = {"", "single", "-"}
 
 def _is_full_mode(commit_a: str, commit_b: str) -> bool:
     """Either commitA/commitB is a full-scan keyword (case-insensitive) → full scan."""
-    return commit_a.strip().lower() in _FULL_KEYWORDS or commit_b.strip() in _FULL_KEYWORDS
+    return (
+        commit_a.strip().lower() in _FULL_KEYWORDS or commit_b.strip() in _FULL_KEYWORDS
+    )
 
 
 def _is_single_mode(commit_a: str, commit_b: str) -> bool:
@@ -83,7 +85,14 @@ def _range_str(commit_a: str, commit_b: str, mode: str) -> str:
     return f"{commit_a}..{commit_b}"
 
 
-def _empty_report(repo: str, commit_a: str, commit_b: str, out_path: Path, full_mode: bool = False, single_mode: bool = False):
+def _empty_report(
+    repo: str,
+    commit_a: str,
+    commit_b: str,
+    out_path: Path,
+    full_mode: bool = False,
+    single_mode: bool = False,
+):
     if full_mode:
         mode = "full"
     elif single_mode:
@@ -92,21 +101,27 @@ def _empty_report(repo: str, commit_a: str, commit_b: str, out_path: Path, full_
         mode = "incremental"
     range_str = _range_str(commit_a, commit_b, mode)
     note = {
-        "full": "full scan found no Go source files (or the repo is empty).",
+        "full": "full scan found no source files (or the repo is empty).",
         "single": f"commit {commit_a} has no changes relative to its parent (or the commit has no file changes).",
         "incremental": "no incremental code in the specified commit range (or the two commits are identical).",
     }[mode]
     report = {
-        "skill": "go-secret-leak-review",
+        "skill": "secret-leak-review",
         "mode": mode,
         "repo": str(Path(repo).resolve()),
         "commit_range": range_str,
         "generated_at": datetime.now().isoformat(timespec="milliseconds"),
-        "summary": {"total_findings": 0, "by_level": {"L1": 0, "L2": 0, "L3": 0, "L4": 0}, "by_confidence": {"high": 0, "medium": 0, "low": 0}},
+        "summary": {
+            "total_findings": 0,
+            "by_level": {"L1": 0, "L2": 0, "L3": 0, "L4": 0},
+            "by_confidence": {"high": 0, "medium": 0, "low": 0},
+        },
         "findings": [],
         "note": note,
     }
-    out_path.write_text(json.dumps(report, indent=2, ensure_ascii=False), encoding="utf-8")
+    out_path.write_text(
+        json.dumps(report, indent=2, ensure_ascii=False), encoding="utf-8"
+    )
     print(f"✅ No reviewable code, empty report generated: {out_path}")
 
 
@@ -115,15 +130,31 @@ def cmd_extract(args):
     diff = _run_extract_diff(args.repo, args.commit_a, args.commit_b, args.path)
     if not diff.strip():
         out = Path(args.out)
-        _empty_report(args.repo, args.commit_a, args.commit_b, out,
-                      full_mode=(mode == "full"), single_mode=(mode == "single"))
+        _empty_report(
+            args.repo,
+            args.commit_a,
+            args.commit_b,
+            out,
+            full_mode=(mode == "full"),
+            single_mode=(mode == "single"),
+        )
         return
     out_path = Path(args.out)
     out_path.write_text(diff, encoding="utf-8")
-    mode_label = {"full": "full", "single": "single-commit", "incremental": "incremental"}[mode]
-    print(f"✅ {mode_label} code extracted: {out_path} ({len(diff.splitlines())} lines)")
-    print("Next: read references/secret-leak-review-prompt.md and dispatch the sub-agent along with this diff;")
-    print("      after the sub-agent returns the findings JSON, run assemble to aggregate the report.")
+    mode_label = {
+        "full": "full",
+        "single": "single-commit",
+        "incremental": "incremental",
+    }[mode]
+    print(
+        f"✅ {mode_label} code extracted: {out_path} ({len(diff.splitlines())} lines)"
+    )
+    print(
+        "Next: read references/secret-leak-review-prompt.md and dispatch the sub-agent along with this diff;"
+    )
+    print(
+        "      after the sub-agent returns the findings JSON, run assemble to aggregate the report."
+    )
 
 
 def cmd_assemble(args):
@@ -155,7 +186,7 @@ def cmd_assemble(args):
 
     range_str = _range_str(args.commit_a, args.commit_b, mode)
     report = {
-        "skill": "go-secret-leak-review",
+        "skill": "secret-leak-review",
         "mode": mode,
         "repo": str(Path(args.repo).resolve()),
         "commit_range": range_str,
@@ -168,35 +199,77 @@ def cmd_assemble(args):
         "findings": findings,
     }
     out_path = Path(args.out)
-    out_path.write_text(json.dumps(report, indent=2, ensure_ascii=False), encoding="utf-8")
+    out_path.write_text(
+        json.dumps(report, indent=2, ensure_ascii=False), encoding="utf-8"
+    )
     print(f"✅ Report generated: {out_path}")
-    print(f"📊 Findings: total {len(findings)} "
-          f"(L4={level_counts['L4']}, L3={level_counts['L3']}, "
-          f"L2={level_counts['L2']}, L1={level_counts['L1']})")
-    print(f"📊 Confidence: high={confidence_counts['high']}, "
-          f"medium={confidence_counts['medium']}, low={confidence_counts['low']}")
+    print(
+        f"📊 Findings: total {len(findings)} "
+        f"(L4={level_counts['L4']}, L3={level_counts['L3']}, "
+        f"L2={level_counts['L2']}, L1={level_counts['L1']})"
+    )
+    print(
+        f"📊 Confidence: high={confidence_counts['high']}, "
+        f"medium={confidence_counts['medium']}, low={confidence_counts['low']}"
+    )
     if level_counts["L4"] > 0:
-        print("🚨 L4-level (extremely sensitive) privacy leaks found, handle immediately!")
+        print(
+            "🚨 L4-level (extremely sensitive) privacy leaks found, handle immediately!"
+        )
 
 
 def build_parser():
-    p = argparse.ArgumentParser(description="go-secret-leak-review main entry")
+    p = argparse.ArgumentParser(
+        description="secret-leak-review main entry (language-agnostic)"
+    )
     sub = p.add_subparsers(dest="cmd", required=True)
 
-    pe = sub.add_parser("extract", help="extract incremental diff / single-commit changes / full code")
+    pe = sub.add_parser(
+        "extract", help="extract incremental diff / single-commit changes / full code"
+    )
     pe.add_argument("repo")
-    pe.add_argument("commit_a", help="range start; in single-commit mode the target commit; pass all/* for full scan")
-    pe.add_argument("commit_b", help="range end; pass - or leave empty for single commit; pass all/* for full scan")
-    pe.add_argument("--path", default="", help="optional path filter, passed to git diff -- <path> or used as the find prefix in full mode")
-    pe.add_argument("--out", default="go-secret-leak-diff.txt", help="diff output file (written to REPO_ROOT)")
+    pe.add_argument(
+        "commit_a",
+        help="range start; in single-commit mode the target commit; pass all/* for full scan",
+    )
+    pe.add_argument(
+        "commit_b",
+        help="range end; pass - or leave empty for single commit; pass all/* for full scan",
+    )
+    pe.add_argument(
+        "--path",
+        default="",
+        help="optional path filter, passed to git diff -- <path> or used as the find prefix in full mode",
+    )
+    pe.add_argument(
+        "--out",
+        default="secret-leak-diff.txt",
+        help="diff output file (written to REPO_ROOT)",
+    )
     pe.set_defaults(func=cmd_extract)
 
-    pa = sub.add_parser("assemble", help="aggregate sub-agent findings into the final report")
+    pa = sub.add_parser(
+        "assemble", help="aggregate sub-agent findings into the final report"
+    )
     pa.add_argument("repo")
-    pa.add_argument("commit_a", help="range start; in single-commit mode the target commit; pass all/* for full scan")
-    pa.add_argument("commit_b", help="range end; pass - or leave empty for single commit; pass all/* for full scan")
-    pa.add_argument("--findings", required=True, help="path to the findings JSON returned by the sub-agent")
-    pa.add_argument("--out", default="go-secret-leak-report.json", help="report output (written to REPO_ROOT)")
+    pa.add_argument(
+        "commit_a",
+        help="range start; in single-commit mode the target commit; pass all/* for full scan",
+    )
+    pa.add_argument(
+        "commit_b",
+        help="range end; pass - or leave empty for single commit; pass all/* for full scan",
+    )
+    pa.add_argument(
+        "--findings",
+        required=True,
+        help="path to the findings JSON returned by the sub-agent",
+    )
+    pa.add_argument(
+        "--out",
+        default="secret-leak-report.json",
+        help="report output (written to REPO_ROOT)",
+    )
     pa.set_defaults(func=cmd_assemble)
 
     return p

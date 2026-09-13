@@ -2,20 +2,18 @@
 # init_docs.sh —— DEVSOP initialization / upgrade script (idempotent).
 #
 # Usage:
-#   bash init_docs.sh [repo_root] [--has-api=true|false] [--has-db=true|false] [--with-agent-links]
+#   bash init_docs.sh [repo_root] [--has-api=true|false] [--has-db=true|false]
 #
 #   --has-api   when false, skips copying the skeleton apis/ (default true, backward compatible)
 #   --has-db    when false, skips copying the skeleton sqls/ (default true, backward compatible)
 #   The two flags only affect the "gap-filling copy" phase; existing apis//sqls/ files in the target project are always kept, never deleted.
-#   --with-agent-links   additionally create CODEBUDDY.md / CLAUDE.md symlinks → AGENTS.md
-#                        (default: AGENTS.md is the only generic AI entry)
 #
 # Features (shared by new-project init and old-project upgrade):
 #   1. Gap-fill: copy the Skill's `.docs/` skeleton and `plans/_template` into the target repo (existing files are not overwritten)
 #   2. Refresh contractual files: 00-overview / 05-deploy / 06-it / test-env-deploy (overwrite directly when different)
 #   3. Smart merge of AGENTS.md: refresh §2 (DEVSOP) only, keep §1 / §3 / §4 (project-custom)
-#   4. AGENTS.md is the single generic AI entry; CODEBUDDY.md / CLAUDE.md symlinks are optional (only with --with-agent-links)
-#   5. Install the clarify skill to .codebuddy/skills/clarify/ (skip if it exists)
+#   4. AGENTS.md is the single generic AI entry; no tool-specific entry files are created
+#   5. Install the clarify skill into `.agents/skills/clarify/` (the agent-agnostic standard dir; skip if it exists)
 
 set -euo pipefail
 
@@ -26,14 +24,12 @@ set -euo pipefail
 REPO_ROOT=""
 HAS_API=true
 HAS_DB=true
-WITH_AGENT_LINKS=false
 for arg in "$@"; do
     case "$arg" in
         --has-api=*) HAS_API="${arg#--has-api=}" ;;
         --has-db=*)  HAS_DB="${arg#--has-db=}" ;;
-        --with-agent-links) WITH_AGENT_LINKS=true ;;
         --*)
-            echo "[ERROR] Unknown argument: $arg (only --has-api= / --has-db= / --with-agent-links are supported)" >&2
+            echo "[ERROR] Unknown argument: $arg (only --has-api= / --has-db= are supported)" >&2
             exit 2
             ;;
         *)
@@ -214,38 +210,9 @@ if [[ -f "$TEST_ENV_DEPLOY_SRC" ]]; then
 fi
 
 # ---------------------------------------------------------------------------
-# Install the clarify skill into the target repo's .codebuddy/skills/clarify/
-#
-# clarify is a strongly recommended dialogue-protocol skill for Stage 01. Install it into the target repo
-# so the target repo's AI can directly use_skill clarify during DEVSOP execution, without depending on an external skill.
-#
-# Note: source files end with .tmpl (e.g. SKILL.md.tmpl) to avoid conflicting with this repo root's
-# .codebuddy/skills/clarify/SKILL.md and being double-recognized by the skill system.
-# On install, iterate source files; for files with the .tmpl suffix, strip the .tmpl and write to the target; other files are copied with their original names.
-# Existing files are always skipped, protecting user changes.
+# Install the clarify skill (see install_clarify.sh for details)
 # ---------------------------------------------------------------------------
-CLARIFY_DST="$REPO_ROOT/.codebuddy/skills/clarify"
-if [[ -d "$CLARIFY_SKILL_SRC" ]]; then
-    if [[ -e "$CLARIFY_DST/SKILL.md" ]]; then
-        echo "[SKIP] $CLARIFY_DST/SKILL.md already exists, keeping as-is"
-    else
-        mkdir -p "$CLARIFY_DST"
-        installed_any=0
-        (cd "$CLARIFY_SKILL_SRC" && find . -type f -print0) | while IFS= read -r -d '' rel; do
-            src="$CLARIFY_SKILL_SRC/$rel"
-            # strip the .tmpl suffix (only a trailing .tmpl is treated as a template marker; preserve the path structure)
-            dst_rel="${rel%.tmpl}"
-            dst="$CLARIFY_DST/$dst_rel"
-            mkdir -p "$(dirname "$dst")"
-            if [[ ! -e "$dst" ]]; then
-                cp "$src" "$dst"
-            fi
-        done
-        echo "[OK] Installed the clarify skill to: $CLARIFY_DST"
-    fi
-else
-    echo "[WARN] clarify skill template does not exist: $CLARIFY_SKILL_SRC, skipping install" >&2
-fi
+bash "$SKILL_DIR/scripts/install_clarify.sh" "$CLARIFY_SKILL_SRC" "$REPO_ROOT"
 
 # ---------------------------------------------------------------------------
 # Git Hooks installation (idempotent)
@@ -287,116 +254,10 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# Repo-root AI entry: AGENTS.md (single source of truth, generic across all AI agents)
-#
-# Goal: give all AI coding agents a unified entry via AGENTS.md (Claude Code / Codex /
-# Cursor / CodeBuddy etc. all support reading AGENTS.md). Agent-specific entry files
-# (CODEBUDDY.md / CLAUDE.md) are NOT created by default; pass --with-agent-links to
-# create them as symlinks for tool-specific compatibility.
-# Generated from the template $SKILL_DIR/assets/agents.md.tmpl, replacing only {{PROJECT_NAME}}.
-#
-# Update strategy (chapter-divided):
-#   - AGENTS.md does not exist  → generate fully from the template
-#   - AGENTS.md exists  → split into three segments by "## §2 DEVSOP" and "## §3 Development Guidelines":
-#       segment A (header + §1 quick index)   → keep existing (the project may have appended custom index lines)
-#       segment B (§2 DEVSOP)                    → force-refresh to the latest template version (core DEVSOP contract)
-#       segment C (§3 dev guidelines + §4 forbidden red lines) → keep existing (project-custom; no change/no delete)
-#     update only when segment B differs.
-#   - (with --with-agent-links) CODEBUDDY.md / CLAUDE.md if symlinks → delete and rebuild directly;
-#     if real files → delete then rebuild as symlinks
+# Repo-root AI entry: AGENTS.md (see generate_agents_md.sh for the
+# chapter-divided fresh-generation / smart-merge strategy)
 # ---------------------------------------------------------------------------
-AGENTS_TMPL="$SKILL_DIR/assets/agents.md.tmpl"
-AGENTS_MD="$REPO_ROOT/AGENTS.md"
-if [[ ! -f "$AGENTS_TMPL" ]]; then
-    echo "[WARN] Template does not exist: $AGENTS_TMPL, skipping AGENTS.md generation" >&2
-else
-    PROJECT_NAME="$(basename "$REPO_ROOT")"
-
-    if [[ ! -e "$AGENTS_MD" && ! -L "$AGENTS_MD" ]]; then
-        # ---- fresh generation ----
-        awk -v name="$PROJECT_NAME" '{ gsub(/\{\{PROJECT_NAME\}\}/, name); print }' \
-            "$AGENTS_TMPL" > "$AGENTS_MD"
-        echo "[OK] Generated $AGENTS_MD from the template"
-    else
-        # ---- smart merge: only refresh chapter 2 (DEVSOP), keep the rest ----
-        #
-        # split the file into three segments at the two dividers:
-        #   segment A = file start ~ before "## §2 DEVSOP" (header + §1 quick index)
-        #   segment B = "## §2 DEVSOP" (inclusive) ~ before "## §3 Development Guidelines" (§2 DEVSOP)
-        #   segment C = "## §3 Development Guidelines" (inclusive) ~ end of file (§3 dev guidelines + §4 forbidden red lines)
-        #
-        # update rule: segment A keep existing | segment B refresh from template | segment C keep existing
-
-        # 1) generate the full version from the template to a temp file
-        TMPL_FULL="$(mktemp)"
-        awk -v name="$PROJECT_NAME" '{ gsub(/\{\{PROJECT_NAME\}\}/, name); print }' \
-            "$AGENTS_TMPL" > "$TMPL_FULL"
-
-        # 2) extract segment B of the template (§2 DEVSOP chapter)
-        TMPL_DEVSOP="$(mktemp)"
-        awk '/^## §2 DEVSOP/{p=1} p && /^## §3 Development Guidelines/{exit} p{print}' "$TMPL_FULL" > "$TMPL_DEVSOP"
-
-        # 3) extract segment B of the existing file (for comparison)
-        EXISTING_DEVSOP="$(mktemp)"
-        awk '/^## §2 DEVSOP/{p=1} p && /^## §3 Development Guidelines/{exit} p{print}' "$AGENTS_MD" > "$EXISTING_DEVSOP"
-
-        # 4) compare whether segment B differs
-        if cmp -s "$TMPL_DEVSOP" "$EXISTING_DEVSOP"; then
-            echo "[SKIP] AGENTS.md chapter 2 (DEVSOP) is already up to date, no update needed"
-        else
-            # 5) extract segment A of the existing file (header + §1 quick index)
-            EXISTING_HEAD="$(mktemp)"
-            awk '/^## §2 DEVSOP/{exit} {print}' "$AGENTS_MD" > "$EXISTING_HEAD"
-
-            # 6) extract segment C of the existing file (§3 dev guidelines + §4 forbidden red lines)
-            EXISTING_TAIL="$(mktemp)"
-            if grep -q '^## §3 Development Guidelines' "$AGENTS_MD"; then
-                awk '/^## §3 Development Guidelines/{p=1} p{print}' "$AGENTS_MD" > "$EXISTING_TAIL"
-            else
-                # no chapters 3-4 → fill the defaults from the template
-                awk '/^## §3 Development Guidelines/{p=1} p{print}' "$TMPL_FULL" > "$EXISTING_TAIL"
-                echo "[INFO] Chapters 3-4 not detected, default chapters filled from the template"
-            fi
-
-            # 7) concat: existing segment A + template segment B + existing segment C
-            cat "$EXISTING_HEAD" "$TMPL_DEVSOP" "$EXISTING_TAIL" > "$AGENTS_MD"
-            echo "[REFRESH] Updated AGENTS.md (chapter 2 DEVSOP refreshed to the latest; chapters 1/3/4 kept unchanged)"
-
-            rm -f "$EXISTING_HEAD" "$EXISTING_TAIL"
-        fi
-
-        rm -f "$TMPL_FULL" "$TMPL_DEVSOP" "$EXISTING_DEVSOP"
-    fi
-fi
-
-# CODEBUDDY.md / CLAUDE.md: optional agent-specific entry symlinks → AGENTS.md.
-# Only created when --with-agent-links is passed; AGENTS.md alone is the generic
-# entry shared by all AI coding agents.
-#   - CODEBUDDY.md → recognized by CodeBuddy
-#   - CLAUDE.md    → recognized by Claude Code
-ensure_ai_agent_symlink() {
-    local link_name="$1"   # symlink name (e.g. CODEBUDDY.md / CLAUDE.md)
-    local link_path="$REPO_ROOT/$link_name"
-    if [[ -L "$link_path" ]]; then
-        # already a symlink: delete directly (skill-owned resource, no backup needed)
-        rm -f "$link_path"
-    elif [[ -e "$link_path" ]]; then
-        # a real file: delete directly (recoverable via git, no backup needed)
-        rm -f "$link_path"
-        echo "[OK] Removed original real file $link_name (rebuilt as a symlink)"
-    fi
-    # use a relative symlink to keep the repo portable.
-    ln -s AGENTS.md "$link_path"
-    echo "[OK] $link_name → AGENTS.md symlink ready"
-}
-
-if [[ "$WITH_AGENT_LINKS" == "true" ]]; then
-    for AGENT_LINK in CODEBUDDY.md CLAUDE.md; do
-        ensure_ai_agent_symlink "$AGENT_LINK"
-    done
-else
-    echo "[OK] AGENTS.md is the single generic AI entry (pass --with-agent-links to create CODEBUDDY.md / CLAUDE.md symlinks)"
-fi
+bash "$SKILL_DIR/scripts/generate_agents_md.sh" "$SKILL_DIR/assets/agents.md.tmpl" "$REPO_ROOT"
 
 echo ""
 echo "═══════════════════════════════════════════════════════════════"
@@ -408,8 +269,8 @@ if [[ $IS_UPGRADE -eq 1 ]]; then
     echo "    • Contractual templates (00-overview / 05-deploy / 06-it) → overwritten directly when different"
     echo "    • test-env-deploy.md → chapter-divided: skill-controlled area refreshed, \"## Project Customization\" kept"
     echo "    • AGENTS.md → only chapter 2 (DEVSOP) refreshed; chapters 1/3/4 kept (see [REFRESH] or [SKIP] above)"
-    echo "    • AGENTS.md → single generic AI entry ensured (CODEBUDDY.md / CLAUDE.md symlinks optional via --with-agent-links)"
-    echo "    • clarify skill → installed if missing"
+    echo "    • AGENTS.md → single generic AI entry ensured (no tool-specific entry files)"
+    echo "    • clarify skill → installed into .agents/skills/ if missing"
 else
     echo "  ✅ DEVSOP initialization complete"
     echo ""

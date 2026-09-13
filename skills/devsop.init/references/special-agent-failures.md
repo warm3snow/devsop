@@ -1,6 +1,6 @@
 # failures.md Special Sub-Agent Instructions
 
-> This file serves as the **supplementary instructions** for the `failures.md` sub-agent, on top of the common prompt. When the main Agent dispatches the failures.md sub-agent, it passes this file's content along.
+> This file serves as the **supplementary instructions** for the `failures.md` sub-agent, on top of the common prompt. When the main agent dispatches the failures.md sub-agent, it passes this file's content along.
 
 ---
 
@@ -11,8 +11,8 @@ Beyond the common context scan, you also need to extract pitfall information fro
 ### A. Memory Records
 
 Read the AI Agent's Memory/memory files (if any exist):
-- `.codebuddy/memory/` directory
-- Memory files in the `.claude/` directory
+- `.agents/memory/` directory (repo-local, any agent)
+- `~/.agents/projects/<slug>/memory/` (user-level)
 - Other AI memory storage locations in the project (handle per the directories actually found)
 
 Extract from them:

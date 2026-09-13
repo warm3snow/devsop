@@ -1,13 +1,13 @@
 # Capability Detection Sub-Agent Instructions (API / DB)
 
-> This file serves as the **complete instructions** for the devsop.init "Step 0 Capability Detection" sub-agent. The main Agent dispatches it with `subagent_type: Explore` (read-only) and passes this file's content as the prompt.
+> This file serves as the **complete instructions** for the devsop.init "Step 0 Capability Detection" sub-agent. The main agent dispatches it as an **exploration sub-agent (read-only)** and passes this file's content as the prompt.
 > Target: the target project repository (**read-only detection; any write operation is strictly forbidden**).
 
 ---
 
 ## Core Goal
 
-Determine whether the target project **exposes APIs externally** and **has database / persistence definitions**, and return two boolean values in a fixed format for the main Agent to pass to `init_docs.sh --has-api= --has-db=`.
+Determine whether the target project **exposes APIs externally** and **has database / persistence definitions**, and return two boolean values in a fixed format for the main agent to pass to `init_docs.sh --has-api= --has-db=`.
 
 ---
 
@@ -15,7 +15,7 @@ Determine whether the target project **exposes APIs externally** and **has datab
 
 1. **Read-only**: use only Read / Glob / Grep / Bash (read-only commands) for detection; **strictly forbidden** to create, modify, or delete any file in the target project.
 2. **Evidence-driven**: each boolean value must have at least one command-based piece of evidence or a "no evidence" statement; guessing from experience is forbidden.
-3. **Fixed return format**: see the "Return Format" at the end; the main Agent parses it line by line; extra prose output is forbidden.
+3. **Fixed return format**: see the "Return Format" at the end; the main agent parses it line by line; extra prose output is forbidden.
 
 ---
 
@@ -64,7 +64,7 @@ grep -rlE "models\.Model|@Entity|@Table" --include="*.py" --include="*.java" . 2
 
 ## Return Format
 
-**Output strictly in the following format** (the main Agent parses the key-values line by line):
+**Output strictly in the following format** (the main agent parses the key-values line by line):
 
 ```
 HAS_API=true|false

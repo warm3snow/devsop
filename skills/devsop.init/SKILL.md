@@ -1,6 +1,6 @@
 ---
 name: devsop.init
-description: DEVSOP initialization
+description: Scaffolds the DEVSOP standard structure (`.docs/` regulations library, `AGENTS.md` entry, task-plan templates, Git Hooks) into a project repo, idempotently. Use when onboarding a new project, standardizing an existing repo for AI collaboration, or upgrading DEVSOP templates after a skill update.
 ---
 
 # devsop.init
@@ -95,9 +95,9 @@ description: DEVSOP initialization
 > Before initialization, environment detection may be run to understand the target project's characteristics for differentiated handling.
 
 1. **Project type detection**: detect whether it is a library project in priority order Go → Rust → Java (no `package main` / `[[bin]]` / main class).
-2. **Framework identification**: detect the core framework (Go: go-zero✓/gin△/kratos△ etc.), recording `$FRAMEWORK`. If `$FRAMEWORK` matches `references/framework-<name>.md`, the main Agent automatically loads the corresponding sections of that file as extra requirements when dispatching the relevant sub-agents (coding-style / api-standards / unittest / development) (see "Attached resources / references").
+2. **Framework identification**: detect the core framework (Go: go-zero✓/gin△/kratos△ etc.), recording `$FRAMEWORK`. If `$FRAMEWORK` matches `references/framework-<name>.md`, the main agent automatically loads the corresponding sections of that file as extra requirements when dispatching the relevant sub-agents (coding-style / api-standards / unittest / development) (see "Attached resources / references").
 3. **Maintainer inference**: use `git shortlog -sne --since="6 months ago" HEAD` to get the top committer of the last six months.
-4. **AI entry scan**: check whether `AGENTS.md` exists at the repo root (AGENTS.md is the generic entry shared by all AI coding agents; tool-specific entries like CODEBUDDY.md / CLAUDE.md are optional).
+4. **AI entry scan**: check whether `AGENTS.md` exists at the repo root (AGENTS.md is the generic entry shared by all AI coding agents; no tool-specific entry files are required).
 
 **Library project differentiated handling**: when `project.type == library` is detected:
 - Skip creating `api-standards.md` / `database.md` / `deployment.md` (a library project has no standalone API/DB/deployment).
@@ -108,9 +108,9 @@ description: DEVSOP initialization
 
 > Purpose: projects without API / without DB should not have the `.docs/apis/`, `.docs/sqls/` skeleton initialized, nor should the corresponding sub-agents be dispatched. Complete the detection **before** running `init_docs.sh`.
 
-1. The main Agent reads `$SKILL_DIR/references/special-agent-detect.md` and dispatches an **Explore sub-agent (read-only detection)** using it as the complete prompt.
+1. The main agent reads `$SKILL_DIR/references/special-agent-detect.md` and dispatches an **exploration sub-agent (read-only detection)** using it as the complete prompt.
 2. The sub-agent returns `HAS_API=true|false` / `HAS_DB=true|false` + an evidence summary in the fixed format.
-3. The main Agent passes the two boolean values as flags to `init_docs.sh` (see below); in "batch 2" it uses the same two values to decide whether to dispatch Agent C (apis) / Agent D (sqls):
+3. The main agent passes the two boolean values as flags to `init_docs.sh` (see below); in "batch 2" it uses the same two values to decide whether to dispatch Agent C (apis) / Agent D (sqls):
    - `HAS_API=false` → **do not start** Agent C; the summary report directly marks `skipped(no external API)`
    - `HAS_DB=false`  → **do not start** Agent D; the summary report directly marks `skipped(no database)`
 4. If detection fails / is not run, the flags default to `true` (conservative, consistent with the old version's behavior).
@@ -132,154 +132,44 @@ description: DEVSOP initialization
 2. The script additionally handles repo-root entry points, Git Hooks, Lint configuration, and companion skills:
    - Generate `AGENTS.md` from `assets/agents.md.tmpl` (**the single source-of-truth entry**), containing four chapters (I. Quick Index / II. DEVSOP / III. Development Guidelines / IV. Forbidden Red Lines).
      - **If `AGENTS.md` already exists**: divide and conquer by chapter — only forcibly refresh the "II. DEVSOP" chapter (the core DEVSOP contract), keep "I. Quick Index", "III. Development Guidelines", "IV. Forbidden Red Lines" unchanged and undeleted (project-custom content); only update when chapter 2 differs (Git-managed, no backup needed).
-  - `AGENTS.md` is the **single generic AI entry** shared by all AI coding agents (Claude Code / Codex / Cursor / CodeBuddy etc. all support reading it); no tool-specific entry files are created by default.
-    - (Optional) pass `--with-agent-links` to additionally create `CODEBUDDY.md` → `AGENTS.md` / `CLAUDE.md` → `AGENTS.md` symlinks for tool-specific compatibility (a symlink or regular file is rebuilt as a symlink; recoverable via Git).
+  - `AGENTS.md` is the **single generic AI entry** shared by all AI coding agents; no tool-specific entry files are created.
    - Install Git Hooks: idempotently install symlinks for the three hooks pre-commit / pre-push / commit-msg into `.git/hooks/` via `scripts/setup_hooks.sh`.
    - Inject Lint config: for Go projects (`go.mod` present), automatically copy `assets/.golangci.yml` to the repo root (skip if it already exists).
-   - Install the `clarify` skill into the target repo's `.codebuddy/skills/clarify/` (skip if it already exists).
+   - Install the `clarify` skill into the target repo's standard repo-local skills dir `.agents/skills/clarify/` (skip if it already exists).
    - `.docs/` skeleton files are **not overwritten if they already exist** (protecting content the user has filled in).
    - All files under `plans/_template/` use the "overwrite directly if different" strategy, ensuring new tasks after a skill upgrade get the latest template structure; already-created concrete task directories (`plans/<task>/`) are never touched.
    - **Special case**: `.docs/devops/test-env-deploy.md` uses the "divide and conquer by chapter" strategy (same as `AGENTS.md`) — with `## Project Customization` as the boundary, only the skill-managed area above (environment tool readiness check + team environment management Skill operating instructions) is forcibly refreshed, while the project-customized area below (component inventory, common environments, special sync rules) is kept unchanged and undeleted; update only when the skill-managed area differs.
-3. Initialization wrap-up — sub-agents are dispatched in two batches (**must use `subagent_type: general-purpose`**; read-only types such as `Explore`/`Plan` are not allowed). Dependency: Agents C–M all need to read the **optimized** AGENTS.md to correctly align with the index and the progressive-disclosure structure, so they must be started in parallel only after Agents A and B complete. When all are done, report a summary to the user:
+3. Initialization wrap-up — sub-agents are dispatched in two batches (**general-purpose (read-write) sub-agents required**). Dependency: batch 2 reads the batch-1 **optimized AGENTS.md** to align with the index and progressive-disclosure structure. Complete instructions for each Agent are in its `references/special-agent-*.md` file. When all are done, report a per-Agent summary to the user.
 
-   **Batch 1 (serial, no dependency prerequisites)**
+   **Batch 1 (serial: A first, then B)**
 
-   **Agent A: optimize AGENTS.md**
+   | Agent | Target | One-line goal |
+   |-------|--------|---------------|
+   | A | `AGENTS.md` | optimize to progressive-disclosure entry (≤300 lines, ≤200 excellent; "§2 DEVSOP" chapter is read-only contract) — prompt: `references/special-agent-agents.md` |
+   | B | `.docs/architecture.md` | generate 13-section architecture doc from code facts (≥1 Mermaid diagram; `<!-- TODO(devsop.init) -->` for uncertain fields) — prompt: `references/special-agent-architecture.md` |
 
-   Role: AGENTS.md optimization expert. Full prompt in `$SKILL_DIR/references/special-agent-agents.md`: optimize AGENTS.md into an AI entry file following the progressive-disclosure principle (hard cap of ≤300 lines, ≤200 is the excellence target, details sink into `.docs/` or `.codebuddy/rules/`; "II. DEVSOP" is the skill-managed contract chapter, read-only, restored verbatim from the template if drifted), writing directly back to AGENTS.md (Git is the safety net, no backup needed).
+   **Batch 2 (parallel C–M, after A+B)**
 
-   **Agent B: rewrite ARCHITECTURE.md**
+   | Agent | Target file | One-line goal | Dispatch prerequisite | Prompt |
+   |-------|-------------|---------------|----------------------|--------|
+   | C | `.docs/apis/` | caller-perspective API docs (index + per-module + standards) | skip + delete `apis/` when no external API | `special-agent-apis.md` |
+   | D | `.docs/sqls/` | table/index/transaction/migration spec | skip + delete `sqls/` when no persistence | `special-agent-sqls.md` |
+   | E | `.docs/devops/` | env/deployment/development/test-env-deploy from real config | — | `special-agent-devops.md` |
+   | F | `.docs/integration_test/integration_test.md` | real-chain IT standard (UT≠IT layer boundary) | — | `special-agent-integration-test.md` |
+   | G | `.docs/failures.md` | evidence-backed pitfall records (memory + git log) | — | `special-agent-failures.md` |
+   | H | `.docs/glossary.md` | strictly filtered project-private terms | — | `special-agent-glossary.md` |
+   | I | `.docs/unittest/unittest.md` | 3-phase UT standard from real config | skip when no Go code | `special-agent-unittest.md` |
+   | J | `.docs/relationship.md` | upstream/downstream + failure-propagation matrix | — | `special-agent-relationship.md` |
+   | K | `.docs/coding-style.md` | trim to actual language/toolchain; merge `$FRAMEWORK` extras | skip when no code | `special-agent-coding-style.md` |
+   | L | `.docs/code-review.md` | real branch/commands/thresholds (boundary vs `review.md`) | — | `special-agent-code-review.md` |
+   | M | `.docs/logging.md` | real log library/levels/masking standard | skip + delete when no logging | `special-agent-logging.md` |
 
-   Role: architecture documentation generation expert. Full prompt in `$SKILL_DIR/references/special-agent-architecture.md`: generate `.docs/architecture.md` based on code facts following the 13-section template (at least 1 Mermaid diagram, data-flow tracing, technology choices including Why), overwrite directly if present, use `<!-- TODO(devsop.init) -->` placeholders for uncertain fields.
+   > Each Agent only touches the file it owns; they never overlap. All constraints follow the same rules: evidence from real code/config only, no fabrication; skip silently when evidence is missing; `skipped(<reason>)` noted in the summary.
 
-   > **Dispatch constraint**: start Agent A first, and only after it writes back the optimized AGENTS.md, start Agent B (B does not need to read A's output to generate the architecture doc, but is scheduled after it to keep the order clear). **Only after both complete** does batch 2 begin.
+   After all complete, the summary report lists, per Agent: fill status (line counts / entry counts / trimmed languages) + `skipped` reasons + remaining TODO items for the user.
 
-   **Batch 2 (parallel, depends on AGENTS.md being finalized)**
-
-   **Agent C: enrich apis/** (**dispatch prerequisite**: Step 0 detection `HAS_API=false` → do not start this Agent; the summary report marks `skipped(no external API)`)
-
-   Role: external API documentation expert. Corresponding instructions: `$SKILL_DIR/references/special-agent-apis.md`.
-
-   Goal: based on the real interfaces in the code, flesh out `.docs/apis/` into an API documentation set from the caller's perspective (`index.md` master index + one `<module>/<Action>.md` per API + `api-standards.md` protocol standards).
-
-   Relevance determination (prerequisite):
-   - No evidence of any external API (no proto/thrift/OpenAPI, no HTTP-RPC framework dependency, no route registration, a pure library with no exported interfaces) → determine it is a **no-API project**, **delete** the entire `.docs/apis/` directory, then output `skipped(no external API)`.
-   - With evidence → create/update mode: generate per-API docs following `apis/_template.md` and write back a 1:1 index into `index.md`.
-
-   **Agent D: enrich sqls/** (**dispatch prerequisite**: Step 0 detection `HAS_DB=false` → do not start this Agent; the summary report marks `skipped(no database)`)
-
-   Role: persistence structure documentation expert. Corresponding instructions: `$SKILL_DIR/references/special-agent-sqls.md`.
-
-   Goal: based on the real DB schema / migration / ORM model, flesh out `.docs/sqls/` into a specification doc covering table design / index / transaction / migration (focus on `sqls/database.md`).
-
-   Relevance determination (prerequisite):
-   - No evidence of any persistence (no DB driver dependency, no migration, no schema, a pure in-memory / pure-computation library) → determine it is a **no-database project**, **delete** the entire `.docs/sqls/` directory, then output `skipped(no database)`.
-   - With evidence → create/update mode: extract table structures + state machines and fill `database.md`.
-
-   **Agent E: enrich devops/**
-
-   Role: operations documentation expert. Corresponding instructions: `$SKILL_DIR/references/special-agent-devops.md`.
-
-   Goal: based on the real build/deployment/environment config, flesh out `.docs/devops/` into an actionable operations documentation set (`env.md` / `deployment.md` / `development.md` / `test-env-deploy.md`).
-
-   Task: scan `Makefile` / `Dockerfile` / CI config / config files to extract commands and environment facts; for `test-env-deploy.md`, refresh only the skill-managed area via the divide-and-conquer-by-chapter approach, preserving the user content under "## Project Customization"; verify commands by actually running them locally where possible.
-
-   **Agent F: enrich integration_test/**
-
-   Role: integration test standards expert. Corresponding instructions: `$SKILL_DIR/references/special-agent-integration-test.md`.
-
-   Goal: flesh out `.docs/integration_test/integration_test.md` into an integration test standard covering real chains at the API/E2E level (environment & dependencies / test case design / run-debug), aligned with `relationship.md` and `devops/test-env-deploy.md`.
-
-   Constraints: must not test the same layer as unittest (UT is function-level with Mocks, IT is real chains); dependencies come from relationship.md, environment from devops, referenced with `@` without copying.
-
-   **Agent G: enrich failures.md**
-
-   Role: pitfall records expert. Corresponding instructions: `$SKILL_DIR/references/special-agent-failures.md`.
-
-   Goal: extract evidence-backed pitfall records from AI Memory (`.codebuddy/memory/`, `.claude/`, etc.) and Git Log (fix/revert-type commits), filling `.docs/failures.md` (each entry includes date / context / root cause / temporary workaround / permanent fix). If there is no evidence, keep the template structure and note "No historical pitfall records yet".
-
-   Constraints: no fabrication; silently skip when Git Log / Memory are missing; mark inferred items with `source: git log`.
-
-   **Agent H: enrich glossary.md**
-
-   Role: business glossary expert. Corresponding instructions: `$SKILL_DIR/references/special-agent-glossary.md`.
-
-   Goal: scan code package / struct names, config keys, and team docs, strictly filtering with the three questions "project-private, not publicly known, would be misunderstood without explanation", then fill `.docs/glossary.md` (project-private terms / abbreviations / easily-confused comparisons). Prefer fewer but precise entries; do not pad with publicly known terms.
-
-   **Agent I: enrich unittest/**
-
-   Role: unit test standards expert. Corresponding instructions: `$SKILL_DIR/references/special-agent-unittest.md`.
-
-   Goal: flesh out `.docs/unittest/unittest.md` into an actionable Go unit test standard (three phases: environment setup / generation standard / run-debug).
-
-   Prerequisite determination:
-   - Update `unittest/unittest.md` directly based on the project's actual situation (`*_test.go` files / `go.mod` test dependencies / CI config)
-   - If the project has no Go code (no `*.go` / no `go.mod`) → output `skipped(no Go code)`
-
-   Constraints: must not test the same layer as IT (UT is fully Mocked + function-level); commands / environment come from real config, no fabrication; if the repo has `.codebuddy/rules/unittest_*.md`, unittest.md changes to excerpts + links, noting the authoritative source.
-
-   **Agent J: enrich relationship.md**
-
-   Role: upstream/downstream / integration relationship expert. Corresponding instructions: `$SKILL_DIR/references/special-agent-relationship.md`.
-
-   Goal: flesh out `.docs/relationship.md` into an actionable upstream/downstream / integration relationship doc (upstream callers / downstream dependencies / call-relationship descriptions / topology diagram / failure propagation matrix).
-
-   Prerequisite determination:
-   - Directly analyze the code based on the project's actual situation (`go.mod` dependencies / imported clients / route registration / configured addresses / message produce-consume) and fill `relationship.md`
-
-   Constraints: callers / dependencies / failure handling come from real code and config, no fabrication; the degradation plan in the failure propagation matrix must correspond to real fallback code; only touch `relationship.md`.
-
-   **Agent K: enrich coding-style.md**
-
-   Role: coding style expert. Corresponding instructions: `$SKILL_DIR/references/special-agent-coding-style.md`.
-
-   Goal: trim `.docs/coding-style.md` from a multilingual generic template and make it the coding standard for the project's actual language and toolchain (trim language sections / fill in formatting and lint tools / align thresholds with lint config).
-
-   Prerequisite determination:
-   - No code files at all (pure documentation repo) → output `skipped(no code)`
-   - Matches `$FRAMEWORK` (e.g. go-zero) → merge the extra requirements from the coding-style section of `references/framework-<name>.md`
-
-   Constraints: tool names / thresholds / commands must come from evidence in real config files (`.golangci.yml` / `.prettierrc` / pre-commit hook), no fabrication; only touch `coding-style.md`.
-
-   **Agent L: enrich code-review.md**
-
-   Role: code review process expert. Corresponding instructions: `$SKILL_DIR/references/special-agent-code-review.md`.
-
-   Goal: replace the placeholders and generic conventions in `.docs/code-review.md` with the project's real values (main branch name / real build·lint·ut commands / coverage thresholds / commit message validation rules), and draw a clear boundary with the top-level `.docs/review.md` (review.md = AI review checklist; code-review.md = team manual review process).
-
-   Constraints: commands / thresholds / branch names come from real evidence (Makefile / CI config / commit-msg hook), no fabrication; only touch `code-review.md`, do not copy review.md's AI checklist.
-
-   **Agent M: enrich logging.md**
-
-   Role: logging standards expert. Corresponding instructions: `$SKILL_DIR/references/special-agent-logging.md`.
-
-   Goal: turn `.docs/logging.md` into the standard for the project's real logging system (log library / level mapping / trace field names / masking rules / collection method all come from code evidence).
-
-   Relevance determination (prerequisite):
-   - No evidence of any logging output (a pure library project that only returns errors, no log library dependency, no log calls found by grep) → determine it is a **no-logging project**, **delete** `logging.md`, output `skipped(no logging)`, and note in the summary report that the corresponding index line in AGENTS.md must be removed
-   - With evidence → fill based on the actual log library and fields
-
-   Constraints: log library / field names / levels must come from code evidence, no fabrication; align the masking clauses with `coding-style.md` §10 by reference, without copying; only touch `logging.md`.
-
-   > **Batch 2 runs in parallel (C–M)**: after both Agents A and B complete, the following eleven Agents are all started **in parallel** (C APIs, D data, E operations, F integration tests, G pitfall records, H glossary, I unit tests, J upstream/downstream relationships, K coding style, L review process, M logging standards). They all read the batch-1 finalized AGENTS.md to align with the index and the progressive-disclosure structure — this is the dependency on A/B; be sure to run A, B first and then C–M. Agents C/D first do the relevance determination — delete `apis/` if no API, delete `sqls/` if no DB; Agent I first does the no-Go-code determination; Agent J directly fills relationship.md based on code evidence; Agent M first does the no-logging determination. Each Agent only touches the file it owns; they never overlap.
-
-   After all complete, the summary report:
-   - Agent A: AGENTS.md line count before/after optimization + description of sunk content
-   - Agent B: ARCHITECTURE.md fill status + TODO list
-   - Agent C: number of API docs in apis/ + whether the directory was deleted due to no API
-   - Agent D: sqls/ doc status + whether the directory was deleted due to no DB
-   - Agent E: fill status of each devops/ file
-   - Agent F: integration_test.md fill status
-   - Agent G: number of pitfall records in failures.md + whether left empty due to no evidence
-   - Agent H: number of glossary.md entries + whether left empty due to no private terms
-   - Agent I: unittest.md fill status + whether skipped due to no Go code
-   - Agent J: relationship.md fill status
-   - Agent K: coding-style.md trimmed languages + toolchain fill status / whether framework-specific content was injected
-   - Agent L: code-review.md fill status (main branch / commands / thresholds)
-   - Agent M: logging.md fill status + whether the file was deleted due to no logging
-   - List of remaining TODO items (parts the user needs to handle manually later)
 - Do not pre-generate placeholders such as `README.md` / `conventions.md` / `glossary.md` / `risks.md` / `adr/` — add them on demand when actually needed.
-- Existing `.codebuddy/rules/<topic>_*.md` files (e.g. `unittest_rule.md`) serve as the authoritative source for docs; docs change to excerpts + links to avoid dual tracking.
+- Existing project rules files (under `rules/`, e.g. `unittest_rule.md`) serve as the authoritative source for docs; docs change to excerpts + links to avoid dual tracking.
 
 ---
 
@@ -304,13 +194,13 @@ description: DEVSOP initialization
 - `references/special-agent-coding-style.md` — dedicated supplementary instructions for Agent K (coding-style.md), including language trimming + toolchain fill-in + framework-specific injection.
 - `references/special-agent-code-review.md` — dedicated supplementary instructions for Agent L (code-review.md), including main branch / commands / thresholds fill-in + the boundary with the top-level review.md.
 - `references/special-agent-logging.md` — dedicated supplementary instructions for Agent M (logging.md), including log library detection + no-logging-project deletion determination.
-- `references/merge-agent-prompt.md` — instructions for the normalize-and-merge sub-agent; when multiple scattered AI entry regular files are detected at the repo root (`CODEBUDDY.md` / `CLAUDE.md` not symlinks), the main Agent reads this file and dispatches the merge sub-agent to consolidate them into a single `AGENTS.md` (template taken from `assets/agents.md.tmpl`, read-only).
-- `references/framework-gozero.md` — go-zero framework-specific instructions; when environment detection finds `$FRAMEWORK = go-zero`, the main Agent automatically loads it by matching `references/framework-<name>.md` and injects the extra requirements of the corresponding sections into the relevant sub-agents (coding-style / api-standards / unittest / development). To extend to a new framework, just add `references/framework-<name>.md`; no need to change SKILL.md.
+- `references/merge-agent-prompt.md` — instructions for the normalize-and-merge sub-agent; when multiple scattered AI entry files (e.g. tool-specific entry files not symlinked to AGENTS.md) are detected at the repo root, the main agent reads this file and dispatches the merge sub-agent to consolidate them into a single `AGENTS.md` (template taken from `assets/agents.md.tmpl`, read-only).
+- `references/framework-gozero.md` — go-zero framework-specific instructions; when environment detection finds `$FRAMEWORK = go-zero`, the main agent automatically loads it by matching `references/framework-<name>.md` and injects the extra requirements of the corresponding sections into the relevant sub-agents (coding-style / api-standards / unittest / development). To extend to a new framework, just add `references/framework-<name>.md`; no need to change SKILL.md.
 
 ### `assets/` — copied into the target repo for use, not read into context
 - `assets/docs-skeleton/` — the `.docs/` skeleton (`review.md` + 20 template files at the `.docs/` top level + `plans/`).
 - `assets/plans-template/` — the 10-file task template.
-- `assets/agents.md.tmpl` — the template for the repo-root `AGENTS.md` (four chapters: Quick Index / DEVSOP / Development Guidelines / Forbidden Red Lines). AGENTS.md is the single generic AI entry; CODEBUDDY.md / CLAUDE.md are optional tool-specific symlinks (created only with `--with-agent-links`).
+- `assets/agents.md.tmpl` — the template for the repo-root `AGENTS.md` (four chapters: Quick Index / DEVSOP / Development Guidelines / Forbidden Red Lines). AGENTS.md is the single generic AI entry; no tool-specific entry files are created.
 - `assets/README.md.tmpl` — the project README template. **Not auto-generated** (red line 3 forbids pre-generating README.md); copied manually by the user to the target repo root as needed, filling in the `{{...}}` placeholders.
 - `assets/ARCHITECTURE.md.tmpl` — the project architecture doc template (used by Agent B as the 13-section skeleton reference when generating `.docs/architecture.md`; not copied directly to the target root).
 - `assets/clarify-skill/` — the `clarify` skill template used in Stage 01.
@@ -332,6 +222,22 @@ After initialization, it is recommended to run the following validations (either
 | V6 | Library project file consistency | a library project must not create deployment/database/api-standards | consistent |
 | V7 | .gitignore conflicts | AGENTS.md / .docs/ must not be ignored | no conflicts |
 | V8 | Empty directory cleanup | a no-external-API project must not leave `.docs/apis/`; a no-database project must not leave `.docs/sqls/` | deleted |
+
+---
+
+## Rationalizations (excuses that must not fly)
+
+If you catch yourself thinking any of these, STOP — the rebuttal wins:
+
+| Excuse | Rebuttal |
+|--------|----------|
+| "This project is small, I'll hand-write the .docs/ files instead of running the init flow" | The script is idempotent and handles gap-filling + chapter-divided merge; hand-writing drifts from the contract templates and breaks future upgrades |
+| "The AGENTS.md already exists and looks fine, skip the chapter merge" | Chapter 2 (DEVSOP) is the skill-managed contract; it must be refreshed to the latest template even for existing projects — chapters 1/3/4 stay untouched, so nothing user-written is lost |
+| "I'll skip capability detection (HAS_API/HAS_DB), the flags default to true anyway" | Skipping detection produces skeleton dirs for capabilities the project doesn't have (empty apis//sqls/), which violate V8 and pollute the repo |
+| "Sub-agents are slow, I'll fill the .docs/ files myself in one pass" | Each Agent A–M owns exactly one file with dedicated instructions; bypassing them breaks the evidence-based ("no fabrication") constraint |
+| "The summary report is just noise, a one-line 'done' is enough" | The per-Agent summary (line counts, TODO list, skipped items) is the verification evidence — V4's TODO gate and the user's review depend on it |
+| "I can git add + commit everything after init to save the user a step" | No auto-commit is a red line; changes must be reviewed and committed by the user |
+| "The _template/ comments are useful, I'll keep them when creating the task dir" | The TEMPLATE-ONLY comment blocks must be stripped; keeping them repeats ~30 lines of rules in every task file and causes version drift |
 
 ---
 

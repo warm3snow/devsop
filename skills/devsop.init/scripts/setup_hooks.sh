@@ -58,7 +58,10 @@ PROJECT_ROOT="$(find_project_root "$(pwd)")" || {
 cd "${PROJECT_ROOT}"
 
 # ── Define hooks (Bash 3.2 compatible — no associative arrays) ──
+# HOOK_SCRIPTS = scripts that get a .git/hooks symlink;
+# SUPPORT_SCRIPTS = libraries copied alongside (no hook symlink).
 HOOK_SCRIPTS="pre_commit_check.sh pre_push_check.sh commit_msg_check.sh"
+SUPPORT_SCRIPTS="lib_check.sh"
 # Map script filename to git hook name
 hook_name_for() {
   case "$1" in
@@ -75,7 +78,7 @@ echo ""
 # ── Step 1: Copy scripts to scripts/ ───────────────────────────
 mkdir -p scripts
 
-for script in ${HOOK_SCRIPTS}; do
+for script in ${HOOK_SCRIPTS} ${SUPPORT_SCRIPTS}; do
   target="scripts/${script}"
   if [[ -f "${target}" ]]; then
     ok "${target} (already exists, not overwriting)"

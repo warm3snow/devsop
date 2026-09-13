@@ -1,5 +1,16 @@
 # DEVSOP Improvement Suggestion Examples
 
+## Contents
+
+- [Pillar A: Project AI-friendliness](#pillar-a-project-ai-friendliness) — A1–A7
+- [Pillar B: Dev mode / role collaboration](#pillar-b-dev-mode--role-collaboration) — B1–B4
+- [Pillar C: Quality checks & feedback mechanisms](#pillar-c-quality-checks--feedback-mechanisms) — C1–C6
+- [Pillar D: Design & change management](#pillar-d) — D1–D4
+- [Pillar E: Shared knowledge base](#pillar-e) — E1–E2
+- [Pillar F: Measurement mechanisms](#pillar-f) — F1–F4
+- [Anti-pattern Specialized Improvements](#anti-pattern-specialized-improvements)
+- [General Suggestion Generation Rules](#general-suggestion-generation-rules)
+
 This document provides `devsop.eval` with a lookup library for "FAIL/PARTIAL → executable improvement actions". Sub-agents should match this library first when generating improvement suggestions; if no match, generate with the model.
 
 > **Three elements of an improvement suggestion**:
@@ -49,16 +60,13 @@ This document provides `devsop.eval` with a lookup library for "FAIL/PARTIAL →
 | Any new core doc missing | Run the `devsop.init` skill to auto-fill; or manually create the files under `.docs/` per the DEVSOP requirements |
 | File exists but ≤10 lines (skeleton) | Fill in per the file's topic: architecture → architecture diagram/modules/tech debt; relationship → upstream/downstream dependency graph/failure propagation; coding-style → naming/format/security rules; unittest → test strategy/coverage/run commands; integration_test → integration test scope/how to run; code-review → Review checklist; glossary → business glossary; failures → pitfall records (≥3 items); logging → log levels/format/redaction. Each at least 30 lines of substantive content; avoid placeholders |
 
-### A5 Symlinks missing or gitignored
+### A5 Generic AI entry missing or gitignored
 
-> **Principle**: `AGENTS.md` at the repo root is the generic AI collaboration entry shared by all AI coding agents; tool-specific entry symlinks (CODEBUDDY.md / CLAUDE.md) are **optional** — only suggest them for tools the team **actually uses** (judge by whether the tool's config dir exists in the repo, e.g. `.codebuddy/`, `.claude/`). **Forbidden**: suggesting the project add symlinks for unused tools.
+> **Principle**: `AGENTS.md` at the repo root is the single generic AI collaboration entry shared by all AI coding agents; no tool-specific entry files are required.
 
 | Current state | Improvement action |
 |---------------|--------------------|
 | `AGENTS.md` missing | Generate it via `devsop.init` (the single generic AI entry) |
-| `.codebuddy/` exists but `CODEBUDDY.md` missing (team uses CodeBuddy) | `ln -sf AGENTS.md CODEBUDDY.md` |
-| `.claude/` exists but the root `CLAUDE.md` missing (team uses Claude Code) | `ln -s AGENTS.md CLAUDE.md` |
-| The symlink is a regular file rather than a symbolic link | Back up the original then rebuild: `mv CODEBUDDY.md CODEBUDDY.md.bak && ln -sf AGENTS.md CODEBUDDY.md` |
 | Key files gitignored | Remove the `AGENTS.md` / `.docs/` entries from .gitignore |
 
 ### A6 No one-command start
@@ -147,9 +155,9 @@ Refer to the "DEVSOP startup prerequisites" and "step execution rules" sections 
 
 ### C1 Commit / Push conventions not memorized
 
-**Improvement action**: write the commit / push behavior conventions into AI-readable project memory files (`AGENTS.md` or `.codebuddy/rules/*.md`); only then do AI and humans have gate conventions to follow when collaborating.
+**Improvement action**: write the commit / push behavior conventions into AI-readable project memory files (`AGENTS.md` or the project rules dir `rules/`); only then do AI and humans have gate conventions to follow when collaborating.
 
-1. **Commit conventions** (write into the "§2 DEVSOP" section of `AGENTS.md` or `.codebuddy/rules/commit.md`):
+1. **Commit conventions** (write into the "§2 DEVSOP" section of `AGENTS.md` or a rules file like `rules/commit.md`):
    ```markdown
    ## Commit Conventions
    - message format: `type(scope): summary --story=<id>` (type ∈ feat / fix / refactor / docs / test / chore; defects use `--bug=<id>`)
@@ -361,7 +369,7 @@ Call `make security` in CI (GitHub Actions / GitLab CI / Jenkinsfile all work th
 
 **Improvement action**:
 ```bash
-mkdir -p .codebuddy/skills
+mkdir -p .agents/skills   # the agent-agnostic standard repo-local skills dir
 # wrap repeatedly-used project commands as Skills
 # create at least 3 common Skills (e.g. fix-bug / commit / code-review)
 ```
@@ -399,11 +407,14 @@ If all three are missing, start with Path ① — local spec accumulation is the
 
 **Improvement action** (any one of three counts as PASS):
 
-**Path ① enable the AI memory store (recommended · CodeBuddy users)**:
+**Path ① enable the AI memory store (recommended)**:
 ```bash
-# CodeBuddy automatically writes memory to the user-level ~/.codebuddy/projects/<project path slug>/memory/
-# no need to create the dir manually; keep collaborating with CodeBuddy and let AI proactively accumulate user preferences/project facts/feedback
-# accumulate at least 3 memory files + the MEMORY.md index
+# The agent-agnostic standard memory locations:
+#   repo-local: .agents/memory/          (any agent can read/write it)
+#   user-level: ~/.agents/projects/<project path slug>/memory/
+# Prompt AI in AGENTS.md to actively maintain memory and let it accumulate
+# user preferences/project facts/feedback (≥3 memory files + MEMORY.md index)
+mkdir -p .agents/memory
 ```
 Memory files are themselves structured AI-session accumulation, easier to reuse than raw logs. Prompt AI in `AGENTS.md` to actively maintain memory.
 
@@ -414,7 +425,7 @@ echo "logs/ai-sessions/" >> .gitignore  # sessions may contain sensitive content
 ```
 Convention: after each significant feature development, save the AI session as `logs/ai-sessions/{YYYY-MM-DD}-{topic}.md`; archive to external storage after 30 days.
 
-> Note: for projects collaborating with CodeBuddy, having user-level session transcripts (`~/.codebuddy/projects/<slug>/*.jsonl`) from the last 30 days automatically satisfies this path; no manual dir creation needed.
+> Note: having session logs under `logs/ai-sessions/` or `.agents/sessions/` from the last 30 days automatically satisfies this path.
 
 **Path ③ keep failures.md in git and maintained**:
 ```bash

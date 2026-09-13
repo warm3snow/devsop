@@ -16,39 +16,12 @@
 #   6. Debug code detection (multi-language)
 #
 # Optional (via env vars):
-#   AI_TEST_GUARD=1  — Prevent AI agents from modifying existing test assertions
+#   AI_TEST_GUARD=1  — Block modifications to existing test assertions (explicit opt-in;
+#                       applies to every commit regardless of who or what commits)
 
 set -euo pipefail
 
-# ── Colors ──────────────────────────────────────────────────────
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[0;33m'
-CYAN='\033[0;36m'
-RESET='\033[0m'
-
-# ── AI-friendly structured output ──────────────────────────────
-# Format: [BLOCK] <check_name> | <file>:<line> | <reason> | fix: <command>
-error()    { echo -e "${RED}[BLOCK]${RESET} $*" >&2; }
-warn()     { echo -e "${YELLOW}[WARN]${RESET} $*" >&2; }
-info()     { echo -e "${CYAN}[INFO]${RESET} $*" >&2; }
-ai_error() {
-  local check="$1" file="$2" line="${3:-0}" reason="$4" fix="${5:-}"
-  echo -e "${RED}[BLOCK]${RESET} ${check} | ${file}:${line} | ${reason}" >&2
-  if [[ -n "${fix}" ]]; then
-    echo -e "  ${CYAN}fix:${RESET} ${fix}" >&2
-  fi
-}
-
-# ── Global skip ─────────────────────────────────────────────────
-if [[ "${SKIP_PRE_COMMIT:-}" == "1" ]]; then
-  echo -e "${YELLOW}[SKIP]${RESET} SKIP_PRE_COMMIT=1, skipping all pre-commit checks"
-  exit 0
-fi
-
-# ── Environment setup ───────────────────────────────────────────
-unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE GIT_PREFIX GIT_OBJECT_DIRECTORY GIT_COMMON_DIR
-
+# ── Resolve SCRIPT_DIR, then source the shared helpers ──────────
 REAL_SCRIPT="$(readlink "${BASH_SOURCE[0]}" 2>/dev/null || true)"
 [[ -z "${REAL_SCRIPT}" ]] && REAL_SCRIPT="${BASH_SOURCE[0]}"
 if [[ "${REAL_SCRIPT}" != /* ]]; then
@@ -59,13 +32,18 @@ if [[ "${REAL_SCRIPT}" != /* ]]; then
   fi
 fi
 SCRIPT_DIR="$(cd "$(dirname "${REAL_SCRIPT}")" && pwd)"
-PROJECT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
-cd "${PROJECT_ROOT}"
+# shellcheck disable=SC1091
+source "${SCRIPT_DIR}/lib_check.sh"
 
-if [[ -f "${SCRIPT_DIR}/env.sh" ]]; then
-  # shellcheck disable=SC1091
-  source "${SCRIPT_DIR}/env.sh"
+# ── Global skip ─────────────────────────────────────────────────
+if [[ "${SKIP_PRE_COMMIT:-}" == "1" ]]; then
+  echo -e "${YELLOW}[SKIP]${RESET} SKIP_PRE_COMMIT=1, skipping all pre-commit checks"
+  exit 0
 fi
+
+# ── Environment setup ───────────────────────────────────────────
+clean_git_env
+setup_env
 
 # ── Collect staged files ────────────────────────────────────────
 STAGED_FILES=()
@@ -399,7 +377,7 @@ check_debug_code() {
 
     # Only check newly added lines in staged diff
     local added_lines
-    added_lines=$(git diff --cached -U0 -- "$f" 2>/dev/null | grep -E '^\+' | grep -v '^\+\+\+' || true)
+    added_lines=$(git diff --cached -U0 -- "$f" 2>/dev/null | grep -E '^\+' | grep -vE '^\+{3}' || true)
     [[ -z "$added_lines" ]] && continue
 
     local debug_pattern=""
@@ -424,8 +402,14 @@ check_debug_code() {
     fi
 
     # Python: print() and breakpoint() (exclude test files)
+    # CLI entry scripts (if __name__ == "__main__") use print() as legitimate
+    # output — only breakpoint() is flagged there.
     if [[ "$f" =~ \.py$ ]] && [[ ! "$f" =~ (test_|_test\.py$|/tests/) ]]; then
-      debug_pattern='(^[^#]*\bprint\(|breakpoint\(\))'
+      if grep -q 'if __name__ == "__main__":' "$f" 2>/dev/null; then
+        debug_pattern='breakpoint\(\)'
+      else
+        debug_pattern='(^[^#]*\bprint\(|breakpoint\(\))'
+      fi
       lang_label="Python"
     fi
 
@@ -438,7 +422,8 @@ check_debug_code() {
     # Check language-specific debug patterns
     if [[ -n "$debug_pattern" ]]; then
       local matches
-      matches=$(echo "$added_lines" | grep -E "$debug_pattern" | grep -v '//.*'"$debug_pattern" | grep -v '#.*'"$debug_pattern" || true)
+      # print(..., file=sys.stderr) is legitimate CLI error output, not a debug statement
+      matches=$(echo "$added_lines" | grep -E "$debug_pattern" | grep -vE '//.*'"$debug_pattern" | grep -vE '#.*'"$debug_pattern" | grep -vE 'file=sys\.stderr' || true)
       if [[ -n "$matches" ]]; then
         violations+=("$f (${lang_label} debug statement)")
         ai_error "debug_code" "$f" "0" "${lang_label} debug statement found in new code" "Remove debug statements (${debug_pattern}) from ${f}"
@@ -470,20 +455,13 @@ check_debug_code() {
 }
 
 # ══════════════════════════════════════════════════════════════════
-# Optional: AI Agent test modification guard (AI_TEST_GUARD=1)
+# Optional: test-assertion modification guard (AI_TEST_GUARD=1)
+# Explicit opt-in only — enabling it applies the guard to every commit,
+# regardless of which agent (or human) is committing.
 # ══════════════════════════════════════════════════════════════════
 check_ai_test_guard() {
-  # Only run when explicitly enabled AND in AI environment
+  # Only run when explicitly enabled
   [[ "${AI_TEST_GUARD:-}" == "1" ]] || return 0
-
-  local is_ai=0
-  if [[ "${CLAUDE_CODE:-}" == "1" ]] || [[ "${AI_AGENT:-}" == "1" ]] || \
-     [[ "${CODEBUDDY:-}" == "1" ]] || [[ "${CURSOR_AI:-}" == "1" ]] || \
-     [[ -n "${CLAUDE_SESSION_ID:-}" ]] || [[ "${CODEX:-}" == "1" ]] || \
-     [[ "${GEMINI_CLI:-}" == "1" ]] || [[ "${COPILOT_CLI:-}" == "1" ]]; then
-    is_ai=1
-  fi
-  [[ "${is_ai}" -eq 1 ]] || return 0
 
   CHECKS_RUN=$((CHECKS_RUN + 1))
 
@@ -535,9 +513,9 @@ check_ai_test_guard() {
   done < <(git diff --cached --name-only --diff-filter=M)
 
   if [[ ${#violations[@]} -gt 0 ]]; then
-    error "[AI_TEST_GUARD] AI agents must not modify existing test assertions:"
+    error "[AI_TEST_GUARD] Modifying existing test assertions is blocked:"
     for v in "${violations[@]}"; do
-      ai_error "ai_test_guard" "$v" "0" "AI agent modified test assertions in existing test file" "Revert changes to test assertions in ${v} — only humans should modify test expectations"
+      ai_error "ai_test_guard" "$v" "0" "Existing test assertions were modified" "Revert changes to test assertions in ${v} — changing test expectations to make tests pass can hide real bugs"
     done
     echo "" >&2
     echo -e "  ${CYAN}Reason:${RESET} Modifying test assertions to make tests pass can hide real bugs." >&2

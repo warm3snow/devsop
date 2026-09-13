@@ -1,6 +1,6 @@
 # DevOps Review Sub-Agent Instructions
 
-> This file serves as the **supplementary instructions** for the `devops` review sub-agent, on top of the common prompt. The main Agent passes it along when dispatching.
+> This file serves as the **supplementary instructions** for the `devops` review sub-agent, on top of the common prompt. The main agent passes it along when dispatching.
 > Target: `.docs/devops/` (environment setup + test-environment deployment + release conventions area).
 
 ---

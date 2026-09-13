@@ -1,6 +1,6 @@
 # Privacy-Leak Dedicated Review Instructions (Sub-agent Prompt)
 
-> This file contains the dedicated sub-agent instructions for the `go-secret-leak-review` skill. When dispatching the sub-agent, the main agent reads this file, replaces `<variables>` with real values, and injects them into the sub-agent's prompt.
+> This file contains the dedicated sub-agent instructions for the `secret-leak-review` skill. When dispatching the sub-agent, the main agent reads this file, replaces `<variables>` with real values, and injects them into the sub-agent's prompt.
 
 ---
 
@@ -81,36 +81,41 @@ A hit occurs when the **argument chain** of the following calls ultimately conta
 - Sensitive fields have a `json:"xxx"` tag but not `"-"` (still serialized/output, just with a renamed key) → hit.
 - There is a `MarshalJSON()` but its implementation visible in the diff does not mask the sensitive fields (e.g. returns the default serialization result directly).
 
-**Examples** (all hit, leveled L4):
+**Examples** (all hit, leveled L4; the pattern applies to every language with object serialization):
 
 ```go
 type User struct {
     ID       int    `json:"id"`
-    Name     string `json:"name"`
     Password string `json:"password"`   // ❌ not "-", will be serialized
-    Token    string `json:"token"`      // ❌ not "-"
 }
-u := User{...}
-b, _ := json.Marshal(u); log.Printf("user=%s", b)           // ❌ indirect leak of password+token
+b, _ := json.Marshal(u); log.Printf("user=%s", b)           // ❌ indirect leak of password
 log.Printf("user=%+v", u)                                    // ❌ %+v expands all field values
-fmt.Println(u)                                               // ❌ depends on String(); defaults to %+v if not defined
-log.Printf("users=%v", []User{u1, u2})                       // ❌ slice elements printed as a whole
-m := map[string]string{"token": tok}; log.Printf("cfg=%v", m) // ❌ map value is the token
+```
+
+```python
+user = {"id": 1, "password": pwd}
+logging.info(f"user={user}")          # ❌ dict repr prints password
+logging.info("user=%s", json.dumps(user))  # ❌ serialized without redaction
+```
+
+```javascript
+console.log("user:", JSON.stringify(user));   // ❌ user.password serialized
+console.log("user:", user);                    // ❌ object inspected with password field
 ```
 
 **Cross-line tracing method** (required for the sub-agent):
 
-1. Scan the diff for sensitive field names → locate their struct definition (in the diff or via `git show` for older versions).
-2. Trace backward: which variables are instances of that struct → are they serialized/formatted → does the result flow into logs/output.
-3. If the diff only changed "the line calling the log to print the struct" while the struct definition is in old code, **still report** (the incremental code introduces a new leak point).
+1. Scan the diff for sensitive field names → locate their struct/class/dict definition (in the diff or via `git show` for older versions).
+2. Trace backward: which variables are instances of that object → are they serialized/formatted → does the result flow into logs/output.
+3. If the diff only changed "the line calling the log to print the object" while the definition is in old code, **still report** (the incremental code introduces a new leak point).
 
 ### Indirect-leak exemptions (any of the following → do not report)
 
-1. The sensitive field is marked `json:"-"` (confirmed it will not be serialized by `encoding/json`).
-2. The type defines `MarshalJSON()` / `MarshalText()` / `String()`, and its implementation **visibly** masks the sensitive fields (e.g. returns `"***"`, calls `Mask()`). If the method implementation is outside the diff, check via `git show`; if it cannot be confirmed, **report rather than miss** and mark "MarshalJSON redaction not confirmed, please verify manually".
-3. The printed struct is confirmed by tracing to **not contain** any sensitive field (e.g. `User{ID, Name}` has no password field).
+1. The sensitive field is marked for redaction in serialization (e.g. Go `json:"-"`, Java `@JsonIgnore`, Python custom `to_dict()` excluding the field) and that is confirmed effective.
+2. The type defines a redacting serializer (Go `MarshalJSON()`/`String()`, Python `__repr__`/`__str__`, JS `toJSON()`), and its implementation **visibly** masks the sensitive fields (e.g. returns `"***"`, calls `Mask()`). If the method implementation is outside the diff, check via `git show`; if it cannot be confirmed, **report rather than miss** and mark "redaction not confirmed, please verify manually".
+3. The printed object is confirmed by tracing to **not contain** any sensitive field (e.g. `User{ID, Name}` has no password field).
 4. The field name contains a sensitive word but is actually a non-sensitive business field (e.g. `TokenBalance int` for a token balance, `PasswordHash string` for a hash-stored value that is not plaintext) → annotate and do not report; if uncertain, report and mark "suspected".
-5. map/slice printed as a whole but all values are confirmed by tracing to be non-sensitive data.
+5. map/dict/slice/array printed as a whole but all values are confirmed by tracing to be non-sensitive data.
 
 ## False-Positive Exemptions (any of the following → do not report as a finding)
 

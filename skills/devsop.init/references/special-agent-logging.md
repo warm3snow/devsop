@@ -1,6 +1,6 @@
 # logging.md Special Sub-Agent Instructions
 
-> This file serves as the **supplementary instructions** for the `logging.md` sub-agent, on top of the common prompt. The main Agent passes it along when dispatching.
+> This file serves as the **supplementary instructions** for the `logging.md` sub-agent, on top of the common prompt. The main agent passes it along when dispatching.
 > Target: `.docs/logging.md`.
 
 ---
@@ -49,4 +49,4 @@ Apply `.docs/logging.md` from the common template into conventions for the proje
 - Only touch `.docs/logging.md`; do not touch other docs
 - Logging library / field names / levels must come from code evidence; fabricating is forbidden; fields without evidence keep `<!-- TODO(devsop.init) -->`
 - Sensitive-information masking clauses align with `coding-style.md` §10, using references rather than copies to avoid dual-track drift
-- After deleting the file for a no-logging project, check whether the AGENTS.md index references `logging.md` — if it does, note "remove the logging.md index line" in the main Agent's summary report (this Agent does not touch AGENTS.md; that is handled by Agent A's output or the main Agent's wrap-up)
+- After deleting the file for a no-logging project, check whether the AGENTS.md index references `logging.md` — if it does, note "remove the logging.md index line" in the main agent's summary report (this Agent does not touch AGENTS.md; that is handled by Agent A's output or the main agent's wrap-up)

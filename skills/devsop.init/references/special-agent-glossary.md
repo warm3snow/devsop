@@ -1,6 +1,6 @@
 # glossary.md Special Sub-Agent Instructions
 
-> This file serves as the **supplementary instructions** for the `glossary.md` sub-agent, on top of the common prompt. When the main Agent dispatches the glossary.md sub-agent, it passes this file's content along.
+> This file serves as the **supplementary instructions** for the `glossary.md` sub-agent, on top of the common prompt. When the main agent dispatches the glossary.md sub-agent, it passes this file's content along.
 
 ---
 

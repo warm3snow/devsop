@@ -35,10 +35,7 @@ After running, these artifacts appear in the repo (existing files are not overwr
 ```
 <repo_root>/
 ├── AGENTS.md                    # AI collaboration single source of truth entry (four sections: quick index / DEVSOP / development conventions / forbidden red lines)
-├── CODEBUDDY.md                 # optional: symlink → AGENTS.md (only with --with-agent-links, for CodeBuddy)
-├── CLAUDE.md                    # optional: symlink → AGENTS.md (only with --with-agent-links, for Claude Code)
-├── .codebuddy/
-│   └── skills/clarify/          # dialogue protocol skill supporting Stage 01 (auto-installed)
+├── .agents/skills/clarify/      # dialogue protocol skill supporting Stage 01 (auto-installed, the agent-agnostic standard dir)
 ├── scripts/                     # copies of Git Hook scripts (pre-commit / pre-push / commit-msg)
 │   ├── pre_commit_check.sh
 │   ├── pre_push_check.sh
@@ -91,11 +88,11 @@ Script key points:
 - `--has-api=false` / `--has-db=false` only affect gap-filling copies (skipping `.docs/apis/` / `.docs/sqls/`); they **do not delete** existing files; flag values are usually determined by the AI via detection per `references/special-agent-detect.md`.
 - **All files** under `plans/_template/` follow the "overwrite directly if different" strategy, ensuring newly created tasks get the latest template structure after a skill upgrade; already-created task directories (`plans/<task>/`) are never touched.
 - `AGENTS.md` already exists → **divide and conquer by section**: only force-refresh the "2. DEVSOP" section (the core DEVSOP contract), keeping "1. Quick index", "3. Development conventions", and "4. Forbidden red lines" unchanged and undeleted; update only when section two actually differs (Git-managed, no backup needed).
-- `AGENTS.md` is the single generic AI entry; `CODEBUDDY.md` / `CLAUDE.md` symlinks are created only with `--with-agent-links` (existing symlinks rebuilt directly; real files deleted then rebuilt, recoverable via Git).
+- `AGENTS.md` is the single generic AI entry; no tool-specific entry files are created.
 - `.docs/devops/test-env-deploy.md` is divided by section: the skill-managed region is force-refreshed, the `## Project-specific` section is preserved.
 - Go projects (where `go.mod` exists) automatically copy `.golangci.yml` to the repo root (skipped if it already exists).
 - Install Git Hooks idempotently via `setup_hooks.sh`: first copy the 3 hook scripts to the target repo's `scripts/` (skipped if they exist), then create symlinks under `.git/hooks/` pointing to `../../scripts/<script>` (pre-commit / pre-push / commit-msg).
-- Also installs the `clarify` skill into `<repo>/.codebuddy/skills/clarify/`.
+- Also installs the `clarify` skill into `.agents/skills/clarify/` (the agent-agnostic standard repo-local skills dir).
 
 ### 4.2 Content that must be manually filled in after initialization
 
@@ -109,7 +106,7 @@ In order of importance:
 6. `.docs/devops/env.md` + `.docs/devops/test-env-deploy.md`
 7. The "3. Development conventions" and "4. Forbidden red lines" sections of `AGENTS.md`
 
-> For projects that already have `.codebuddy/rules/<topic>_*.md` (e.g. `unittest_rule.md`), docs should be **excerpted + linked** to avoid dual tracks.
+> For projects that already have project rules (`rules/<topic>_*.md`, e.g. `unittest_rule.md`), docs should be **excerpted + linked** to avoid dual tracks.
 
 ---
 
@@ -230,7 +227,7 @@ skills/devsop.init/
 
 | skill | Purpose |
 |-------|---------|
-| `clarify` (auto-installed to the target repo's `.codebuddy/skills/clarify/`) | The dialogue protocol for the Step 1 Clarify stage; the AI switches to a PM perspective for Discovery + Challenge |
+| `clarify` (auto-installed to the target repo's `.agents/skills/clarify/`) | The dialogue protocol for the Step 1 Clarify stage; the AI switches to a PM perspective for Discovery + Challenge |
 | `devsop.eval` (standalone skill) | A read-only audit of the `.docs/` system — six pillars, 28 items of Eval (PASS / PARTIAL / FAIL) + anti-pattern detection, with the report written to `.docs/devsop_report.md`. `devsop.init` and `devsop.eval` are a pair: init lays the skeleton → eval runs the baseline → periodic `devsop.eval --diff-from=...` tracks improvement |
 
 ---

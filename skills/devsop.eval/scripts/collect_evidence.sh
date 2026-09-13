@@ -40,10 +40,11 @@ done
 
 echo ""
 echo "=== DIR_EXISTS ==="
+# Agent-agnostic scan: the ~/.agents/ standard dirs only.
 for d in .docs .docs/apis .docs/sqls \
          .docs/unittest .docs/integration_test .docs/devops \
          .docs/plans .docs/plans/_template \
-         .codebuddy/skills .codebuddy/rules \
+         .agents/skills .agents/memory rules \
          tests/integration test/integration tests/e2e \
          jenkins .jenkins .github/workflows docs; do
   [ -d "$d" ] && echo "EXISTS $d" || echo "MISSING $d"
@@ -73,22 +74,23 @@ fi
 
 echo ""
 echo "=== SKILLS ==="
-skill_count=$( (ls .codebuddy/skills/*/SKILL.md 2>/dev/null || true) | wc -l | tr -d ' ')
+# Count SKILL.md files under the standard repo-local skills dir.
+skill_count=$( (ls .agents/skills/*/SKILL.md 2>/dev/null || true) | wc -l | tr -d ' ')
 echo "skill_count: $skill_count"
 
 echo ""
 echo "=== AI_MEMORY ==="
-# CodeBuddy persistent memory and session transcripts live in the user-level dir,
-# named with the project path slug (/ → -)
+# Memory/session retention probe over the ~/.agents/ standard locations.
 slug=$(pwd | sed 's|/|-|g; s/^-//')
-proj_dir="$HOME/.codebuddy/projects/$slug"
-if [ -d "$proj_dir/memory" ]; then
-  mem_count=$(find "$proj_dir/memory" -name '*.md' 2>/dev/null | wc -l | tr -d ' ')
-  echo "memory_dir: EXISTS $proj_dir/memory ($mem_count md files)"
-else
-  echo "memory_dir: MISSING $proj_dir/memory"
-fi
-sessions_30d=$(find "$proj_dir" -maxdepth 1 -name '*.jsonl' -mtime -30 2>/dev/null | wc -l | tr -d ' ')
+for d in ".agents/memory" "$HOME/.agents/projects/$slug/memory"; do
+  if [ -d "$d" ]; then
+    mem_count=$(find "$d" -name '*.md' 2>/dev/null | wc -l | tr -d ' ')
+    echo "memory_dir: EXISTS $d ($mem_count md files)"
+  else
+    echo "memory_dir: MISSING $d"
+  fi
+done
+sessions_30d=$( (find ".agents/sessions" -name '*.md' -o -name '*.jsonl' -mtime -30 2>/dev/null || true) | wc -l | tr -d ' ')
 echo "session_transcripts_30d: ${sessions_30d:-0}"
 
 echo ""
@@ -151,21 +153,22 @@ echo "commits: $(git log --oneline -- .docs/devsop_report.md 2>/dev/null | wc -l
 
 echo ""
 echo "=== MEMORY_RULES ==="
-# C1 evidence: commit / push conventions in AGENTS.md / .codebuddy/rules/ (servers have no .git/hooks; evaluate the memory files instead)
-rule_files=$(ls .codebuddy/rules/*.md 2>/dev/null || true)
+# C1 evidence: commit / push conventions in AGENTS.md / rules/ (servers have
+# no .git/hooks; evaluate the memory files instead).
+rule_files=$(ls rules/*.md 2>/dev/null || true)
 if [ -n "$rule_files" ]; then
   echo "$rule_files" | sed 's/^/rule_file: /'
 else
   echo "rule_file: NONE"
 fi
-commit_hits=$(grep -inE 'commit' AGENTS.md .codebuddy/rules/*.md 2>/dev/null | head -8 || true)
+commit_hits=$(grep -inE 'commit' AGENTS.md rules/*.md 2>/dev/null | head -8 || true)
 if [ -n "$commit_hits" ]; then
   echo "commit_rule_hits: $(echo "$commit_hits" | wc -l | tr -d ' ') (showing <=8)"
   echo "$commit_hits" | sed 's/^/  /'
 else
   echo "commit_rule_hits: 0"
 fi
-push_hits=$(grep -inE 'push|force-with-lease|MR|merge' AGENTS.md .codebuddy/rules/*.md 2>/dev/null | head -8 || true)
+push_hits=$(grep -inE 'push|force-with-lease|MR|merge' AGENTS.md rules/*.md 2>/dev/null | head -8 || true)
 if [ -n "$push_hits" ]; then
   echo "push_rule_hits: $(echo "$push_hits" | wc -l | tr -d ' ') (showing <=8)"
   echo "$push_hits" | sed 's/^/  /'

@@ -1,5 +1,5 @@
 ---
-# Do not modify the header of this file; if modified, CodeBuddy (intranet version) will apply its default logic
+# Do not modify the header of this file; the AI coding agent relies on it to apply this style guide as an always-on rule
 type: always
 ---
 You are a professional Go development assistant. All code must strictly follow the coding conventions below.

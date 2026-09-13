@@ -17,38 +17,7 @@
 
 set -euo pipefail
 
-# ── Colors ──────────────────────────────────────────────────────
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[0;33m'
-CYAN='\033[0;36m'
-RESET='\033[0m'
-
-# ── AI-friendly output helpers ──────────────────────────────────
-error()    { echo -e "${RED}[BLOCK]${RESET} $*" >&2; }
-warn()     { echo -e "${YELLOW}[WARN]${RESET} $*" >&2; }
-info()     { echo -e "${CYAN}[INFO]${RESET} $*"; }
-section()  { echo -e "\n${CYAN}══ $* ══${RESET}"; }
-
-# Print full command output for AI consumption
-show_output() {
-  local label="$1" file="$2"
-  if [[ -s "$file" ]]; then
-    echo -e "\n${RED}── ${label} output ──${RESET}" >&2
-    cat "$file" >&2
-    echo -e "${RED}── end of ${label} output ──${RESET}\n" >&2
-  fi
-}
-
-# ── Global skip ─────────────────────────────────────────────────
-if [[ "${SKIP_PRE_PUSH:-}" == "1" ]]; then
-  echo -e "${YELLOW}[SKIP]${RESET} SKIP_PRE_PUSH=1, skipping all pre-push checks"
-  exit 0
-fi
-
-# ── Environment setup ───────────────────────────────────────────
-unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE GIT_PREFIX GIT_OBJECT_DIRECTORY GIT_COMMON_DIR
-
+# ── Resolve SCRIPT_DIR, then source the shared helpers ──────────
 REAL_SCRIPT="$(readlink "${BASH_SOURCE[0]}" 2>/dev/null || true)"
 [[ -z "${REAL_SCRIPT}" ]] && REAL_SCRIPT="${BASH_SOURCE[0]}"
 if [[ "${REAL_SCRIPT}" != /* ]]; then
@@ -59,13 +28,18 @@ if [[ "${REAL_SCRIPT}" != /* ]]; then
   fi
 fi
 SCRIPT_DIR="$(cd "$(dirname "${REAL_SCRIPT}")" && pwd)"
-PROJECT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
-cd "${PROJECT_ROOT}"
+# shellcheck disable=SC1091
+source "${SCRIPT_DIR}/lib_check.sh"
 
-if [[ -f "${SCRIPT_DIR}/env.sh" ]]; then
-  # shellcheck disable=SC1091
-  source "${SCRIPT_DIR}/env.sh"
+# ── Global skip ─────────────────────────────────────────────────
+if [[ "${SKIP_PRE_PUSH:-}" == "1" ]]; then
+  echo -e "${YELLOW}[SKIP]${RESET} SKIP_PRE_PUSH=1, skipping all pre-push checks"
+  exit 0
 fi
+
+# ── Environment setup ───────────────────────────────────────────
+clean_git_env
+setup_env
 
 # ── Parse pre-push stdin to find changed files ──────────────────
 # stdin is only available when invoked by `git push` (hook context, stdin is a pipe).
@@ -549,7 +523,7 @@ check_dependency_changes() {
     case "$f" in
       go.mod|Cargo.toml|package.json|pyproject.toml|requirements*.txt|pom.xml|build.gradle*)
         local new_deps
-        new_deps=$(git diff "${base_ref}..HEAD" -- "$f" 2>/dev/null | grep -E '^\+' | grep -v '^\+\+\+' | head -20 || true)
+        new_deps=$(git diff "${base_ref}..HEAD" -- "$f" 2>/dev/null | grep -E '^\+' | grep -vE '^\+{3}' | head -20 || true)
         if [[ -n "$new_deps" ]]; then
           warn "Dependency file '${f}' has changes. Ensure new dependencies are justified in PR description:"
           echo "$new_deps" | head -10 | sed 's/^/  /'

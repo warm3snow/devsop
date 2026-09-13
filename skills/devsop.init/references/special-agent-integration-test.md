@@ -1,6 +1,6 @@
 # Integration Test Review Sub-Agent Instructions
 
-> This file serves as the **supplementary instructions** for the `integration_test` review sub-agent, on top of the common prompt. The main Agent passes it along when dispatching.
+> This file serves as the **supplementary instructions** for the `integration_test` review sub-agent, on top of the common prompt. The main agent passes it along when dispatching.
 > Target: `.docs/integration_test/integration_test.md`.
 
 ---
@@ -30,7 +30,7 @@ Fill in per the skeleton's three-part structure:
 ### 3. Align and reference
 
 - Dependencies come from `relationship.md`, environment deployment from `devops/test-env-deploy.md` — use `@` references, do not copy-paste.
-- If the repository has `.codebuddy/rules/integration_test_*.md` / `it_*.md`, excerpt + link and mark the authority relationship.
+- If the repository has integration-test project rules (`rules/integration_test_*.md` / `it_*.md`), excerpt + link and mark the authority relationship.
 
 ---
 

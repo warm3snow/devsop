@@ -3,9 +3,9 @@
 > Let any member (or AI Agent) be able to **set up, write correctly, run successfully, and debug** Go unit tests locally.
 > Three-part structure: ① Environment Setup / ② Generation Standards / ③ Running and Debugging.
 >
-> **If the repository has `.codebuddy/rules/unittest_*.md`, that is the authoritative source**: this document inherits it in the form of excerpts + links and does not introduce conflicting rules; adjusting this document must keep the rules in sync.
+> **If the repository has unit-test project rules (`rules/unittest_*.md`), they are the authoritative source**: this document inherits them in the form of excerpts + links and does not introduce conflicting rules; adjusting this document must keep the rules in sync.
 
-> Source: <information source: go.mod + Makefile + CI config + .codebuddy/rules/unittest_*.md>
+> Source: <information source: go.mod + Makefile + CI config + project rules for unit tests>
 > Last-verified: <YYYY-MM-DD>
 
 ---
@@ -162,7 +162,7 @@ mockgen -source=internal/repo/user.go -destination=internal/repo/mock/user_mock.
 
 ### 6. Connection to Project Rules
 
-- If the repository has `.codebuddy/rules/unittest_*.md`: change §2 of this document to point to that rules anchor, do not duplicate
+- If the repository has unit-test project rules (`rules/unittest_*.md`): change §2 of this document to point to that rules anchor, do not duplicate
 - Otherwise use this document's standards as the minimum baseline
 
 ---

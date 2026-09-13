@@ -7,9 +7,9 @@
 > - Unit tests (`.docs/unittest/unittest.md`): function / module level, **no** real external calls, all mocked.
 > - Integration tests (this document): cross-module / cross-service / cross-process chains, **allowed** to call real test-environment dependencies (DB / MQ / upstream-downstream services / third-party SDK test stubs).
 >
-> **If the repository has `.codebuddy/rules/integration_test_*.md` or a synonymously named file (e.g. `it_rule.md`, `api_test_rule.md`), that is the authoritative source**: this document inherits it in the form of excerpts + links and does not introduce conflicting rules; adjusting this document must keep the rules in sync.
+> **If the repository has integration-test project rules (`rules/integration_test_*.md`, or a synonymously named file like `it_rule.md` / `api_test_rule.md`), they are the authoritative source**: this document inherits them in the form of excerpts + links and does not introduce conflicting rules; adjusting this document must keep the rules in sync.
 
-> Source: <information source: `*_integration_test.go` with `//go:build integration` + CI integration test job (with `-tags=integration`) + .codebuddy/rules/integration_test_*.md + test environment deployment doc>
+> Source: <information source: `*_integration_test.go` with `//go:build integration` + CI integration test job (with `-tags=integration`) + integration-test project rules + test environment deployment doc>
 > Last-verified: <YYYY-MM-DD>
 
 ---
@@ -138,7 +138,7 @@ Judgment logic: all 5 items pass → run IT directly; some item fails → **only
 
 ### 6. Connection to Project Rules
 
-- If the repository has `.codebuddy/rules/integration_test_*.md` / `it_*.md`: change §2 of this document to point to that rules anchor, do not duplicate
+- If the repository has integration-test project rules (`rules/integration_test_*.md` / `it_*.md`): change §2 of this document to point to that rules anchor, do not duplicate
 - Otherwise use this document's standards as the minimum baseline
 - Used together with `.docs/plans/_template/06-it.md` (IT stage artifact template): this document writes "rules", 06-it.md writes "the execution results of this task"
 

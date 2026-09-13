@@ -74,6 +74,18 @@
 | Format | ⬜ Pass / Fail |  |
 | Type check | ⬜ Pass / Fail |  |
 
+## 5. Debug Records (fill in only when bugs were found and fixed during implementation)
+
+> Systematic root-cause discipline (optional section, but required once a non-trivial bug occurs):
+> **reproduce → localize → minimize → fix → guard**. Never fix by guessing; a fix without a root cause is a new bug in disguise.
+
+| # | Symptom (how to reproduce) | Root cause (evidence) | Fix (minimal change) | Guard (test/check added to prevent recurrence) |
+|---|---------------------------|-----------------------|----------------------|-----------------------------------------------|
+| 1 |  |  |  |  |
+| 2 |  |  |  |  |
+
+> Rule: if you cannot fill the "Root cause" column with evidence (logs / stack trace / failing test), STOP — you have not localized the bug yet; keep investigating instead of patching around it.
+
 ---
 
 ## Decision Framework

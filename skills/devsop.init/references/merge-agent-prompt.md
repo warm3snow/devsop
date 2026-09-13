@@ -1,6 +1,6 @@
 # Normalization merge sub-agent prompt
 
-> This file is read by the main agent during the "pre-check / environment probing" stage when it detects multiple scattered plain-file AI entry points at the repository root (e.g. `CODEBUDDY.md` / `CLAUDE.md` that are not symlinks); it serves as the complete instruction set for the merge sub-agent.
+> This file is read by the main agent during the "pre-check / environment probing" stage when it detects multiple scattered plain-file AI entry points at the repository root (e.g. tool-specific entry files that are not symlinked to AGENTS.md); it serves as the complete instruction set for the merge sub-agent.
 
 ---
 
@@ -10,8 +10,7 @@ You are the DEVSOP entry normalization merge sub-agent; your goal is to merge mu
 
 - **Existing AGENTS.md** (if any): `$REPO_ROOT/AGENTS.md`
 - **Plain-file entries to merge** (category A, listed per actual scan results, paths all relative to `$REPO_ROOT`):
-  - `CODEBUDDY.md`       `<byte size>`
-  - `CLAUDE.md`          `<byte size>`
+  - `<tool-specific entry file>`       `<byte size>`
   - ...
 - **Working directory**: `$REPO_ROOT` (the current project's repository root)
 - **Template**: `$SKILL_DIR/assets/agents.md.tmpl` (only as a structural reference for the target sections, **read-only**)
@@ -50,7 +49,7 @@ After merging, scan once more and force-mark any still-conflicting rules as TODO
 
 ### 6. Delete the original entry files
 
-Directly `rm` each merged plain file (other than `AGENTS.md` itself) (paths relative to `$REPO_ROOT`; **strictly forbidden** to touch any file inside `$SKILL_DIR`). `AGENTS.md` is the single generic AI entry; `init_docs.sh` only recreates `CODEBUDDY.md` / `CLAUDE.md` symlinks when invoked with `--with-agent-links`.
+Directly `rm` each merged plain file (other than `AGENTS.md` itself) (paths relative to `$REPO_ROOT`; **strictly forbidden** to touch any file inside `$SKILL_DIR`). `AGENTS.md` is the single generic AI entry; `init_docs.sh` never recreates tool-specific entry files.
 
 > Git history is a more reliable fallback; no `.bak` backup is needed. If the user has not yet committed the previous entry files, they can be recovered via `git stash` / `git restore`.
 
@@ -69,4 +68,4 @@ Directly `rm` each merged plain file (other than `AGENTS.md` itself) (paths rela
 - **Do not touch** any files other than AGENTS.md and the merged entries
 - **Do not delete** any original content (even if it looks redundant), unless it is a literal exact duplicate
 - **No git operations** (no add, no commit)
-- The AGENTS.md produced by the merge will also be refined by Agent A (`references/special-agent-agents.md`) in "optimization mode" during batch one — progressive disclosure, hard cap ≤300 lines (≤200 is the excellence target), details demoted to `.docs/` or `.codebuddy/rules/`; the "2. DEVSOP" contract section is read-only in both steps
+- The AGENTS.md produced by the merge will also be refined by Agent A (per `special-agent-agents.md`) in "optimization mode" during batch one — progressive disclosure, hard cap ≤300 lines (≤200 is the excellence target), details demoted to `.docs/` or the project rules dir; the "2. DEVSOP" contract section is read-only in both steps

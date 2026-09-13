@@ -9,7 +9,7 @@
 #   commitA     : range start commit (exclusive) / branch / tag / SHA
 #                 Full-mode keywords (either one works, same for commitB):
 #                   all / ALL / All / *  (case-insensitive)
-#                 If both params are keywords (or both empty) → full scan of all Go source in the working tree
+#                 If both params are keywords (or both empty) → full scan of all source files in the working tree
 #   commitB     : range end commit (inclusive); same as above for full mode
 #   path_filter : optional, restrict to a subdirectory or file
 #                 incremental mode passes it to `git diff -- <path>`
@@ -22,7 +22,7 @@
 #
 # Constraints (hard):
 #   - Read-only. Never run git add/commit/checkout/reset/clean or other write operations.
-#   - Never write to $SKILL_DIR / $HOME / ~/.codebuddy / /tmp.
+#   - Never write to $SKILL_DIR / $HOME / /tmp.
 #   - On failure (not a git repo / invalid commit) → non-zero exit, reason printed to stderr.
 
 set -euo pipefail
@@ -60,37 +60,39 @@ is_full_keyword() {
 }
 
 if is_full_keyword "$COMMIT_A" || is_full_keyword "$COMMIT_B"; then
-  # ── Full mode: scan all .go source in the working tree (excluding vendor/ test stubs etc.) ──
+  # ── Full mode: scan all source files in the working tree (language-agnostic) ──
   # Use git ls-files to only take git-tracked files (avoid scanning artifacts/temp files), naturally read-only.
+  # Source extensions cover the mainstream languages; binary-ish/text config with secrets are also in scope.
+  SRC_PATTERN='\.(go|py|js|ts|jsx|tsx|java|kt|kts|rs|c|cc|cpp|h|hpp|cs|rb|php|sh|bash|zsh|yaml|yml|toml|json|tf|sql|env|ini|conf)$'
 
-  # Collect .go files, excluding vendor / third-party / generated code (_gen.go / *.pb.go / mock_)
-  GO_FILES=()
+  # Collect source files, excluding vendor / third-party / generated code / lockfiles
+  SRC_FILES=()
   if [[ -n "$PATH_FILTER" ]]; then
     while IFS= read -r f; do
-      [[ -n "$f" ]] && GO_FILES+=("$f")
+      [[ -n "$f" ]] && SRC_FILES+=("$f")
     done < <(
       git ls-files -- "$PATH_FILTER" 2>/dev/null \
-        | grep -E '\.go$' \
-        | grep -vE '(^|/)(vendor/|third_party/|node_modules/)' \
-        | grep -vE '\.pb\.go$|_gen\.go$|^mock_|/mocks/' || true
+        | grep -E "${SRC_PATTERN}" \
+        | grep -vE '(^|/)(vendor/|third_party/|node_modules/|dist/|build/)' \
+        | grep -vE '\.pb\.go$|\.pb\.cc$|_gen\.(go|py|js|ts)$|\.min\.(js|css)$|package-lock\.json$|go\.sum$|/mocks/|/mock_|\.generated\.' || true
     )
   else
     while IFS= read -r f; do
-      [[ -n "$f" ]] && GO_FILES+=("$f")
+      [[ -n "$f" ]] && SRC_FILES+=("$f")
     done < <(
       git ls-files 2>/dev/null \
-        | grep -E '\.go$' \
-        | grep -vE '(^|/)(vendor/|third_party/|node_modules/)' \
-        | grep -vE '\.pb\.go$|_gen\.go$|^mock_|/mocks/' || true
+        | grep -E "${SRC_PATTERN}" \
+        | grep -vE '(^|/)(vendor/|third_party/|node_modules/|dist/|build/)' \
+        | grep -vE '\.pb\.go$|\.pb\.cc$|_gen\.(go|py|js|ts)$|\.min\.(js|css)$|package-lock\.json$|go\.sum$|/mocks/|/mock_|\.generated\.' || true
     )
   fi
 
-  if [[ ${#GO_FILES[@]} -eq 0 ]]; then
-    # no Go files: output empty (the caller treats it as "no increment/no code")
+  if [[ ${#SRC_FILES[@]} -eq 0 ]]; then
+    # no source files: output empty (the caller treats it as "no increment/no code")
     exit 0
   fi
 
-  for f in "${GO_FILES[@]}"; do
+  for f in "${SRC_FILES[@]}"; do
     # the file may have been deleted (git ls-files still lists it) → skip
     [[ -f "$f" ]] || continue
     # line count

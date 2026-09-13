@@ -1,4 +1,8 @@
-# references/docs-generation.md
+# docs-generation.md
+
+## Contents
+
+0. Before reading this methodology · 1. Core Principles · 2. Four-layer model of docs · 3. Generic generation loop · 4. Trigger timing · 5. Anti-patterns · 6. Physical layout · 7. On-demand loading conventions · 8. Recommended workflow · 9. Quality self-check checklist · 10. Relationship with other DEVSOP stages · Appendix A: Minimal viable output
 
 > `.docs/` generation methodology. **Generic version** — not tied to any language, framework, or domain.
 >
@@ -201,9 +205,9 @@ If inconsistencies are found: **fix the extraction script**, regenerate everythi
    - Generated / Last-verified time
    - links to related upper / lower docs
 2. **`apis/` list-type directory** must have an `index.md` master table that maps 1:1 to the official document list.
-3. **Project-specific rules take priority**: if `.codebuddy/rules/<topic>_*.md` exists at the repository root (e.g. `unittest_rule.md`, `cls_mcp_rule.md`), they are the **authoritative source** for that topic —
+3. **Project-specific rules take priority**: if project rules for a topic exist (under the project rules dir `rules/`, e.g. `unittest_rule.md`, `cls_mcp_rule.md`), they are the **authoritative source** for that topic —
    - same-named docs under `.docs/<topic>/` should **excerpt + link**, not copy-paste;
-   - on conflict, `.codebuddy/rules/` wins;
+   - on conflict, the project rules dir wins;
    - revising rules requires syncing docs and vice versa; stages such as the task template 04-ut.md / 05-deploy.md force reading both.
 4. **Do not pre-generate placeholders** like `README.md` / `conventions.md` / `glossary.md` / `risks.md` / `adr/` / `PROFILES.md` just to "look complete" — add them on demand when actually used.
 
@@ -248,9 +252,9 @@ Minimum standard for docs to be considered "complete":
 - [ ] Test / build / deploy / rollback commands are all one-click executable
 - [ ] Key observability metrics / alert thresholds are listed
 - [ ] `unittest/unittest.md` has all three sections (environment setup / generation standards / running & debugging), and the "pre-dependency check checklist" in Section 1 is filled in according to this project's reality
-- [ ] If `.codebuddy/rules/unittest_*.md` exists in the repo, `unittest/unittest.md` links to it and states the authority relationship (no copying of conflicting content)
+- [ ] If unit-test project rules exist in the repo (`rules/unittest_*.md`), `unittest/unittest.md` links to them and states the authority relationship (no copying of conflicting content)
 - [ ] `integration_test/integration_test.md` has all three sections (environment & dependencies / test case design / running & debugging) and is aligned with `relationship.md` and `devops/test-env-deploy.md` (dependencies come from relationship, environment deployment comes from devops)
-- [ ] If `.codebuddy/rules/integration_test_*.md` / `it_*.md` exists in the repo, `integration_test/integration_test.md` links to it and states the authority relationship
+- [ ] If integration-test project rules exist in the repo (`rules/integration_test_*.md` / `it_*.md`), `integration_test/integration_test.md` links to them and states the authority relationship
 - [ ] `devops/env.md` lists local startup methods
 - [ ] `devops/test-env-deploy.md` lists the test environment deployment / sync process
 

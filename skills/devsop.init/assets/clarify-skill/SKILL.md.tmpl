@@ -1,8 +1,8 @@
 ---
 name: clarify
 description: |
-  AI product manager skill, helping users clarify vague ideas into clear requirement cards.
-  Trigger scenarios: the user has an idea or feature requirement but expresses it unclearly, and needs to sort out their thinking before letting AI code and implement it.
+  Acts as an AI product manager to clarify vague ideas into clear requirement cards via a structured Q&A dialogue.
+  Use when the user has an idea or feature requirement but expresses it unclearly, and needs to sort out their thinking before coding and implementation starts.
   Workflow: on startup, locate the 01-clarify.md in the current DEVSOP task directory; phase one guides the discovery of the real need; phase two Socratic-challenges assumptions; finally, write the requirement card to .docs/plans/<task dir>/01-clarify.md (do not generate standalone deliverables such as PRDs or AI coding prompts).
   Not applicable: scenarios where the requirement is already clear enough and only direct technical implementation is needed.
 ---

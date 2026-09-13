@@ -1,6 +1,6 @@
 # code-review.md Special Sub-Agent Instructions
 
-> This file serves as the **supplementary instructions** for the `code-review.md` sub-agent, on top of the common prompt. The main Agent passes it along when dispatching.
+> This file serves as the **supplementary instructions** for the `code-review.md` sub-agent, on top of the common prompt. The main agent passes it along when dispatching.
 > Target: `.docs/code-review.md`.
 
 ---
@@ -36,7 +36,7 @@ The two are **complementary, not merged**: code-review.md does not copy review.m
 
 - "Scope" section: fill in the actual main branch name
 - §1 Submitter constraints / §2 Self-check checklist: replace with real commands and thresholds; when a command has no corresponding Makefile target, write the shell command directly
-- §3 Reviewer checklist: keep the template structure; if the project has no DB (Agent D has already determined `skipped(no database)`) → delete SQL-injection-related items or mark "this project has no DB, N/A"; framework-related items (e.g. go-zero) are kept only when the main Agent injects framework context
+- §3 Reviewer checklist: keep the template structure; if the project has no DB (Agent D has already determined `skipped(no database)`) → delete SQL-injection-related items or mark "this project has no DB, N/A"; framework-related items (e.g. go-zero) are kept only when the main agent injects framework context
 - §5 Merge criteria: align CI check items with the real CI pipeline (delete check items that do not exist)
 - "References" section: fix broken links (`testing.md` → `unittest/unittest.md`; `api-standards.md` → `apis/api-standards.md`; delete that line for projects without APIs)
 

@@ -1,5 +1,17 @@
 # DEVSOP Scoring Criteria (detailed judgment logic)
 
+## Contents
+
+- [Pillar A: Project AI-friendliness](#pillar-a-project-ai-friendliness-25-points) — A1–A7
+- [Pillar B: Dev mode / role collaboration](#pillar-b-dev-mode--role-collaboration-15-points) — B1–B4
+- [Pillar C: Quality checks & feedback mechanisms](#pillar-c-quality-checks--feedback-mechanisms-25-points) — C1–C7
+- [Pillar D: Design & change management](#pillar-d-design--change-management-15-points) — D1–D4
+- [Pillar E: Shared knowledge base](#pillar-e-shared-knowledge-base-5-points) — E1–E2
+- [Pillar F: Measurement mechanisms](#pillar-f-measurement-mechanisms-15-points) — F1–F4
+- [Placeholder Template Recognition Rules](#placeholder-template-recognition-rules-basis-for-content-substance-judgment)
+- [General PARTIAL Judgment Principles](#general-partial-judgment-principles)
+- [Notes for Sub-agents Using This Document](#notes-for-sub-agents-using-this-document)
+
 This document provides `devsop.eval` with the judgment criteria, evidence sources, command examples, and PARTIAL boundaries for the 28 Eval items. Sub-agents must read the chapter for their pillar when scanning.
 
 > Basis: team AI R&D workflow DEVSOP v1.0
@@ -144,7 +156,7 @@ echo "Required(non-skeleton): $req_ok/$req_total (skeleton: $skeleton)"
 
 ### A5: Generic AI entry committed (AGENTS.md, 2 points)
 
-**DEVSOP basis**: AGENTS.md is the single generic AI collaboration entry shared by all AI coding agents (Claude Code / Codex / Cursor / CodeBuddy etc.); tool-specific entry symlinks (CODEBUDDY.md / CLAUDE.md) are optional and not required for scoring.
+**DEVSOP basis**: AGENTS.md is the single generic AI collaboration entry shared by all AI coding agents; no tool-specific entry files are required for scoring.
 
 **Code Grader**:
 ```bash
@@ -281,23 +293,23 @@ grep -iE "branch|feat/|fix/|hotfix/|naming" .docs/devops/development.md .docs/co
 
 ## Pillar C: Quality checks & feedback mechanisms (25 points)
 
-### C1: Commit / Push conventions memorized (AGENTS.md / .codebuddy/rules defines commit + push conventions) (5 points)
+### C1: Commit / Push conventions memorized (AGENTS.md / project rules dir defines commit + push conventions) (5 points)
 
 **DEVSOP basis**: §3.1 "pre-commit: build + lint + unit tests + prohibited-item checks → block the commit"
 
-> **Architecture note**: this Skill runs on a server (pulls repo code to evaluate), so `.git/hooks/` is not distributed with the code and cannot be used as evidence. Instead, evaluate the equivalent target: **whether the commit / push behavior conventions are written into AI-readable project memory files** (`AGENTS.md` and rule files under `.codebuddy/rules/`). Only when the rules are in the memory files do AI and humans have gate conventions to follow when collaborating.
+> **Architecture note**: this Skill runs on a server (pulls repo code to evaluate), so `.git/hooks/` is not distributed with the code and cannot be used as evidence. Instead, evaluate the equivalent target: **whether the commit / push behavior conventions are written into AI-readable project memory files** (`AGENTS.md` and rule files under the project rules dir `rules/`). Only when the rules are in the memory files do AI and humans have gate conventions to follow when collaborating.
 
 **Code Grader**:
 ```bash
 # memory file existence
 ls AGENTS.md 2>/dev/null
-ls .codebuddy/rules/ 2>/dev/null
+ls rules/ 2>/dev/null
 
 # commit convention signals: message format / pre-commit checks / ticket references / amend constraints
-grep -inE 'commit' AGENTS.md .codebuddy/rules/*.md 2>/dev/null | head -15
+grep -inE 'commit' AGENTS.md rules/*.md 2>/dev/null | head -15
 
 # push convention signals: pre-push checks / MR flow / force-push constraints / no direct pushes
-grep -inE 'push|force-with-lease|MR|merge' AGENTS.md .codebuddy/rules/*.md 2>/dev/null | head -15
+grep -inE 'push|force-with-lease|MR|merge' AGENTS.md rules/*.md 2>/dev/null | head -15
 ```
 
 **Model Grader**: read the hit passages and judge whether the rules are concrete and executable (with explicit commands / formats / prohibitions), not empty phrases like "pay attention to commit conventions".
@@ -305,7 +317,7 @@ grep -inE 'push|force-with-lease|MR|merge' AGENTS.md .codebuddy/rules/*.md 2>/de
 **Judgment**:
 - ✅ PASS: the memory files **simultaneously** define commit conventions (e.g. message format, mandatory build/lint/test before commit, ticket references `--story=` / `--bug=`, one MR one commit / amend constraints) **and** push conventions (e.g. pre-push checks, post-push MR flow, `--force-with-lease` constraints, no direct pushes to protected branches), and the rules are concrete and executable
 - ⚠️ PARTIAL: only one category defined (commit conventions without push conventions, or vice versa), or both mentioned but only as a vague one-liner without executable details
-- ❌ FAIL: neither `AGENTS.md` nor `.codebuddy/rules/` contains commit/push conventions (including when neither exists)
+- ❌ FAIL: neither `AGENTS.md` nor any recognized rules dir contains commit/push conventions (including when neither exists)
 
 > ⚠️ **Boundary with adjacent Evals**: B4 evaluates "branch naming + Commit Message format conventions"; C4 evaluates "branch protection and Review flow docs"; C1 evaluates "**whether rule constraints on commit and push behavior enter the AI memory files**" — the same passage can support multiple items; no double-deduction and no mutual exemption.
 >
@@ -563,8 +575,9 @@ Look for the change-classification definition in `.docs/devops/development.md`, 
 
 **Code Grader**:
 ```bash
-ls -d .codebuddy/skills/ 2>/dev/null
-ls .codebuddy/skills/*/SKILL.md 2>/dev/null | wc -l
+# the standard repo-local skills dir
+ls -d .agents/skills/ 2>/dev/null
+ls .agents/skills/*/SKILL.md 2>/dev/null | wc -l
 ```
 
 **Judgment**:
@@ -656,32 +669,31 @@ ls .docs/devsop_improvements.md .docs/devsop_changelog.md 2>/dev/null
 
 ### F2: AI session/memory/failure-case retention (4 points)
 
-**DEVSOP basis**: §6.2 "keep logs of key AI sessions (Prompt + output) / accumulate failure cases" — the DEVSOP cares about "whether the AI collaboration process is traceable"; the specific carrier evolves with the tool and is not bound to the `logs/ai-sessions/` path. CodeBuddy's persistent memory mechanism (user-level `~/.codebuddy/projects/<project path slug>/memory/`, containing the MEMORY.md index) is an equally valid retention form.
+**DEVSOP basis**: §6.2 "keep logs of key AI sessions (Prompt + output) / accumulate failure cases" — the DEVSOP cares about "whether the AI collaboration process is traceable"; the carrier is the agent-agnostic standard locations (repo-local `.agents/memory/` and `.agents/sessions/`, or user-level `~/.agents/projects/<slug>/memory/`).
 
 **Criteria**: PASS when any of the following paths is satisfied.
 
 **Path ① AI memory store (Code Grader · recommended)**:
 ```bash
-# CodeBuddy persistent memory (user-level, singular memory/; dir named with the project absolute-path slug: / → -, leading - removed)
+# standard memory locations (user-level dir named with the project absolute-path slug: / → -, leading - removed)
 slug=$(pwd | sed 's|/|-|g; s/^-//')
-ls "$HOME/.codebuddy/projects/$slug/memory/" 2>/dev/null
-find "$HOME/.codebuddy/projects/$slug/memory/" -name '*.md' 2>/dev/null | wc -l
+for m in ".agents/memory/" "$HOME/.agents/projects/$slug/memory/"; do
+  ls "$m" 2>/dev/null
+  find "$m" -name '*.md' 2>/dev/null | wc -l
+done
 # fallback scan when the slug does not match
-find "$HOME/.codebuddy/projects" -maxdepth 2 -name MEMORY.md 2>/dev/null | head -5
+find "$HOME/.agents/projects" -maxdepth 2 -name MEMORY.md 2>/dev/null | head -5
 ```
 - the `memory/` dir for the current project exists + ≥3 memory files → PASS (memory is already structured AI-context accumulation)
-- Note: memory lives in the **user-level** directory (outside the repo), a legitimate evidence source; scanning `$HOME/.codebuddy/projects/` is read-only, no writes involved
+- Note: memory may live in the **user-level** directory (outside the repo), a legitimate evidence source; scanning is read-only, no writes involved
 
 **Path ② session logs (Code Grader)**:
 ```bash
 # in-repo session dirs
-ls -d logs/ai-sessions/ logs/ ai-sessions/ .codebuddy/sessions/ 2>/dev/null
-find logs/ai-sessions/ .codebuddy/sessions/ -name '*.md' -o -name '*.jsonl' 2>/dev/null | head -5
-# CodeBuddy user-level session transcripts (auto-generated, no config needed)
-slug=$(pwd | sed 's|/|-|g; s/^-//')
-find "$HOME/.codebuddy/projects/$slug" -maxdepth 1 -name '*.jsonl' -mtime -30 2>/dev/null | wc -l
+ls -d logs/ai-sessions/ .agents/sessions/ 2>/dev/null
+find logs/ai-sessions/ .agents/sessions/ -name '*.md' -o -name '*.jsonl' 2>/dev/null | head -5
 ```
-- any in-repo session dir exists + has files in the last 30 days, or the user-level project dir has `.jsonl` session transcripts in the last 30 days → PASS
+- any in-repo session dir exists + has files in the last 30 days → PASS
 
 **Path ③ failure cases in git (Code Grader)**:
 ```bash
