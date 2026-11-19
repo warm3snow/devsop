@@ -1,13 +1,13 @@
 # System Relationship Documentation Guide
 
 > Use this guide when the project's upstream, downstream, or integration relationships need documenting. The main agent can follow it directly or delegate the task when supported.
-> Target: `.docs/relationship.md`.
+> Adapt any output to the project's existing architecture or integration-documentation location and naming convention.
 
 ---
 
 ## Core Goal
 
-Fill `.docs/relationship.md` into an **actionable upstream/downstream & integration relationship document** (upstream callers / downstream dependencies / call-relationship descriptions / topology diagram / failure propagation matrix).
+Document relevant upstream/downstream and integration relationships when a useful authoritative source is missing or incomplete. Include only aspects supported by project evidence.
 
 ---
 
@@ -43,6 +43,6 @@ Fill `relationship.md` per the skeleton's five-part structure:
 ## Constraints
 
 - Commands / dependencies / callers / failure handling must come from real code, config, `go.mod`, CI config; fabricating is forbidden
-- Only touch `relationship.md`; do not touch other docs
+- Only create or update the selected authoritative architecture/integration source when a gap is confirmed; preserve unrelated docs.
 - For pure library projects (no external interfaces, no downstream services), only the upstream (imported parties) and downstream (third-party dependencies) need to be filled; the topology diagram may be omitted
 - If the project has no external dependencies or callers at all (an isolated tool) → keep the template structure and note "no upstream/downstream relationships yet"

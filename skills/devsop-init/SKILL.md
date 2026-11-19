@@ -9,44 +9,42 @@ Create a small, useful starting point for project collaboration. The default set
 
 ## What gets created
 
-The default `core` profile creates:
+For a new project with no existing documentation, the default `core` profile creates:
 
 - `AGENTS.md` — generic AI collaboration entry
-- `.docs/review.md`
-- `.docs/architecture.md`
-- `.docs/coding-style.md`
-- `.docs/code-review.md`
-- `.docs/unittest/unittest.md`
+- `docs/review.md`
+- `docs/architecture.md`
+- `docs/coding-style.md`
+- `docs/code-review.md`
+- `docs/unittest/unittest.md`
 - Two lightweight Git Hooks: staged whitespace checks and commit-message validation
 - `.golangci.yml` for Go projects, when one does not already exist
 
-The `full` profile adds optional API, database, integration-test, DevOps, relationship, glossary, failure, and logging docs.
+The `full` profile adds optional API, database, integration-test, DevOps, relationship, glossary, failure, and logging docs to a new documentation set.
 
 ## Workflow
 
 Resolve `SKILL_DIR` as the absolute directory containing this `SKILL.md`. Resolve `REPO_ROOT` as the target repository's Git root, or its current directory if it is not a Git repository.
 
-1. Inspect the repository root, README, and project configuration. Identify the language, framework, and available test commands from evidence.
-2. Run the initializer from the target repository:
+1. Inspect the repository root, README, project configuration, and documentation files. Build a topic inventory covering architecture, interfaces, data, coding conventions, tests, and operations. Use file headings and content, then verify key claims against source/configuration (for example OpenAPI/Swagger, Protocol Buffers, GraphQL schemas, route registrations, migrations, and test/CI commands). Do not use filenames alone to decide a topic is missing.
+2. For each topic, classify the evidence as authoritative and useful, incomplete/stale, missing, or conflicting. Preserve existing directory layout and names (for example, `docs/conventions.md` may already be the coding-style authority). When sources conflict, report the paths and discrepancy; do not silently choose, rename, or merge them.
+3. Run the initializer from the target repository:
    ```bash
    bash "$SKILL_DIR/scripts/init_docs.sh" "$REPO_ROOT"
    ```
-   Use `--full` only when the project needs the optional documentation set.
-3. Read the generated `AGENTS.md`, `.docs/architecture.md`, and `.docs/coding-style.md`; fill their project-specific content using evidence from the code and configuration. Do not invent unknown details—mark them as TODO for the project owner.
-4. Add optional documentation only when it is relevant:
-   - APIs: `.docs/apis/`
-   - Database: `.docs/sqls/`
-   - Integration tests: `.docs/integration_test/`
-   - Environment and deployment: `.docs/devops/`
-   - System relationships, failures, glossary, and logging: corresponding `.docs/` files
-5. Summarize the created files, any project facts that need confirmation, and how to run tests.
+   The initializer uses an existing `docs/` or `.docs/` directory, defaults to visible `docs/` for a new project, and refuses to choose if both exist. For a populated repository it skips bulk template copying. Use `--docs-dir <path>` only after choosing the existing documentation root. Use `--include <template-path>` only for a confirmed gap; otherwise create missing content in the project's established location and naming convention. Do not create a parallel directory or same-topic duplicate.
+4. If `AGENTS.md` was generated, complete its project documentation links using the inventory. If it already existed, preserve it and give the user a concise suggested index update rather than editing it automatically.
+5. Add optional documentation only when it is relevant and no authoritative source already covers it. For API topics, prefer linking to source-of-truth schemas/specs; summarize only where that improves discoverability.
+6. Summarize the topic inventory, authoritative source paths, gaps/conflicts, files changed, and how to run tests.
 
 The main agent can perform every step directly. Sub-agents may be used to speed up independent documentation work, but are never required.
 
 ## Initializer behavior
 
-- The script accepts `[repo_root] [--full]`; without a repository path, it uses the current directory.
-- The default profile creates only the core project docs. `--full` adds optional docs.
+- The script accepts `[repo_root] [--full] [--docs-dir path] [--include template-path]`; without a repository path, it uses the current directory.
+- For a new repository with no existing Markdown documentation, the default profile creates the core docs under `docs/`; `--full` also adds optional docs.
+- For a repository with existing Markdown documentation, it skips bulk template copying. Explicitly select a missing template with `--include` only after a content review.
+- Existing `docs/` or `.docs/` layout and file names are preserved. If both roots exist, specify `--docs-dir` after reviewing them.
 - Existing documentation files are not overwritten.
 - `AGENTS.md` is generated from `assets/agents.md.tmpl` only when it does not already exist.
 - Go lint configuration is added only when absent.
@@ -55,7 +53,7 @@ The main agent can perform every step directly. Sub-agents may be used to speed 
 
 ## Workflow boundary
 
-This Skill documents project context and quality constraints; it does not prescribe a task-management or implementation workflow. Follow the workflow the project already uses. Avoid duplicating plans or task records across tools.
+This Skill organizes project context and quality constraints; it does not prescribe a task-management or implementation workflow. Follow the workflow the project already uses. Avoid duplicating plans, task records, or documentation topics across tools and files.
 
 ## References
 
@@ -78,7 +76,7 @@ This Skill documents project context and quality constraints; it does not prescr
   | `guide-coding-style.md` | Filling or reviewing coding conventions |
   | `guide-code-review.md` | Filling or reviewing code-review guidance |
 
-- `assets/profiles/core/` — default project docs
+- `assets/profiles/core/` — starter project docs for new projects or explicitly selected gaps
 - `assets/profiles/full/` — optional project docs
 - `assets/agents.md.tmpl` and `assets/.golangci.yml` — shared files used by the initializer
 - `scripts/init_docs.sh` — project initializer

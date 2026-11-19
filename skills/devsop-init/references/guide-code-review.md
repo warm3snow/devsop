@@ -1,13 +1,12 @@
 # Code Review Documentation Guide
 
-> Use this guide when filling `.docs/code-review.md`. The main agent can follow it directly or delegate the task when supported.
-> Target: `.docs/code-review.md`.
+> Use this guide only after the project documentation inventory identifies a gap in review-process guidance. Adapt the target to the project's existing documentation location and naming convention.
 
 ---
 
 ## Core Goal
 
-Replace the `{{placeholder}}` values and common conventions in `.docs/code-review.md` with real project values (main branch name / build-check commands / coverage threshold), and draw a clear boundary with the top-level `.docs/review.md`.
+Replace template placeholders with verified project values (main branch name / build-check commands / coverage threshold). Do not create a second review document when an existing authoritative source already covers the topic; link or update that source as appropriate.
 
 ---
 
@@ -15,10 +14,10 @@ Replace the `{{placeholder}}` values and common conventions in `.docs/code-revie
 
 | File | Positioning | Controller |
 |------|------|--------|
-| `.docs/review.md` | AI Code Review checklist (for AI self-review + AI-assisted Review) | skill-controlled, not customized by the project |
-| `.docs/code-review.md` | Team manual Review process conventions (submitter constraints / Reviewer checklist / merge criteria) | project-customized; this Agent fills it |
+| AI-assisted review guidance | Checklist for AI self-review and AI-assisted review | May be part of a combined review guide |
+| Team review process guidance | Submitter constraints / Reviewer checklist / merge criteria | Use the project's authoritative review source |
 
-The two are **complementary, not merged**: code-review.md does not copy review.md's checklist items; the Reviewer checklist focuses on process and manual-judgment items; in terms of references, code-review.md can point to `../../review.md` in the "AI-assisted Review" section.
+When both topics are documented, keep their responsibilities clear; do not require separate files.
 
 ---
 
@@ -38,13 +37,13 @@ The two are **complementary, not merged**: code-review.md does not copy review.m
 - §1 Submitter constraints / §2 Self-check checklist: replace with real commands and thresholds; when a command has no corresponding Makefile target, write the shell command directly
 - §3 Reviewer checklist: keep the template structure; if the project has no DB (Agent D has already determined `skipped(no database)`) → delete SQL-injection-related items or mark "this project has no DB, N/A"; framework-related items (e.g. go-zero) are kept only when the main agent injects framework context
 - §5 Merge criteria: align CI check items with the real CI pipeline (delete check items that do not exist)
-- "References" section: fix broken links (`testing.md` → `unittest/unittest.md`; `api-standards.md` → `apis/api-standards.md`; delete that line for projects without APIs)
+- "References" section: link to the project's actual testing and API sources when they exist; remove irrelevant links.
 
 ---
 
 ## Constraints
 
-- Only touch `.docs/code-review.md`; do not touch other docs, do not touch the top-level `review.md`
+- Only create or update the selected authoritative review source when a gap is confirmed; preserve unrelated docs.
 - Commands / thresholds / branch names must come from real evidence; fabricating is forbidden; fields without evidence keep `<!-- TODO(devsop-init) -->`
 - Forbidden to copy the entire AI checklist from review.md into this file — see "Boundary Notes" for the two files' responsibilities
 - No skipped determination: every project has a Review process

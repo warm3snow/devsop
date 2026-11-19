@@ -4,7 +4,7 @@
 > Three-part structure: ① Environment and Dependencies / ② Test Case Design and Organization / ③ Running and Debugging.
 >
 > **Boundary with unit tests**:
-> - Unit tests (`.docs/unittest/unittest.md`): function / module level, **no** real external calls, all mocked.
+> - Unit tests (`../unittest/unittest.md`): function / module level, **no** real external calls, all mocked.
 > - Integration tests (this document): cross-module / cross-service / cross-process chains, **allowed** to call real test-environment dependencies (DB / MQ / upstream-downstream services / third-party SDK test stubs).
 >
 > **If the repository has integration-test project rules (`rules/integration_test_*.md`, or a synonymously named file like `it_rule.md` / `api_test_rule.md`), they are the authoritative source**: this document inherits them in the form of excerpts + links and does not introduce conflicting rules; adjusting this document must keep the rules in sync.
@@ -43,7 +43,7 @@
 | Authentication method | Token / certificate / IAM / temporary AKSK | <fill in> |
 | Data isolation policy | independent account / independent schema / independent namespace / tag isolation | <fill in> |
 | Cleanup policy | auto cleanup (TTL / label deletion) / manual cleanup / no cleanup | <fill in> |
-| Upstream/downstream dependencies | see `.docs/relationship.md`, list the dependencies IT must reach | <fill in> |
+| Upstream/downstream dependencies | see `../relationship.md`, list the dependencies IT must reach | <fill in> |
 
 ### 3. Prerequisite Dependency Check List (check first, then install)
 
@@ -234,6 +234,6 @@ failed test case → take req_id / trace_id
 
 ## §4 Related Project Guidance
 
-- Dependencies and service boundaries: `.docs/relationship.md`, when present
-- Unit-test conventions: `.docs/unittest/unittest.md`
-- Environment and deployment setup: relevant `.docs/devops/` documentation, when present
+- Dependencies and service boundaries: `../relationship.md`, when present
+- Unit-test conventions: `../unittest/unittest.md`
+- Environment and deployment setup: relevant `../devops/` documentation, when present

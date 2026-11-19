@@ -12,20 +12,39 @@ set -u
 # "list everything that could be collected". A single section failing should not abort
 # the whole evidence cache collection. Each section's commands use || true as a fallback.
 
-echo "=== FILE_EXISTS ==="
-for f in AGENTS.md README.md \
-         .docs/review.md \
-         .docs/architecture.md .docs/relationship.md \
-         .docs/coding-style.md \
-         .docs/unittest/unittest.md .docs/integration_test/integration_test.md \
-         .docs/code-review.md \
-         .docs/glossary.md .docs/failures.md \
-         .docs/logging.md \
-         .docs/apis/index.md .docs/apis/api-standards.md \
-         .docs/sqls/README.md .docs/sqls/database.md \
-         .docs/devops/deployment.md .docs/devops/development.md \
-         .docs/devops/env.md \
-         .docs/devsop_report.md .env.example Makefile lefthook.yml \
+DOC_FILES=()
+DOC_FOUND=false
+while IFS= read -r f; do
+  DOC_FILES+=("$f")
+  DOC_FOUND=true
+done < <(find . \
+  \( -type d \( -name .git -o -name node_modules -o -name vendor -o -name .venv -o -name dist -o -name build -o -name target \) -prune \) -o \
+  \( -type f \( -name '*.md' -o -name '*.mdx' -o -name '*.rst' -o -name '*.adoc' -o -name '*.asciidoc' \) -print \))
+if [ "$DOC_FOUND" = false ]; then
+  DOC_FILES+=(/dev/null)
+fi
+
+GUIDANCE_FILES=()
+GUIDANCE_FOUND=false
+echo "=== DOCUMENTATION_INVENTORY ==="
+for f in "${DOC_FILES[@]}"; do
+  [ "$f" = /dev/null ] && continue
+  case "$f" in
+    *devsop_report.md|*devsop_improvements.md|*devsop_changelog.md) continue ;;
+  esac
+  GUIDANCE_FILES+=("$f")
+  GUIDANCE_FOUND=true
+  lines=$(wc -l < "$f")
+  echo "DOC $f ($lines lines)"
+  grep -m 12 -E '^#{1,6}[[:space:]]' "$f" 2>/dev/null | sed 's/^/  /' || true
+done
+if [ "$GUIDANCE_FOUND" = false ]; then
+  GUIDANCE_FILES+=(/dev/null)
+fi
+
+echo ""
+echo "=== STANDARD_FILE_EXISTS ==="
+for f in AGENTS.md README.md CONTRIBUTING.md .env.example Makefile lefthook.yml \
          .golangci.yml .golangci.yaml \
          .pre-commit-config.yaml .gitignore \
          Jenkinsfile Jenkinsfile.ci Jenkinsfile.cd \
@@ -41,9 +60,7 @@ done
 echo ""
 echo "=== DIR_EXISTS ==="
 # Agent-agnostic scan: the ~/.agents/ standard dirs only.
-for d in .docs .docs/apis .docs/sqls \
-         .docs/unittest .docs/integration_test .docs/devops \
-         rules \
+for d in docs .docs rules \
          tests/integration test/integration tests/e2e \
          jenkins .jenkins .github/workflows docs; do
   [ -d "$d" ] && echo "EXISTS $d" || echo "MISSING $d"
@@ -51,17 +68,15 @@ done
 
 echo ""
 echo "=== GIT_RECENCY ==="
-for f in $(find .docs -name '*.md' 2>/dev/null); do
-  if [ -f "$f" ]; then
-    ts=$(git log -1 --format='%cI' -- "$f" 2>/dev/null || echo 'NO_HISTORY')
-    echo "$f: $ts"
-  fi
+for f in "${GUIDANCE_FILES[@]}"; do
+  [ "$f" = /dev/null ] && continue
+  ts=$(git log -1 --format='%cI' -- "$f" 2>/dev/null || echo 'NO_HISTORY')
+  echo "$f: $ts"
 done
 
 echo ""
 echo "=== DOCS_ACTIVITY ==="
-echo "commits_60d: $(git log --since='60 days ago' --oneline -- .docs/ 2>/dev/null | wc -l | tr -d ' ')"
-echo "commits_90d_failures: $(git log --since='90 days ago' --oneline -- .docs/failures.md 2>/dev/null | wc -l | tr -d ' ')"
+echo "guidance_commits_60d: $(git log --since='60 days ago' --oneline -- "${GUIDANCE_FILES[@]}" 2>/dev/null | wc -l | tr -d ' ')"
 
 echo ""
 echo "=== AGENTS_ENTRY ==="
@@ -80,7 +95,7 @@ echo "github_actions_dir: $( { [ -d .github/workflows ]; } && echo YES || echo N
 
 # Path ②: README/development.md contains CI platform URLs (any CI / deployment platform)
 ci_urls=$(grep -ihE 'https?://[^ )]*(jenkins|argocd|argo-cd|github\.com/.*/(actions|workflows)|gitlab|travis|circleci|zhiyan)' \
-  README.md .docs/devops/development.md .docs/devops/deployment.md AGENTS.md 2>/dev/null | head -5 || true)
+  "${GUIDANCE_FILES[@]}" /dev/null 2>/dev/null | head -5 || true)
 if [ -n "$ci_urls" ]; then
   echo "ci_url_found: YES"
   echo "$ci_urls" | sed 's/^/  /'
@@ -90,14 +105,14 @@ fi
 
 # platform name only, no URL (PARTIAL signal)
 ci_name_only=$(grep -ihE '\b(jenkins|github[ -]?actions|gitlab[ -]?ci|argo[ -]?cd|zhiyan|travis|circleci)\b' \
-  README.md .docs/devops/development.md .docs/devops/deployment.md AGENTS.md 2>/dev/null | grep -vE 'https?://' | head -3 || true)
+  "${GUIDANCE_FILES[@]}" /dev/null 2>/dev/null | grep -vE 'https?://' | head -3 || true)
 [ -n "$ci_name_only" ] && echo "ci_name_no_url: YES" || echo "ci_name_no_url: NO"
 
 echo ""
 echo "=== ISSUE_TRACKER ==="
 # Generic issue-tracker URL traces (GitHub Issues / GitLab / Jira / TAPD / etc.)
 tracker_urls=$(grep -ihE 'https?://[^ )]*(github\.com/[^ )]*/(issues|projects)|gitlab\.com/.*/-/issues|jira|tapd\.(cn|woa\.com|oa\.com)|linear)' \
-  README.md AGENTS.md .docs/devops/development.md .docs/code-review.md 2>/dev/null | head -3 || true)
+  "${GUIDANCE_FILES[@]}" /dev/null 2>/dev/null | head -3 || true)
 if [ -n "$tracker_urls" ]; then
   echo "issue_tracker_url_found: YES"
   echo "$tracker_urls" | sed 's/^/  /'
@@ -111,21 +126,31 @@ echo "ticket_commit_refs_90d: ${ticket_commits:-0}"
 
 echo ""
 echo "=== DEVSOP_REPORT_HISTORY ==="
-echo "commits: $(git log --oneline -- .docs/devsop_report.md 2>/dev/null | wc -l | tr -d ' ')"
+report_file=$(find . \
+  \( -type d \( -name .git -o -name node_modules -o -name vendor -o -name .venv \) -prune \) -o \
+  \( -type f -name devsop_report.md -print -quit \)
+)
+if [ -n "$report_file" ]; then
+  echo "report_path: $report_file"
+  echo "commits: $(git log --oneline -- "$report_file" 2>/dev/null | wc -l | tr -d ' ')"
+else
+  echo "report_path: NONE"
+  echo "commits: 0"
+fi
 
 
 
 echo ""
 echo "=== COMMIT_PUSH_RULES ==="
 # C1 evidence: commit / push conventions in version-controlled project guidance.
-commit_hits=$(grep -inE 'commit' AGENTS.md CONTRIBUTING.md .docs/devops/development.md rules/*.md 2>/dev/null | head -8 || true)
+commit_hits=$(grep -inE 'commit' "${GUIDANCE_FILES[@]}" /dev/null 2>/dev/null | head -8 || true)
 if [ -n "$commit_hits" ]; then
   echo "commit_rule_hits: $(echo "$commit_hits" | wc -l | tr -d ' ') (showing <=8)"
   echo "$commit_hits" | sed 's/^/  /'
 else
   echo "commit_rule_hits: 0"
 fi
-push_hits=$(grep -inE 'push|force-with-lease|MR|merge' AGENTS.md CONTRIBUTING.md .docs/devops/development.md rules/*.md 2>/dev/null | head -8 || true)
+push_hits=$(grep -inE 'push|force-with-lease|MR|merge' "${GUIDANCE_FILES[@]}" /dev/null 2>/dev/null | head -8 || true)
 if [ -n "$push_hits" ]; then
   echo "push_rule_hits: $(echo "$push_hits" | wc -l | tr -d ' ') (showing <=8)"
   echo "$push_hits" | sed 's/^/  /'

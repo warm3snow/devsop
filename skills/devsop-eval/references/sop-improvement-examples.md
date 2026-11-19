@@ -27,8 +27,8 @@ This document provides `devsop-eval` with examples for turning findings into exe
 | Current state | Improvement action |
 |---------------|--------------------|
 | Does not exist | Run the `devsop-init` skill to auto-generate; or create AGENTS.md manually, at least including: tech stack / directory structure / regulations index / quick start / core conventions / prohibited items |
-| Line count >300 | Split detailed chapters into `.docs/` sub-regulations or `rules/*.mdc`; AGENTS.md keeps only the index and core constraints (refer to the slimming experience of mature projects) |
-| Line count <30 (shallow) | Add the following sections: ① tech stack versions ② directory structure ③ .docs/ regulation links ④ one-command start ⑤ 5+ prohibited items |
+| Entry is unwieldy | Split detailed chapters into focused project docs in the existing documentation layout; keep the entry concise and link to authoritative sources |
+| Entry is too sparse | Add concise, project-specific facts and links for relevant topics such as stack, structure, validation commands, and constraints |
 | Project entry is missing important guidance | Add concise, project-specific facts and links: repository structure, build/test commands, coding/security constraints, and relevant docs. Avoid prescribing a specific agent or task workflow. Reference `assets/agents.md.tmpl` in `devsop-init` |
 
 ### A2 README.md incomplete
@@ -42,11 +42,11 @@ This document provides `devsop-eval` with examples for turning findings into exe
 | Deployment environment requirements | Add "## Environment Requirements", listing Go/Node/Python versions, required service dependencies, and minimal hardware config |
 | Notes | Add "## Notes", listing known limitations, incompatible scenarios, and pitfall-avoidance tips |
 
-### A3 .docs/architecture.md incomplete
+### A3 Architecture guidance incomplete
 
 | Missing section | Improvement action |
 |-----------------|--------------------|
-| Overall architecture diagram | Draw a layered architecture diagram with mermaid `graph TD` (frontend → gateway → service → DB), embedded in `.docs/architecture.md` |
+| Overall architecture diagram | Add a verified system overview to the existing authoritative architecture source, using a diagram when it clarifies the design |
 | Module division and boundaries | List the top-level directory tree; describe each module's responsibility and what it should not do in 1-2 sentences |
 | Data flow | Draw 1-2 core-scenario data-flow sequence diagrams (e.g. "user login", "core business interface") |
 | Tech selection rationale | For each key technology (framework/middleware/storage) write "what + why + alternatives and why they were rejected" |
@@ -57,7 +57,7 @@ This document provides `devsop-eval` with examples for turning findings into exe
 
 | Missing file | Improvement action |
 |--------------|--------------------|
-| Project-specific architecture, coding, review, or testing guidance is missing | Run `devsop-init` or write the relevant guidance manually; include only topics that help contributors work with this project |
+| Project-specific architecture, coding, review, or testing guidance is missing | Run `devsop-init` or write the missing guidance in the project's established location and naming convention |
 | Guidance is a generic placeholder | Replace it with verified project facts and actionable conventions; remove sections that do not apply instead of filling them with boilerplate |
 
 ### A5 Generic AI entry missing or gitignored
@@ -67,7 +67,7 @@ This document provides `devsop-eval` with examples for turning findings into exe
 | Current state | Improvement action |
 |---------------|--------------------|
 | `AGENTS.md` missing | Generate it via `devsop-init` (the single generic AI entry) |
-| Key files gitignored | Remove the `AGENTS.md` / `.docs/` entries from .gitignore |
+| Key files gitignored | Remove discovered authoritative entry/document paths from .gitignore |
 
 ### A6 No one-command start
 
@@ -81,9 +81,9 @@ This document provides `devsop-eval` with examples for turning findings into exe
 
 | Current state | Improvement action |
 |---------------|--------------------|
-| No .env.example | Export the required env vars from the current runtime and create `.env.example`: `env | grep -E "^(DB_|REDIS_|APP_|PORT)" > .env.example`, then manually clean sensitive values into placeholders |
-| Env vars scattered in multiple places | Add a "## Environment Variables" section in `.docs/devops/development.md` listing all required vars (name + description + example value + whether required) |
-| docker-compose.yml exists but no explanation | Add a line to the README quick-start section: "for environment variable configuration, see .env.example or the environment section of docker-compose.yml" |
+| No .env.example | Derive required variable names from code and existing configuration, then create a safe template containing placeholders only; never export current environment values |
+| Env vars scattered in multiple places | Add a "## Environment Variables" section to the project's existing setup documentation (name + description + placeholder example + whether required) |
+| docker-compose.yml exists but no explanation | Add a line to the README quick-start section linking to the project's existing environment configuration guidance |
 
 ---
 
@@ -105,7 +105,7 @@ This document provides `devsop-eval` with examples for turning findings into exe
 
 **Improvement action**:
 
-1. **Document commit conventions**: add a "## Commit Conventions" section to `.docs/devops/development.md` or `.docs/code-review.md`:
+1. **Document commit conventions**: add a "## Commit Conventions" section to the project's existing contributor or review guidance:
    ```markdown
    ## Commit Conventions
 
@@ -143,25 +143,9 @@ This document provides `devsop-eval` with examples for turning findings into exe
 
 ## Pillar C: Quality checks & feedback mechanisms
 
-### C1 Commit / Push conventions not memorized
+### C1 Commit / Push conventions are hard to discover
 
-**Improvement action**: document the commit / push behavior in version-controlled project guidance such as `AGENTS.md`, `CONTRIBUTING.md`, or `rules/`, so contributors can find and follow it.
-
-1. **Commit conventions** (write into the "§2 DEVSOP" section of `AGENTS.md` or a rules file like `rules/commit.md`):
-   ```markdown
-   ## Commit Conventions
-   - message format: `type(scope): summary --story=<id>` (type ∈ feat / fix / refactor / docs / test / chore; defects use `--bug=<id>`)
-   - mandatory before commit: `make build && make lint && make ut`; commit only when all green
-   - one MR one commit; fixes are always accumulated with `git commit --amend`; adding a second commit is forbidden
-   ```
-
-2. **Push conventions** (append to the same file):
-   ```markdown
-   ## Push Conventions
-   - confirm local build + lint + unit tests are all green before push
-   - after amend, always `git push --force-with-lease`; bare `--force` is forbidden
-   - no direct pushes to main / master; always feature branch + MR
-   ```
+**Improvement action**: document the project's actual commit and push conventions in its existing contributor guidance. Do not prescribe a commit format, verification command, branch model, or history-rewrite behavior that the maintainers have not adopted.
 
 ### C2 No CI pipeline
 
@@ -170,7 +154,7 @@ This document provides `devsop-eval` with examples for turning findings into exe
 | Current state | Improvement action |
 |---------------|--------------------|
 | Path ①: CI config checked in | Create a CI workflow at the repo root (e.g. `.github/workflows/ci.yml` / `.gitlab-ci.yml` / `Jenkinsfile`), stages: Checkout → Build → Lint → UnitTest → Coverage → IntegrationTest. Skeleton below |
-| Path ②: pipeline configured on the CI platform, not in the repo | Add a "## CI Pipeline" section to `README.md` or `.docs/devops/deployment.md`, which must include: CI platform name + **clickable URL** (http(s)://) + trigger conditions + stage list + failure contact. Platform name only without URL does not count |
+| Path ②: pipeline configured on the CI platform, not in the repo | Add a "## CI Pipeline" section to the README or existing deployment guidance, including platform name, clickable URL, trigger conditions, stages, and failure contact |
 | Platform name only, no URL | Add the URL: the pipeline page of the CI platform in use — paste it into deployment.md |
 | No coverage gate | Add `COVERAGE_THRESHOLD := 60` to the Makefile; in the CI config, after `sh 'go test -coverprofile=coverage.out ./...'`, validate with a shell `awk` check; on failure mark the build UNSTABLE |
 
@@ -221,11 +205,11 @@ jobs:
          run: |
            git diff --cached --name-only | grep -E '\.(env|pem|key)$' && exit 1 || exit 0
    ```
-3. **List the prohibited items in `.docs/code-review.md`**: copy the 12 prohibited items from DEVSOP §3.2
+3. **List applicable prohibited items in the project's existing review guidance**; do not copy unrelated generic rules.
 
 ### C4 Branch protection and Review flow not documented
 
-**Improvement action**: add a section to `.docs/code-review.md` listing:
+**Improvement action**: add a section to the project's existing review guidance listing:
 - No direct pushes to main / master (always feature branch + MR)
 - MRs must reference an issue-tracker ticket (MR title/description contains the ticket reference, e.g. `--story=<id>` / `--bug=<id>` or `#<id>`, per the team's tracker convention)
 - MR line count ≤500; anything larger must be split
@@ -234,10 +218,10 @@ jobs:
 
 If using a code platform that supports Branch Protection (e.g. Gongfeng), configure repo protection rules accordingly.
 
-### C5 failures.md long empty
+### C5 Recurring-issue feedback is missing
 
 **Improvement action**:
-1. **Add 3 recent pitfall records this week**: use the following template in `.docs/failures.md`:
+1. **Record representative recurring issues in the existing troubleshooting or incident source**:
    ```markdown
    ## 2026-05-18 — short title
    **Symptom**: ...
@@ -245,8 +229,8 @@ If using a code platform that supports Branch Protection (e.g. Gongfeng), config
    **Fix**: ...
    **Prevention**: (which regulation to update / what test to add)
    ```
-2. **Establish a mechanism**: add the convention "add to failures.md within 24 hours of hitting a pitfall" in `AGENTS.md`
-3. **Biweekly review**: add failures.md to the team weekly meeting agenda; convert newly-added items from the past two weeks into regulation updates
+2. **Establish a mechanism**: document how maintainers record and review recurring issues in the project's existing guidance.
+3. **Review periodically**: convert relevant lessons into code, tests, or authoritative guidance when useful.
 
 ### C6 No security-scan mechanism
 
@@ -307,7 +291,7 @@ Call `make security` in CI (GitHub Actions / GitLab CI / Jenkinsfile all work th
           docker-compose -f docker-compose.test.yml down
    ```
 
-4. **Add conventions to `.docs/unittest/unittest.md` (unit tests) and `.docs/integration_test/integration_test.md` (integration tests)**: explain the integration test scope, how to run it, and how it differs from unit tests
+4. **Document test scope and run commands in the project's existing testing guidance**, clarifying the difference between unit and integration tests.
 
 ---
 
@@ -327,7 +311,7 @@ Call `make security` in CI (GitHub Actions / GitLab CI / Jenkinsfile all work th
 
 ### D4 Project guidance is stale
 
-**Improvement action**: update the relevant README or `.docs/` page with behavior, setup, interface, or operational changes. Do not add documentation for changes with no lasting user or maintainer impact.
+**Improvement action**: update the relevant existing documentation source with behavior, setup, interface, or operational changes. Do not add documentation for changes with no lasting user or maintainer impact.
 
 ---
 
@@ -355,17 +339,13 @@ Call `make security` in CI (GitHub Actions / GitLab CI / Jenkinsfile all work th
 
 **Improvement action**: document a recent, representative design decision or recurring failure in the project's existing decision record, incident review, issue tracker, or troubleshooting guide. Link the record from the README or project docs index. Do not store AI conversations or user-level agent memory as a project requirement.
 
-**Path ③ keep failures.md in git and maintained**:
-```bash
-git add .docs/failures.md && git commit -m "docs: track failures log"
-```
-Convention: append after each pitfall fix so historical issues are traceable in git history.
+**Path ③ keep recurring-issue records in the project's version-controlled source**: maintain the existing troubleshooting, incident, or retrospective records so useful lessons remain traceable.
 
-### F3 .docs/ doc changes stalled
+### F3 Project-guidance changes stalled
 
 **Improvement action**:
 1. Check whether there really was no regulation-change need in 60 days (normal if the project is stable)
-2. If there were changes but not captured: organize recent code-review feedback and pitfall lessons into the corresponding `.docs/` regulations
+2. If there were relevant changes not captured: update the authoritative docs for the affected topics
 3. Establish a mechanism: review at the end of each month, identifying ≥1 regulation update point
 
 ### F4 Improvement actions not closed-loop
@@ -376,7 +356,7 @@ Convention: append after each pitfall fix so historical issues are traceable in 
 3. **Establish a closure mechanism**: add a "DEVSOP improvement tracking" agenda item to the team monthly meeting:
    - Have the previous FAIL/PARTIAL items been fixed?
    - After fixing, ask the agent to run `devsop-eval` again and verify the evidence
-4. **Mark the improvement trajectory in `.docs/devsop_report.md`**: after each evaluation, compare with the previous result and record the change in the "comparison with the previous evaluation" section
+4. **Mark the improvement trajectory in the evaluation report**: preserve its existing location and compare with the previous result
 
 ---
 
@@ -385,7 +365,7 @@ Convention: append after each pitfall fix so historical issues are traceable in 
 ### Docs severely out of sync with code
 
 **Improvement action**:
-1. Sample-verify 5 rules in `.docs/` to confirm they match the current code
+1. Sample-verify relevant project guidance against current code and configuration
 2. For mismatches: either update the docs, or fix the code to comply with the regulations
 3. For long-unmaintained regulation files: mark with `<!-- TODO: expired, to be updated in 2026-Qx -->` or delete them
 
@@ -394,7 +374,7 @@ Convention: append after each pitfall fix so historical issues are traceable in 
 **Improvement action**:
 1. Identify directories with a high mock ratio (e.g. `*_mock.go` accounting for >70% of `*_test.go`)
 2. Add 1 real integration test per core business flow (using an in-memory SQLite DB / testcontainers)
-3. Make it explicit in `.docs/unittest/unittest.md`: the DAL/Repository layer must not mock the DB; use a real test DB
+3. Document the verified database-testing approach in the project's existing test guidance
 
 ### Sensitive files or artifacts committed
 
@@ -412,8 +392,8 @@ git commit -m "chore: remove leaked sensitive files"
 ### Important decisions not captured in docs
 
 **Improvement action**:
-1. Spot-check the 5 most recent large PRs and sync the design decisions from the PR descriptions to the "core design decisions" section of `.docs/architecture.md`
-2. Add a PR Review checklist item to `.docs/code-review.md`: "have design decisions been captured in architecture.md or a spec?"
+1. Spot-check recent substantial PRs and sync lasting decisions to the authoritative architecture/design source
+2. Add a review checklist item to the existing review guidance: "Have lasting design decisions been captured in the project's authoritative design source?"
 
 ### AGENTS.md shallow
 

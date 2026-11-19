@@ -1,13 +1,13 @@
 # Integration Test Documentation Guide
 
 > Use this guide when the project has integration tests to document. The main agent can follow it directly or delegate the task when supported.
-> Target: `.docs/integration_test/integration_test.md`.
+> Adapt any output to the project's existing testing-documentation location and naming convention.
 
 ---
 
 ## Core Goal
 
-Fill `.docs/integration_test/integration_test.md` into an integration test convention for **real chains, interface / E2E level**, aligned with the project's dependency and environment documentation when present.
+Document the relevant integration-test scope and run guidance for **real chains, interface / E2E level**, aligned with the project's existing dependency and environment sources when present.
 
 ---
 
@@ -38,4 +38,4 @@ Fill in per the skeleton's three-part structure:
 
 - Forbidden to test the same layer of logic as `unittest/unittest.md` (UT = function-level mock; IT = real chain).
 - Commands / environments must come from real configuration; fabricating is forbidden.
-- Only touch files under `integration_test/`; do not touch other docs.
+- Only create or update the selected authoritative testing source when a gap is confirmed; preserve unrelated docs.

@@ -9,7 +9,7 @@ Review project context and engineering practices using repository evidence. The 
 
 ## Output
 
-Write the result to `$REPO_ROOT/.docs/devsop_report.md`. Create `.docs/` if needed. Do not edit source code or project configuration. Tell the user the report path and summarize the most important findings.
+Write the result to `$REPORT_PATH`, preserving an existing DEVSOP report location anywhere in the repository. Otherwise use the repository's existing `docs/` or `.docs/` directory; for a project without either, create visible `docs/`. Create the report's parent directory if necessary. Do not treat the evaluation report as project guidance or evidence of project knowledge. Do not edit source code or project configuration. Tell the user the report path and summarize the most important findings.
 
 Resolve paths at startup:
 
@@ -17,7 +17,7 @@ Resolve paths at startup:
 eval "$(bash "$SKILL_DIR/scripts/resolve_paths.sh")"
 ```
 
-`$SKILL_DIR` is the directory containing this Skill; `$REPO_ROOT` is the current project's Git root, or the current directory when it is not a Git repository. Read criteria and scripts through the absolute `$SKILL_DIR` path; run evidence commands from `$REPO_ROOT`.
+`$SKILL_DIR` is the directory containing this Skill; `$REPO_ROOT` is the current project's Git root, or the current directory when it is not a Git repository. `$DOCS_DIR` is the selected documentation root and `$REPORT_PATH` is the report destination. Read criteria and scripts through the absolute `$SKILL_DIR` path; run evidence commands from `$REPO_ROOT`.
 
 ## Default: quick check
 
@@ -41,7 +41,7 @@ If evidence is missing or a check cannot be completed, mark it **Not assessed** 
 Use the complete 28-item rubric in `references/sop-scoring-criteria.md` and render the detailed report with `references/sop-report-template.md`. Follow these rules:
 
 1. Detect the language stack and project type using repository files and `scripts/detect_project_type.sh`.
-2. Collect shared evidence once with `scripts/collect_evidence.sh`. Check the cache first; run additional read-only commands only when needed.
+2. Collect shared evidence once with `scripts/collect_evidence.sh`. Discover documentation by scanning the repository's documentation files and entry points; exclude generated reports from project-knowledge evidence. Check the cache first; run additional read-only commands only when needed.
 3. Evaluate all 28 items against the rubric. Each item needs a conclusion, concrete evidence, and grader type (code / model / manual).
 4. Score PASS at full weight, PARTIAL at 40% of its weight, and FAIL at zero. Apply only rubric-defined exemptions and explain each exemption.
 5. Run the required anti-pattern checks. Summarize evidence-backed priorities and actionable tasks.

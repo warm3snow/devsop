@@ -62,7 +62,7 @@ When reviewing logging-related code, confirm:
 
 ## References
 
-- Coding standards: [coding-style.md](coding-style.md)
+- Coding standards: link the project's authoritative coding-conventions source
 - API standards: [api-standards.md](api-standards.md)
 - Deployment standards: [deployment.md](deployment.md)
 - Failure retrospectives: [failures.md](failures.md)

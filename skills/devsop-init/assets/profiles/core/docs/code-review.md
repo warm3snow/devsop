@@ -121,7 +121,7 @@ All PRs/MRs merged into `{{main / master}}` must go through review; AI-generated
 
 ## References
 
-- Coding standards: [coding-style.md](coding-style.md)
+- Coding standards: link the project's authoritative coding-conventions source
 - Testing standards: [unittest/unittest.md](unittest/unittest.md)
 - API standards: [api-standards.md](apis/api-standards.md)
 - Failure cases: [failures.md](failures.md)

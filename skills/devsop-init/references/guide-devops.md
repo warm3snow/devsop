@@ -1,13 +1,13 @@
 # DevOps Documentation Guide
 
 > Use this guide when the project needs environment, deployment, or release documentation. The main agent can follow it directly or delegate the task when supported.
-> Target: `.docs/devops/` (environment setup, deployment, and release guidance).
+> Adapt any output to the project's existing operations-documentation location and naming convention.
 
 ---
 
 ## Core Goal
 
-Based on the project's real build / deploy / environment configuration, fill `.docs/devops/` into a set of actionable operations documentation.
+Based on the project's real build / deploy / environment configuration, document actionable operations guidance only when an authoritative source is missing or incomplete.
 
 ---
 
@@ -25,10 +25,7 @@ Extract from information sources (**forbidden to fabricate from memory**):
 
 ### 2. Generate documentation
 
-Fill in per the skeleton sections:
-- `devops/env.md` — local development environment setup, dependency installation, one-click run, common issues
-- `devops/deployment.md` — deployment and runtime conventions (environment matrix / artifacts / config / release / rollback)
-- `devops/development.md` — local development environment conventions (dependencies / one-click run / IDE / FAQ)
+- Add only the missing local setup, deployment, runtime, release, or rollback guidance in the established source.
 - Document test-environment setup in `devops/env.md` or `devops/deployment.md` when relevant; do not assume a particular CLI, AI Skill, or environment-management service.
 
 ### 3. Real-run verification (if feasible)
@@ -40,4 +37,4 @@ For the build / test / start commands in the documentation, actually run them lo
 ## Constraints
 
 - Commands must come from the actual Makefile / CI / Dockerfile; fabricating is forbidden.
-- Only touch files under `devops/`; do not touch other docs.
+- Only create or update the selected authoritative operations source when a gap is confirmed; preserve unrelated docs.

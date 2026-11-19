@@ -6,7 +6,7 @@
 - Prioritized Improvement Suggestions → Upgrade Roadmap → Core Conclusions → Todo Suggestions → Appendix
 - Todo Suggestions must be wrapped in `DEVSOP_TODOS_START` / `DEVSOP_TODOS_END` HTML markers (used by the JSON converter).
 
-This template is used by the `devsop-eval` skill to render the final report, **target path: `.docs/devsop_report.md`**.
+This template is used by the `devsop-eval` skill to render the final report at the resolved `$REPORT_PATH`, preserving an existing report location or using the project's documentation root.
 Use it only for the full 28-item assessment; the default quick check uses a shorter six-pillar format without a score.
 
 > Rendering rules:
@@ -63,9 +63,9 @@ Use it only for the full 28-item assessment; the default quick check uses a shor
 
 | Eval | Conclusion | Evidence | Grader |
 |------|-----------|----------|--------|
-| A1 AGENTS.md exists and ≤300 lines | ✅/⚠️/❌ | {file path / line count} | code |
-| A2 README.md complete | ✅/⚠️/❌ | {covered section list} | model |
-| A3 .docs/architecture.md complete | ✅/⚠️/❌ | {covered section list} | model |
+| A1 Project AI entry is concise and useful | ✅/⚠️/❌ | {entry point and linked sources} | code+model |
+| A2 Project introduction and getting started | ✅/⚠️/❌ | {entry-point content and links} | model |
+| A3 Architecture guidance complete | ✅/⚠️/❌ | {authoritative source path(s) and covered topics} | model |
 | A4 Core project guidance is relevant and substantive | ✅/⚠️/❌ | {relevant guidance and gaps} | model |
 | A5 Generic AI entry present | ✅/⚠️/❌ | {AGENTS.md and .gitignore check} | code |
 | A6 One-command start | ✅/⚠️/❌ | {Makefile target / package.json scripts} | code |
@@ -102,7 +102,7 @@ Use it only for the full 28-item assessment; the default quick check uses a shor
 | C2 CI pipeline + coverage gate (CI config file or README/deployment.md with CI platform URL) | ✅/⚠️/❌ | {CI config path (e.g. .github/workflows/, .gitlab-ci.yml, Jenkinsfile) or CI platform URL in docs + coverage threshold} | code |
 | C3 Prohibited-item protection | ✅/⚠️/❌ | {.gitignore rules + doc explanation} | code+model |
 | C4 Branch protection and Review flow | ✅/⚠️/❌ | {documented constraint count} | model |
-| C5 failures.md active | ✅/⚠️/❌ | {line count + last commit time} | code+model |
+| C5 Recurring-issue feedback | ✅/⚠️/❌ | {authoritative source path + maintenance/review evidence} | code+model |
 | C6 Security scanning/dependency vulnerabilities | ✅/⚠️/❌ | {security-scan tool config / CI integration} | code |
 | C7 E2E/integration tests | ✅/⚠️/❌ | {test dirs + CI steps} | code |
 
@@ -147,9 +147,9 @@ Use it only for the full 28-item assessment; the default quick check uses a shor
 
 | Eval | Conclusion | Evidence | Grader |
 |------|-----------|----------|--------|
-| F1 devsop_report.md exists and is updated regularly | ✅/⚠️/❌ | {file path + latest update} | code |
+| F1 Evaluation history and improvement actions | ✅/⚠️/❌ | {report history + concrete improvement records} | code+model |
 | F2 Decisions and recurring failure knowledge are retained | ✅/⚠️/❌ | {decision records, incident notes, or documented lessons} | code+model |
-| F3 .docs/ doc changes traceable | ✅/⚠️/❌ | {commit count in 60 days} | code |
+| F3 Project-guidance changes traceable | ✅/⚠️/❌ | {relevant update evidence or stale guidance} | code+model |
 | F4 Improvement-loop closure | ✅/⚠️/❌ | {historical evaluation count + improved items} | code+model |
 
 **Evaluation confidence**: 🟢 high / 🟡 medium / 🔴 low
@@ -163,12 +163,12 @@ Use it only for the full 28-item assessment; the default quick check uses a shor
 
 | Anti-pattern | Status | Notes |
 |--------------|--------|-------|
-| Docs severely out of sync with code (.docs/ not updated in >60 days) | 🟢 not found / 🔴 present | {git log output summary} |
+| Project guidance materially out of sync with code | 🟢 not found / 🔴 present | {verified mismatch examples} |
 | Excessive test mocking | 🟢 not found / 🔴 present | {mock vs integration test file ratio} |
 | Sensitive files or artifacts committed | 🟢 not found / 🔴 present | {hit file list} |
 | Important decisions not captured in docs | 🟢 not found / 🔴 present | {sampled PR commit summary} |
-| failures.md long empty | 🟢 not found / 🔴 present | {line count + last modified time} |
-| AGENTS.md shallow | 🟢 not found / 🔴 present | {line count + chapter keyword check} |
+| Recurring-issue records are stale or empty | 🟢 not found / 🔴 present | {authoritative source path + last modified time} |
+| Project AI entry lacks useful context | 🟢 not found / 🔴 present | {entry point and missing links/context} |
 
 > Anti-patterns do not affect pillar scores, but a 🔴 status is emphasized in the "Core Conclusions".
 
@@ -178,10 +178,10 @@ Use it only for the full 28-item assessment; the default quick check uses a shor
 
 | Metric | Current value | Healthy threshold | Rating |
 |--------|---------------|-------------------|--------|
-| .docs/ file update median days-to-today | {X days} | <60 days | 🟢/🟡/🔴 |
+| Project-guidance freshness | {accurate / stale / unknown with evidence} | Context-dependent | 🟢/🟡/🔴 |
 | Mock health (mock file count / integration test file count) | {mock: X, integration: Y} | integration tests >0 | 🟢/🟡/🔴 |
-| failures.md commit count in 90 days | {X} | ≥1 | 🟢/🟡/🔴 |
-| Regulation docs commit count in 60 days | {X} | ≥3 | 🟢/🟡/🔴 |
+| Recurring-issue learning | {evidence of resolution and retained lessons when relevant} | Context-dependent | 🟢/🟡/🔴 |
+| Project-guidance traceability | {relevant updates or justified stability} | Context-dependent | 🟢/🟡/🔴 |
 
 **Entropy management judgment**:
 > {1-2 sentences: is the tech-debt cleanup mechanism running? Are docs/code evolving in sync?}

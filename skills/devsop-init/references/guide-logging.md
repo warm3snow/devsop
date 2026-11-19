@@ -1,13 +1,13 @@
 # Logging Documentation Guide
 
 > Use this guide when the project has meaningful logging conventions. The main agent can follow it directly or delegate the task when supported.
-> Target: `.docs/logging.md`.
+> Adapt any output to the project's existing logging-documentation location and naming convention.
 
 ---
 
 ## Core Goal
 
-Apply `.docs/logging.md` from the common template into conventions for the project's actual logging system — logging library, level mapping, tracing fields, and masking rules all come from code evidence.
+Document conventions for the project's actual logging system only when a useful authoritative source is missing or incomplete. Logging libraries, level mapping, tracing fields, and masking rules must come from code evidence.
 
 ---
 
@@ -46,7 +46,7 @@ Apply `.docs/logging.md` from the common template into conventions for the proje
 
 ## Constraints
 
-- Only touch `.docs/logging.md`; do not touch other docs
+- Only create or update the selected authoritative logging source when a gap is confirmed; preserve unrelated docs
 - Logging library / field names / levels must come from code evidence; fabricating is forbidden; fields without evidence keep `<!-- TODO(devsop-init) -->`
 - Sensitive-information masking clauses align with `coding-style.md` §10, using references rather than copies to avoid dual-track drift
 - After deleting the file for a no-logging project, check whether the AGENTS.md index references `logging.md` — if it does, note "remove the logging.md index line" in the main agent's summary report (this Agent does not touch AGENTS.md; that is handled by Agent A's output or the main agent's wrap-up)

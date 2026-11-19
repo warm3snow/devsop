@@ -1,13 +1,12 @@
 # Unit Test Documentation Guide
 
-> Use this guide when filling `.docs/unittest/unittest.md`. The main agent can follow it directly or delegate the task when supported.
-> Target: `.docs/unittest/unittest.md`.
+> Use this guide only after the project documentation inventory identifies a gap in unit-test guidance. Adapt the target to the project's existing documentation location and naming convention.
 
 ---
 
 ## Core Goal
 
-Fill `.docs/unittest/unittest.md` into an **actionable Go unit test convention** (three-part structure: environment setup / generation conventions / run and debug).
+Document actionable unit-test conventions (environment setup / test conventions / run and debug) in the authoritative source when a gap is confirmed.
 
 ---
 
@@ -41,5 +40,5 @@ Fill in per the skeleton's three-part structure:
 
 - Forbidden to test the same layer of logic as `integration_test/integration_test.md` (UT = fully mocked + function level; IT = real chain + interface/E2E level)
 - Commands / environments must come from real configuration; fabricating is forbidden
-- Only touch `unittest/unittest.md`; do not touch other docs
+- Only create or update the selected authoritative testing source when a gap is confirmed; preserve unrelated docs.
 - If the project has no Go code (no `*.go` / no `go.mod`) → skip and output `skipped(no Go code)`

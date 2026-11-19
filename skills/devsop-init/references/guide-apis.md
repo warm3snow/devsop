@@ -1,13 +1,13 @@
 # API Documentation Guide
 
 > Use this guide when the project exposes APIs. The main agent can follow it directly or delegate the task when supported.
-> Target: `.docs/apis/` (the external API documentation area).
+> Adapt any output to the project's existing API documentation location and naming convention.
 
 ---
 
 ## Core Goal
 
-Based on the real interfaces in the code, fill `.docs/apis/` into an interface documentation set written from the **caller's perspective**:
+Based on the real interfaces in the code, document missing interface information from the **caller's perspective**:
 - `apis/index.md` master index (1:1 correspondence with the official API docs)
 - `apis/<module>/<Action>.md` one doc per exposed Action (following the `_template.md` structure)
 - `apis/api-standards.md` keep it if it has substantive content; only supplement this project's protocol/path/version conventions
@@ -58,4 +58,4 @@ Refresh `apis/index.md` as a master index table: module / Action / one-liner / l
 - **Projects without APIs should not create API docs**. Never delete existing project files as part of this check.
 - Forbidden to copy source code; write "how to call / what is returned / how to read errors" from the caller's perspective.
 - Keep and fix existing manually-written API docs; do not overwrite wholesale.
-- Only touch files under `apis/`; do not touch other docs.
+- Only create or update the selected authoritative API source when a gap is confirmed; preserve unrelated docs.

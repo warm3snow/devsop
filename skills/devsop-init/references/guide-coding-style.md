@@ -1,13 +1,12 @@
 # Coding Style Documentation Guide
 
-> Use this guide when filling `.docs/coding-style.md`. The main agent can follow it directly or delegate the task when supported.
-> Target: `.docs/coding-style.md`.
+> Use this guide only after the project documentation inventory identifies a gap in coding-convention guidance. Adapt the target to the project's existing documentation location and naming convention.
 
 ---
 
 ## Core Goal
 
-**Trim and apply** `.docs/coding-style.md` from the multi-language common template into coding conventions for this project's actual language and toolchain — replace all `{{placeholder}}` values in the template with real project values, and delete entire language sections that do not apply.
+Apply the relevant language and toolchain conventions from the common template only when useful. Replace placeholders with verified project values, and delete language sections that do not apply.
 
 ---
 
@@ -26,7 +25,7 @@
   - Formatters: `goimports` / `gofmt` (Go), `prettier` (JS/TS), `black` (Python) — base it on the repository config files (`.prettierrc` / `pyproject.toml` / `.golangci.yml`)
   - Linter: `.golangci.yml` exists → fill in `golangci-lint` and reference that config; `.eslintrc*` exists → fill in `eslint`; neither exists → keep `<!-- TODO(devsop-init) -->`
   - pre-commit hook: read `.git/hooks/pre-commit` or `.pre-commit-config.yaml`, confirm the actual triggered check commands
-- If a coding-conventions rules file exists in the repository (`rules/coding_style*.md`): read it and use it as the authoritative source
+- If a coding-conventions document or rules file exists in the repository: read it and use it as the authoritative source, regardless of its filename
 
 ### 2. Generate / update the document
 
@@ -36,7 +35,7 @@
 - §5 Error handling / §6 Resource management / §8 Types and zero values: likewise trim language-specific subsections by language
 - §11 Toolchain table: fill in real tools and trigger timing (consistent with pre-commit hooks / CI config)
 - Threshold clauses (line length ≤120, function ≤80 lines, cyclomatic complexity ≤10, etc.): if the project lint config already has different thresholds, use the lint config and update; otherwise keep the template defaults
-- "References" section: fix broken links (e.g. `testing.md` has been migrated to `unittest/unittest.md`; `api-standards.md` is under the `apis/` subdirectory)
+- "References" section: link to the project's actual testing or API source when it exists; remove irrelevant links
 
 ### 3. Framework specialization (conditionally triggered)
 
@@ -46,8 +45,8 @@
 
 ## Constraints
 
-- Only touch `.docs/coding-style.md`; do not touch other docs
+- Only create or update the selected authoritative coding-conventions source when a gap is confirmed; preserve unrelated docs
 - All tool names / thresholds / commands must come from real config file evidence; fabricating is forbidden; fields without evidence keep the `<!-- TODO(devsop-init) -->` placeholder
 - Language-section trimming must delete entire sections; do not leave platitudes like "this project does not involve this"
-- If the project already has an authoritative coding-conventions file (in `rules/` or a team Wiki link): change the corresponding section of this document to an excerpt + link, noting the authoritative source, and do not copy conflicting content
+- If the project already has an authoritative coding-conventions source: add a concise link or index entry instead of copying its content or introducing a conflicting duplicate
 - Applies to both library projects and regular service projects; no skipped determination; if there are no code files at all (pure documentation repository) → output `skipped(no code)`

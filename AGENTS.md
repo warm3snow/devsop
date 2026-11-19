@@ -11,7 +11,7 @@
 |-------|----------|
 | Project background, features, installation | `README.md` |
 | AI collaboration entry | `AGENTS.md` (this file; the generic entry shared by all AI coding agents) |
-| DEVSOP scaffolding skill (create `.docs/` skeleton in target projects) | `skills/devsop-init/SKILL.md` |
+| DEVSOP project-context setup skill | `skills/devsop-init/SKILL.md` |
 | DEVSOP maturity audit skill | `skills/devsop-eval/SKILL.md` |
 | Language coding standards | `rules/` — Go / Python / Java / TypeScript / Rust style guides |
 | Skill installation script | `install.sh` |

@@ -21,38 +21,27 @@ This document provides `devsop-eval` with the judgment criteria, evidence source
 
 ## Pillar A: Project AI-friendliness (25 points)
 
-### A1: AGENTS.md exists and ≤300 lines + four chapters complete (3 points)
+### A1: Project AI entry is concise and useful (3 points)
 
-**DEVSOP basis**: §1.1 "AI entry file root AGENTS.md (≤300 lines)" + four-chapter structural completeness
+Assess whether `AGENTS.md` or another clearly linked project entry point gives AI contributors concise, useful orientation and routes them to authoritative project guidance. Avoid rewarding length or a prescribed section layout.
 
 **Code Grader**:
 ```bash
-[ -f AGENTS.md ] && wc -l < AGENTS.md
-```
-
-**Model Grader** (chapter check):
-```bash
-# check four-chapter completeness
-grep -c "^## §1 Quick Index" AGENTS.md
-grep -c "^## §2 DEVSOP" AGENTS.md
-grep -c "^## §3 Dev Guidelines" AGENTS.md
-grep -c "^## §4 Forbidden Red Lines" AGENTS.md
+find . -name AGENTS.md -not -path '*/.git/*' -not -path '*/node_modules/*' -print
 ```
 
 **Judgment**:
-- ✅ PASS: file exists + line count ≤300 + all four chapters (§1 quick index / §2 DEVSOP / §3 dev guidelines / §4 forbidden red lines) present and non-empty
-- ⚠️ PARTIAL: file exists but 300-500 lines (near the limit), or file exists but 1-2 of the four chapters missing, or file exists but <30 lines (too shallow)
-- ❌ FAIL: does not exist
-
-> Grader type: code (line count) + model (chapter check).
+- ✅ PASS: a concise, project-specific entry point routes contributors to authoritative context and constraints
+- ⚠️ PARTIAL: an entry point exists but is generic, stale, or does not make important guidance discoverable
+- ❌ FAIL: contributors have no clear project-specific AI entry point
 
 ---
 
 ### A2: README.md complete (5 points)
 
-**DEVSOP basis**: §1.1 "project introduction README.md: project background and business goals, core feature list, upstream/downstream dependencies, quick start, deployment environment requirements, notes"
+**DEVSOP basis**: the project entry point should help readers understand the project and find setup/context guidance.
 
-**Model Grader**: scan README.md and count whether it covers the following 6 categories:
+**Model Grader**: inspect README.md and links to authoritative sources for applicable categories:
 1. Project background / business goals
 2. Core feature list
 3. Upstream/downstream dependencies
@@ -61,17 +50,17 @@ grep -c "^## §4 Forbidden Red Lines" AGENTS.md
 6. Notes / known limitations
 
 **Judgment**:
-- ✅ PASS: covers at least 5 of the 6 categories
-- ⚠️ PARTIAL: covers 3-4 categories
-- ❌ FAIL: covers ≤2 categories, or only a project name + one-line description
+- ✅ PASS: entry-point information and links let the intended audience understand and get started with the project
+- ⚠️ PARTIAL: some important context exists but is incomplete or difficult to discover
+- ❌ FAIL: there is no useful project introduction or discoverable getting-started guidance
 
 ---
 
-### A3: .docs/architecture.md complete (5 points)
+### A3: Architecture guidance complete (5 points)
 
-**DEVSOP basis**: the architecture doc lives at `.docs/architecture.md`. Content requirements: overall architecture diagram, module division and boundaries, data flow, tech selection rationale, core design decisions, known tech debt.
+**DEVSOP basis**: assess the project's authoritative architecture source wherever it lives. Do not require a fixed filename or documentation directory. Content requirements: overall architecture, module division and boundaries, data flow, technology rationale, core design decisions, and known tech debt where relevant.
 
-**Model Grader**: scan whether `.docs/architecture.md` covers:
+**Model Grader**: identify likely architecture sources from the documentation inventory and repository entry points, verify relevant claims against source/configuration, then assess whether the authoritative source covers:
 1. Overall architecture diagram (text description or image reference / Mermaid)
 2. Module division and boundaries
 3. Data flow
@@ -80,9 +69,9 @@ grep -c "^## §4 Forbidden Red Lines" AGENTS.md
 6. Known tech debt
 
 **Judgment**:
-- ✅ PASS: covers at least 5 of the 6, and not a placeholder template (system positioning not `<project name>`, module division table has ≥1 row of valid data, overall view not a generic placeholder diagram)
-- ⚠️ PARTIAL: covers 3-4, or the file exists but is still an empty template/placeholder content
-- ❌ FAIL: file does not exist or is only a placeholder
+- ✅ PASS: gives an accurate, useful architecture understanding for the project, covering relevant boundaries, flows, and design context without being a placeholder
+- ⚠️ PARTIAL: useful context exists but important project-relevant aspects are missing, generic, or stale
+- ❌ FAIL: no discoverable architecture context exists, or available material is only placeholder content
 
 > Placeholder recognition: see "Placeholder Template Recognition Rules" at the end.
 
@@ -90,7 +79,7 @@ grep -c "^## §4 Forbidden Red Lines" AGENTS.md
 
 ### A4: Core project guidance is relevant and substantive (5 points)
 
-Assess whether the repository provides useful, project-specific guidance for architecture, coding conventions, review, and testing. The compact `devsop-init` core set is `.docs/architecture.md`, `.docs/coding-style.md`, `.docs/code-review.md`, `.docs/unittest/unittest.md`, and `.docs/review.md`; equivalent files or a well-organized README/handbook are equally valid.
+Assess whether the repository provides useful, project-specific guidance for architecture, coding conventions, review, and testing. These topics may be covered by files with different names, one well-organized handbook, or a linked team knowledge base. Do not require a fixed file set or directory.
 
 Do not require optional API, database, deployment, glossary, failure, logging, or integration-test documents when they are not relevant. Do not reward document count by itself. A document is substantive when it contains applicable project facts or actionable guidance rather than only headings, empty tables, or generic placeholders.
 
@@ -112,8 +101,8 @@ Do not require optional API, database, deployment, glossary, failure, logging, o
 # AGENTS.md exists at the repo root (regular file or symlink)
 [ -e "AGENTS.md" ] && echo "OK AGENTS.md" || echo "MISSING AGENTS.md"
 
-# check key files are not gitignored
-grep -E "AGENTS\.md|ARCHITECTURE\.md|\.docs/" .gitignore 2>/dev/null && echo "FAIL: key files are gitignored"
+# check the entry point is not gitignored; verify discovered guidance paths individually when relevant
+grep -E "AGENTS\.md" .gitignore 2>/dev/null && echo "FAIL: AGENTS.md is gitignored"
 ```
 
 **Judgment**:
@@ -153,9 +142,9 @@ grep -E '(dev|start)' Makefile pyproject.toml 2>/dev/null
 **Code Grader**:
 ```bash
 ls .env.example .env.template .env.sample env.example 2>/dev/null
-grep -l "environment variable\|ENV\|config" README.md .docs/devops/development.md 2>/dev/null
 ls docker-compose.yml docker-compose.yaml 2>/dev/null
 ```
+Also inspect the discovered documentation inventory and relevant configuration for environment-variable setup instructions.
 
 **Judgment**:
 - ✅ PASS: `.env.example` or an equivalent config template exists, or `README`/`development.md` explicitly lists the required environment variables
@@ -190,7 +179,7 @@ Assess whether it is clear who owns project areas, approves changes, or handles 
 
 ### B3: Change context and outputs are findable (4 points)
 
-Check whether contributors can locate the relevant request/design context, source changes, tests, and user-facing documentation. Accept repository files, issue trackers, pull requests, or linked team systems; do not require `.docs/plans/` or a particular template.
+Check whether contributors can locate the relevant request/design context, source changes, tests, and user-facing documentation. Accept repository files, issue trackers, pull requests, or linked team systems; do not require a particular directory or template.
 
 **Judgment**:
 - ✅ PASS: the project identifies suitable locations or links for relevant change context and outputs
@@ -210,7 +199,7 @@ ls commitlint.config.* .commitlintrc* .czrc 2>/dev/null
 grep -l "commit" lefthook.yml .husky/commit-msg 2>/dev/null
 
 # check branch naming convention docs
-grep -iE "branch|feat/|fix/|hotfix/|naming" .docs/devops/development.md .docs/code-review.md AGENTS.md 2>/dev/null
+grep -iE "branch|feat/|fix/|hotfix/|naming" AGENTS.md CONTRIBUTING.md README.md 2>/dev/null
 ```
 
 **Judgment**:
@@ -233,7 +222,7 @@ grep -iE "branch|feat/|fix/|hotfix/|naming" .docs/devops/development.md .docs/co
 # project guidance locations
 ls AGENTS.md 2>/dev/null
 ls rules/ 2>/dev/null
-ls CONTRIBUTING.md .docs/devops/development.md 2>/dev/null
+ls CONTRIBUTING.md AGENTS.md README.md 2>/dev/null
 
 # commit convention signals: message format / pre-commit checks / ticket references / amend constraints
 grep -inE 'commit' AGENTS.md rules/*.md 2>/dev/null | head -15
@@ -264,11 +253,11 @@ grep -inE 'push|force-with-lease|MR|merge' AGENTS.md rules/*.md 2>/dev/null | he
 # Path ①: CI config checked into the repo (any platform — GitHub Actions / GitLab CI / Jenkinsfile / etc.)
 ls .github/workflows/ .gitlab-ci.yml Jenkinsfile Jenkinsfile.* jenkins/ .jenkins/ 2>/dev/null
 
-# Path ②: README.md or .docs/devops/development.md explicitly writes the CI/CD platform URL
+# Path ②: an entry point or discovered guidance file explicitly writes the CI/CD platform URL
 #   recognized platforms: GitHub Actions / GitLab CI / Jenkins / ArgoCD / etc.
 #   match: the same line mentions the platform name and contains an http(s):// link (URL may be an IP address)
 grep -iE '(github.?actions|gitlab.?ci|jenkins|argocd|argo.?cd|travis|circleci).*https?://|https?://.*(github\.com/.*/(actions|workflows)|gitlab|jenkins|argocd|argo.?cd|travis|circleci)' \
-  README.md .docs/devops/development.md AGENTS.md 2>/dev/null | head -5
+  README.md CONTRIBUTING.md AGENTS.md 2>/dev/null | head -5
 
 # coverage gate (CI config/Makefile usually uses cobertura/jacoco or a shell check)
 grep -rE 'coverage|COVERAGE_THRESHOLD|cover|cobertura|jacoco' \
@@ -301,8 +290,8 @@ grep -E '\.env|\.pem|\.key|vendor/|node_modules/|dist/|\.exe' .gitignore
 # 2. are there already-committed violations
 git ls-files | grep -E '\.env$|\.pem$|\.key$|^vendor/|^node_modules/'
 
-# 3. are the prohibited items explicit in .docs/code-review.md or a PreCommit Hook
-grep -iE 'forbid|not allowed|must not|never' .docs/code-review.md .docs/coding-style.md 2>/dev/null
+# 3. are the prohibited items explicit in discovered review/convention guidance or a PreCommit Hook
+grep -iE 'forbid|not allowed|must not|never' AGENTS.md CONTRIBUTING.md README.md 2>/dev/null
 ```
 
 **Judgment**:
@@ -316,7 +305,7 @@ grep -iE 'forbid|not allowed|must not|never' .docs/code-review.md .docs/coding-s
 
 **DEVSOP basis**: §3.2 flow conventions (bypassing Review, direct pushes to main, PRs over 500 lines, commits without ticket references, etc.)
 
-**Model Grader**: look in `.docs/code-review.md` or README/AGENTS for:
+**Model Grader**: look in discovered review guidance or README/AGENTS for:
 - no direct pushes to main / master
 - PRs must reference a requirement ticket
 - PR line-count limits
@@ -329,23 +318,16 @@ grep -iE 'forbid|not allowed|must not|never' .docs/code-review.md .docs/coding-s
 
 ---
 
-### C5: Feedback mechanism / failures.md active (3 points)
+### C5: Feedback and recurring-issue learning (3 points)
 
-**DEVSOP basis**: §3.3 feedback mechanism + §3.4 "review failures.md every two weeks"
+**DEVSOP basis**: §3.3 feedback mechanism + §3.4 periodic review of recurring issues
 
-**Code Grader**:
-```bash
-# file exists + line count
-wc -l .docs/failures.md 2>/dev/null
-
-# commits in the last 90 days
-git log --since='90 days ago' --oneline -- .docs/failures.md | wc -l
-```
+Look for evidence of how recurring issues are surfaced, addressed, and retained when useful. Sources may include issue/incident records, retrospectives, test changes, or project guidance. Do not require a dedicated file, minimum line count, or fixed review cadence.
 
 **Judgment**:
-- ✅ PASS: exists + ≥30 lines + commits in the last 90 days
-- ⚠️ PARTIAL: exists but <30 lines, or no commits in 90 days but rich content
-- ❌ FAIL: does not exist or is only a placeholder (<10 lines)
+- ✅ PASS: relevant recurring issues are handled and useful lessons are discoverable when the project needs them
+- ⚠️ PARTIAL: a mechanism exists but outcomes or lessons are difficult to trace
+- ❌ FAIL: recurring issues are repeatedly encountered without a discoverable response or learning mechanism
 
 ---
 
@@ -369,12 +351,12 @@ ls .trivyignore .snyk 2>/dev/null
 grep -rE "trivy|snyk|renovate|npm.audit|safety|govulncheck|sonar" \
   Jenkinsfile jenkins/ Makefile lefthook.yml .github/ .gitlab-ci.yml 2>/dev/null
 
-# 3. check whether .docs/ declares a security scan integrated in an external CI repo
+# 3. check whether discovered project guidance declares a security scan integrated in an external CI repo
 #   (security scan config may live in a separate CI/Argo Workflow repo; development.md must declare the repo address and tools)
 grep -iE 'gosec|golangci|trivy|snyk|sonar|govulncheck|security|vulnerability' \
-  .docs/devops/development.md .docs/devops/deployment.md 2>/dev/null
+  README.md CONTRIBUTING.md AGENTS.md 2>/dev/null
 # confirm an external CI repo address is declared (a URL makes it traceable)
-grep -E 'https?://' .docs/devops/development.md .docs/devops/deployment.md 2>/dev/null | \
+grep -E 'https?://' README.md CONTRIBUTING.md AGENTS.md 2>/dev/null | \
   grep -iE 'ci|workflow|pipeline|argo|security|scan'
 
 # 4. dependency-update / vulnerability tooling (Renovate / Dependabot / trivy etc.)
@@ -382,9 +364,9 @@ ls renovate.json renovate.json5 .renovaterc .github/dependabot.yml .trivyignore 
 ```
 
 **Judgment**:
-- ✅ PASS: satisfies any of — ① Go project `.golangci.yml` / `.golangci.yaml` exists and `gosec` is in `linters.enable` (not in the disable list); ② local security-scan tool config files exist; ③ local CI config (GitHub Actions/GitLab CI/Jenkinsfile/Makefile) includes security scanning; ④ security scanning integrated in Argo Workflow or external CI yaml; ⑤ .docs/ explicitly declares the security scan is integrated in an external CI pipeline (with tool name and location); ⑥ dependency-update / vulnerability tooling exists (Renovate / Dependabot / trivy etc.)
-- ⚠️ PARTIAL: `.golangci.yml` exists but `gosec` not enabled (lint system present, security linter missing); or only dependency-update tooling without proactive vulnerability scanning; or .docs/ mentions security scanning but does not state the specific tool/location; or the config exists but the rules are empty
-- ❌ FAIL: no `.golangci.yml` or the enable list is empty, no other security-scan config, and .docs/ does not declare external-CI security scanning
+- ✅ PASS: satisfies any of — ① Go project `.golangci.yml` / `.golangci.yaml` exists and `gosec` is in `linters.enable` (not in the disable list); ② local security-scan tool config files exist; ③ local CI config (GitHub Actions/GitLab CI/Jenkinsfile/Makefile) includes security scanning; ④ security scanning integrated in Argo Workflow or external CI yaml; ⑤ discovered project guidance explicitly declares the security scan is integrated in an external CI pipeline (with tool name and location); ⑥ dependency-update / vulnerability tooling exists (Renovate / Dependabot / trivy etc.)
+- ⚠️ PARTIAL: `.golangci.yml` exists but `gosec` not enabled (lint system present, security linter missing); or only dependency-update tooling without proactive vulnerability scanning; or project guidance mentions security scanning but does not state the specific tool/location; or the config exists but the rules are empty
+- ❌ FAIL: no `.golangci.yml` or the enable list is empty, no other security-scan config, and project guidance does not declare external-CI security scanning
 
 ---
 
@@ -401,7 +383,7 @@ ls -d tests/e2e/ tests/integration/ test/e2e/ e2e/ integration/ 2>/dev/null
 find . -name '*integration*test*' -o -name '*e2e*test*' -o -name '*_integration_test.go' 2>/dev/null | head -5
 
 # check whether CI has an E2E/integration test stage (any CI platform)
-grep -iE "e2e|integration.test|interface test" Jenkinsfile jenkins/ Makefile .docs/devops/deployment.md 2>/dev/null
+grep -iE "e2e|integration.test|interface test" Jenkinsfile jenkins/ Makefile README.md CONTRIBUTING.md AGENTS.md 2>/dev/null
 grep -iE "e2e|integration.test|interface test" .github/workflows/*.yml .gitlab-ci.yml 2>/dev/null
 ```
 
@@ -486,7 +468,7 @@ Assess whether the project retains relevant knowledge that helps future contribu
 
 ## Pillar F: Measurement mechanisms (15 points)
 
-### F1: devsop_report.md exists and is updated regularly + improvement actions recorded (5 points)
+### F1: Evaluation history and improvement actions are recorded (5 points)
 
 **DEVSOP basis**: §6.1 "DEVSOP measurement Skill measures each project's build status and outputs scores"
 
@@ -496,8 +478,8 @@ This item is split into two sub-dimensions to resolve the self-referential parad
 
 **Code Grader**:
 ```bash
-[ -f .docs/devsop_report.md ] && \
-  git log --oneline -- .docs/devsop_report.md 2>/dev/null | wc -l
+[ -f "$REPORT_PATH" ] && \
+  git log --oneline -- "$REPORT_PATH" 2>/dev/null | wc -l
 ```
 
 **Judgment**:
@@ -512,10 +494,10 @@ This item is split into two sub-dimensions to resolve the self-referential parad
 **Code Grader + model**:
 ```bash
 # check whether the report has a non-empty "comparison with the previous evaluation" section
-grep -A5 "comparison with the previous evaluation" .docs/devsop_report.md 2>/dev/null | grep -E "↑|↓|PASS|PARTIAL|FAIL"
+grep -A5 "comparison with the previous evaluation" "$REPORT_PATH" 2>/dev/null | grep -E "↑|↓|PASS|PARTIAL|FAIL"
 
-# or check whether .docs/ has an improvement-tracking file
-ls .docs/devsop_improvements.md .docs/devsop_changelog.md 2>/dev/null
+# or check whether a project improvement-tracking source exists
+find . -type f \( -iname '*improvement*' -o -iname '*changelog*' \) -not -path '*/.git/*' -print
 ```
 
 **Judgment**:
@@ -538,20 +520,16 @@ Assess whether important design decisions, incidents, and recurring pitfalls are
 
 ---
 
-### F3: .docs/ doc changes traceable (3 points)
+### F3: Project-guidance changes traceable (3 points)
 
 **DEVSOP basis**: §6.1 phase 2 "scan the change status of DEVSOP regulation docs to ensure the feedback mechanism operates effectively"
 
-**Code Grader**:
-```bash
-git log --since='60 days ago' --format='%cI %s' -- .docs/ | wc -l
-git log --since='60 days ago' --format='%cI' -- .docs/ | head -1
-```
+Assess whether relevant project guidance is updated alongside meaningful product or process changes. Use discovered authoritative-source history as evidence, excluding evaluation reports; do not use a fixed commit count or cadence.
 
 **Judgment**:
-- ✅ PASS: ≥3 commits in 60 days
-- ⚠️ PARTIAL: 1-2 commits in 60 days
-- ❌ FAIL: no commits in 60 days (or just created — may be exempt, but must be noted in the report)
+- ✅ PASS: relevant guidance changes are traceable when changes are needed, or the project is stable and guidance remains accurate
+- ⚠️ PARTIAL: some changes are traceable but meaningful guidance updates are inconsistent
+- ❌ FAIL: meaningful product changes repeatedly leave guidance materially misleading or stale
 
 ---
 
@@ -562,7 +540,7 @@ git log --since='60 days ago' --format='%cI' -- .docs/ | head -1
 **Code Grader + model**:
 ```bash
 # check whether multiple historical evaluation records exist
-git log --oneline -- .docs/devsop_report.md 2>/dev/null | wc -l
+git log --oneline -- "$REPORT_PATH" 2>/dev/null | wc -l
 ```
 
 If there are ≥2 git commit records, read the current report and compare the FAIL/PARTIAL items against previous versions.
@@ -587,18 +565,18 @@ If there are ≥2 git commit records, read the current report and compare the FA
 4. Zero valid content: after removing heading lines, blockquotes, HTML comments, blank lines, and table headers+separator rows, fewer than 3 non-empty lines remain
 
 **Per-file special judgment**:
-| File | Still-a-placeholder marker |
-|------|----------------------------|
-| `architecture.md` | "system positioning" is still `<!-- one sentence ... -->`; module division table has no valid rows; the overall view is still the generic placeholder diagram `[external trigger] → [entry / dispatch layer] → ...` |
-| `relationship.md` | upstream/downstream tables have no valid rows; the topology is still the generic placeholder `[external caller] → [this project] → [downstream A]` |
-| `apis/index.md` | the module/interface list table has no valid rows |
-| `sqls/README.md` | the database list table has no valid rows |
-| `unittest/unittest.md` | the tech-selection table's test framework is still `<fill...>`; the run command is still `<fill: sh run_test.sh ...>` |
-| `integration_test/integration_test.md` | §1 form determination is all placeholders without the project's actual form; §3 run command is still `<fill: sh run_it.sh ...>`; more than 8 placeholders |
-| `devops/env.md` | the runtime environment table has no valid rows; the quick start is still `# TODO:` |
-| `review.md` | a generic template; project customization is not required; existence alone counts as ✅ |
+| Topic | Still-a-placeholder marker |
+|------|------------------------------|
+| Architecture | "system positioning" is still `<!-- one sentence ... -->`; module division table has no valid rows; the overall view is still the generic placeholder diagram `[external trigger] → [entry / dispatch layer] → ...` |
+| System relationships | upstream/downstream tables have no valid rows; the topology is still the generic placeholder `[external caller] → [this project] → [downstream A]` |
+| API/interface | the module/interface list table has no valid rows |
+| Data/schema | the database list table has no valid rows |
+| Testing | framework details and run commands are still placeholders |
+| Integration testing | test scope and run commands are all placeholders without project-specific details |
+| Environment/setup | the runtime environment table has no valid rows; the quick start is still `# TODO:` |
+| Review entry point | a generic template; project customization is not required; existence alone counts as ✅ |
 
-**Equivalent recognition**: using `design.md` instead of `architecture.md`, using GitHub Issues instead of task registration, etc. — as long as the information is equivalent, treat it equally; do not deduct for different filenames.
+**Equivalent recognition**: identify authoritative sources by content and project links, then verify them against code and configuration. Names and directory layouts do not affect scoring when the information is equivalent and discoverable.
 
 ---
 

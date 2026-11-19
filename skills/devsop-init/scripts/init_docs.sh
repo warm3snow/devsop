@@ -2,7 +2,7 @@
 # init_docs.sh — create the DEVSOP project skeleton.
 #
 # Usage:
-#   bash init_docs.sh [repo_root] [--full]
+#   bash init_docs.sh [repo_root] [--full] [--docs-dir path] [--include template-path]
 #
 # The default creates core project context. --full also creates optional API,
 # database, integration-test, DevOps, relationship, glossary, failure, and logging docs.
@@ -14,11 +14,32 @@ set -euo pipefail
 # ---------------------------------------------------------------------------
 REPO_ROOT=""
 PROFILE="core"
-for arg in "$@"; do
+DOCS_DIR_ARG=""
+INCLUDES=()
+HAS_INCLUDES=false
+while [[ $# -gt 0 ]]; do
+    arg="$1"
     case "$arg" in
         --full) PROFILE="full" ;;
+        --docs-dir)
+            if [[ $# -lt 2 || -z "$2" ]]; then
+                echo "[ERROR] --docs-dir requires a path" >&2
+                exit 2
+            fi
+            DOCS_DIR_ARG="$2"
+            shift
+            ;;
+        --include)
+            if [[ $# -lt 2 || -z "$2" ]]; then
+                echo "[ERROR] --include requires a template path" >&2
+                exit 2
+            fi
+            INCLUDES+=("$2")
+            HAS_INCLUDES=true
+            shift
+            ;;
         --*)
-            echo "[ERROR] Unknown argument: $arg (supported: --full)" >&2
+            echo "[ERROR] Unknown argument: $arg (supported: --full, --docs-dir, --include)" >&2
             exit 2
             ;;
         *)
@@ -30,12 +51,63 @@ for arg in "$@"; do
             fi
             ;;
     esac
+    shift
 done
 REPO_ROOT="${REPO_ROOT:-$(pwd)}"
+REPO_ROOT="$(cd "$REPO_ROOT" && pwd -P)"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SKILL_DIR="$(dirname "$SCRIPT_DIR")"
 CORE_PROFILE="$SKILL_DIR/assets/profiles/core"
 FULL_PROFILE="$SKILL_DIR/assets/profiles/full"
+
+if [[ -n "$DOCS_DIR_ARG" ]]; then
+    case "$DOCS_DIR_ARG" in
+        /*) SPECS_DIR="$DOCS_DIR_ARG" ;;
+        *) SPECS_DIR="$REPO_ROOT/$DOCS_DIR_ARG" ;;
+    esac
+    SPECS_PARENT="$(cd "$(dirname "$SPECS_DIR")" 2>/dev/null && pwd)" || {
+        echo "[ERROR] Documentation directory parent does not exist: $DOCS_DIR_ARG" >&2
+        exit 2
+    }
+    SPECS_DIR="$SPECS_PARENT/$(basename "$SPECS_DIR")"
+    case "$SPECS_DIR/" in
+        "$REPO_ROOT/"*) ;;
+        *)
+            echo "[ERROR] Documentation directory must be inside the repository: $DOCS_DIR_ARG" >&2
+            exit 2
+            ;;
+    esac
+elif [[ -d "$REPO_ROOT/docs" && -d "$REPO_ROOT/.docs" ]]; then
+    echo "[ERROR] Both docs/ and .docs/ exist. Review the existing docs and pass --docs-dir explicitly." >&2
+    exit 2
+elif [[ -d "$REPO_ROOT/docs" ]]; then
+    SPECS_DIR="$REPO_ROOT/docs"
+elif [[ -d "$REPO_ROOT/.docs" ]]; then
+    SPECS_DIR="$REPO_ROOT/.docs"
+else
+    SPECS_DIR="$REPO_ROOT/docs"
+fi
+
+if [[ -e "$SPECS_DIR" || -L "$SPECS_DIR" ]]; then
+    SPECS_REAL="$(cd "$SPECS_DIR" 2>/dev/null && pwd -P)" || {
+        echo "[ERROR] Cannot resolve documentation directory: $SPECS_DIR" >&2
+        exit 2
+    }
+else
+    SPECS_PARENT="$(cd "$(dirname "$SPECS_DIR")" 2>/dev/null && pwd -P)" || {
+        echo "[ERROR] Cannot resolve documentation directory parent: $SPECS_DIR" >&2
+        exit 2
+    }
+    SPECS_REAL="$SPECS_PARENT/$(basename "$SPECS_DIR")"
+fi
+REPO_REAL="$(cd "$REPO_ROOT" && pwd -P)"
+case "$SPECS_REAL/" in
+    "$REPO_REAL/"*) SPECS_DIR="$SPECS_REAL" ;;
+    *)
+        echo "[ERROR] Documentation directory resolves outside the repository: $SPECS_DIR" >&2
+        exit 2
+        ;;
+esac
 
 if [[ ! -d "$CORE_PROFILE/docs" ]]; then
     echo "[ERROR] Core profile assets are missing: $CORE_PROFILE" >&2
@@ -46,9 +118,23 @@ if [[ "$PROFILE" == "full" && ! -d "$FULL_PROFILE/docs" ]]; then
     exit 1
 fi
 
-SPECS_DIR="$REPO_ROOT/.docs"
-
-mkdir -p "$SPECS_DIR"
+if [[ "$HAS_INCLUDES" == true ]]; then
+    for include in "${INCLUDES[@]}"; do
+        case "$include" in
+            /*|../*|*/../*|*/..|..)
+                echo "[ERROR] Template path must be relative and cannot traverse directories: $include" >&2
+                exit 2
+                ;;
+        esac
+        found=false
+        [[ -f "$CORE_PROFILE/docs/$include" ]] && found=true
+        if [[ "$PROFILE" == "full" && -f "$FULL_PROFILE/docs/$include" ]]; then found=true; fi
+        if [[ "$found" != true ]]; then
+            echo "[ERROR] Template not found in the selected profile: $include" >&2
+            exit 2
+        fi
+    done
+fi
 
 copy_profile_tree() {
     local source="$1"
@@ -66,16 +152,50 @@ copy_profile_tree() {
     done
 }
 
-# Both profiles share the core docs. Full adds optional docs; no existing
-# project files are overwritten.
-copy_profile_tree "$CORE_PROFILE/docs" "$SPECS_DIR" "core doc"
-if [[ "$PROFILE" == "full" ]]; then
-    copy_profile_tree "$FULL_PROFILE/docs" "$SPECS_DIR" "optional doc"
+copy_selected_template() {
+    local rel="$1"
+    local src=""
+    local dst="$SPECS_DIR/$rel"
+
+    if [[ -f "$CORE_PROFILE/docs/$rel" ]]; then
+        src="$CORE_PROFILE/docs/$rel"
+    elif [[ "$PROFILE" == "full" && -f "$FULL_PROFILE/docs/$rel" ]]; then
+        src="$FULL_PROFILE/docs/$rel"
+    fi
+    mkdir -p "$(dirname "$dst")"
+    if [[ ! -e "$dst" ]]; then
+        cp "$src" "$dst"
+        echo "[ADD] Added selected doc: ${dst#"$REPO_ROOT"/}"
+    else
+        echo "[SKIP] Keeping existing doc: ${dst#"$REPO_ROOT"/}"
+    fi
+}
+
+if [[ "$HAS_INCLUDES" == true ]]; then
+    for include in "${INCLUDES[@]}"; do
+        copy_selected_template "$include"
+    done
+elif find "$REPO_ROOT" \
+    \( -type d \( -name .git -o -name node_modules -o -name vendor -o -name .venv -o -name dist -o -name build \) -prune \) -o \
+    \( -type f \( -name '*.md' -o -name '*.mdx' -o -name '*.rst' -o -name '*.adoc' \) -print -quit \) |
+    grep -q .; then
+    echo "[INFO] Existing project documentation found; not copying templates."
+    echo "       Inventory its content first; use --include <template-path> only for confirmed gaps."
+else
+    mkdir -p "$SPECS_DIR"
+    copy_profile_tree "$CORE_PROFILE/docs" "$SPECS_DIR" "core doc"
+    if [[ "$PROFILE" == "full" ]]; then
+        copy_profile_tree "$FULL_PROFILE/docs" "$SPECS_DIR" "optional doc"
+    fi
 fi
 
-echo "[OK] .docs initialized at: $SPECS_DIR"
+echo "[OK] Project documentation initialized at: $SPECS_DIR"
 echo "     - profile: $PROFILE"
-echo "     - core docs: review.md, architecture.md, coding-style.md, code-review.md, unittest/unittest.md"
+if [[ "$HAS_INCLUDES" == true ]]; then
+    echo "     - selected templates: ${INCLUDES[*]}"
+else
+    echo "     - core docs: review.md, architecture.md, coding-style.md, code-review.md, unittest/unittest.md (new documentation set only)"
+fi
 [[ "$PROFILE" == "core" ]] && echo "     - optional docs: run with --full to create the full documentation set"
 
 # ---------------------------------------------------------------------------
@@ -126,7 +246,7 @@ echo "════════════════════════�
 echo "  ✅ DEVSOP initialization complete"
 echo ""
 echo "  Next steps:"
-echo "    1. Fill in .docs/architecture.md and .docs/coding-style.md from project evidence"
-echo "    2. Create optional API, database, integration-test, or DevOps docs only when needed"
-echo "    3. Add project-specific commands and rules to AGENTS.md"
+echo "    1. Inventory existing docs and source evidence; link authoritative docs rather than duplicating them"
+echo "    2. Add only confirmed missing guidance, using the project's existing docs layout"
+echo "    3. Add key commands and links to AGENTS.md"
 echo "═══════════════════════════════════════════════════════════════"

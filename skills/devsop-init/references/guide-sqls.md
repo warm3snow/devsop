@@ -1,13 +1,13 @@
 # Database Documentation Guide
 
 > Use this guide when the project has persistent storage. The main agent can follow it directly or delegate the task when supported.
-> Target: `.docs/sqls/` (persistence structure documentation area).
+> Adapt any output to the project's existing persistence-documentation location and naming convention.
 
 ---
 
 ## Core Goal
 
-Based on the project's real persistence structures, fill `.docs/sqls/` into documentation for DB schema / table design / migration conventions.
+Based on the project's real persistence structures, document DB schema / table design / migration conventions only when an authoritative source is missing or incomplete.
 
 ---
 
@@ -37,7 +37,7 @@ find . \( -name "*.go" \) -not -path "*/vendor/*" 2>/dev/null | xargs grep -lE "
 
 ### 2. Generate documentation
 
-- `sqls/database.md` filled in per the skeleton sections: table design / index conventions / transaction boundaries / migration strategy.
+- Use an existing schema or migration guide when available; otherwise add only the missing table design / index / transaction / migration information in the established location.
 - Write a Source + Last-verified footnote at the top of each doc.
 - For uncertain fields, keep `{{...}}` or `<!-- TODO(devsop-init): ... -->`.
 
@@ -48,4 +48,4 @@ find . \( -name "*.go" \) -not -path "*/vendor/*" 2>/dev/null | xargs grep -lE "
 - **Projects without a database should not create database docs**. Never delete existing project files as part of this check.
 - Forbidden to copy schema as code strings; fields must carry meaning explanations.
 - Keep and fix existing manually-written schema docs; do not overwrite wholesale.
-- Only touch files under `sqls/`; do not touch other docs.
+- Only create or update the selected authoritative persistence source when a gap is confirmed; preserve unrelated docs.

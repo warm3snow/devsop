@@ -27,7 +27,7 @@ You are the DEVSOP evaluation sub-agent, responsible for the <N> Eval items (<ID
 - Project language stack: <injected by the main agent>
 - Project type: <injected by the main agent: service / library / cli / monorepo>
 - **Tool-agnostic guidance (CI / Issue Tracker / dependency management)**: the DEVSOP framework does not mandate a specific tool stack. Improvement suggestions must stay consistent with the project's existing tools (e.g. Jenkins / GitHub Actions / GitLab CI / TAPD / GitHub Issues / Jira / Renovate / Dependabot) — do not force or forbid any specific platform.
-  - **CI (C2/C6/C7)**: the improvement path must be ① check a CI config into the repo root (`.github/workflows/`, `.gitlab-ci.yml`, `Jenkinsfile`, etc., with stages: Build → Lint → UnitTest → Coverage → Integration / Security); ② write clickable pipeline URLs in `.docs/devops/development.md`. Evidence scanning checks any of `Jenkinsfile` / `Jenkinsfile.*` / `jenkins/` / `.jenkins/` / `.github/workflows/` / `.gitlab-ci.yml` first.
+  - **CI (C2/C6/C7)**: improvement suggestions should use the project's current CI system and its existing documentation location. Evidence scanning checks common repository CI configurations first, then linked team guidance.
   - **Issue Tracker (B3/C4/F4)**: all suggestions of the "task list / ticket reference / defect tracking / requirements management" type must land on the team-designated issue tracker (default example: GitHub Issues). MR/commit message ticket references use the team's convention, e.g. `--story=<id>` / `--bug=<id>` or GitHub-style `#<id>`. Evidence scanning checks tracker references (`--<kind>=<id>`, `#<id>`, or tracker URLs) in the project.
   - **Dependency management (C6)**: recommend whichever dependency-update tool the project already uses (Renovate, Dependabot, etc.); do not force one.
 
@@ -91,12 +91,12 @@ Use only when the agent environment supports sub-agents and JSON conversion is u
 You are the DEVSOP report JSON conversion agent. Your task is to extract the total score, each pillar score, and Todo Suggestions from the generated DEVSOP evaluation report and generate a structured JSON file.
 
 # Input
-- Report file path: <actual $REPO_ROOT injected by the main agent>/.docs/devsop_report.md
+- Report file path: <actual $REPORT_PATH injected by the main agent>
 - SKILL_DIR: <actual absolute $SKILL_DIR injected by the main agent>
 - Working dir: already switched to $REPO_ROOT (the project repo root, not the Skill install dir)
 
 ⚠️ Path constraints:
-- Read the report with $REPO_ROOT/.docs/devsop_report.md
+- Read the report at $REPORT_PATH
 - Read the validation script with $SKILL_DIR/scripts/validate_todo_json.py
 - Forbidden: writing files to $SKILL_DIR / $HOME
 
@@ -111,7 +111,7 @@ You are the DEVSOP report JSON conversion agent. Your task is to extract the tot
 **Path A (preferred): grep for HTML markers**
 
 ```bash
-grep -n "DEVSOP_TODOS_START\|DEVSOP_TODOS_END" "$REPO_ROOT/.docs/devsop_report.md"
+grep -n "DEVSOP_TODOS_START\|DEVSOP_TODOS_END" "$REPORT_PATH"
 ```
 
 If grep finds both `DEVSOP_TODOS_START` and `DEVSOP_TODOS_END`, extract the content between the two markers (a Markdown table) as the todos input.
@@ -151,8 +151,8 @@ Extract the total score, each pillar score, and Todo Suggestions from the report
       "solution": "Add the commit message format, pre-commit build+lint+test checks, and post-push MR flow conventions to the '§2 DEVSOP' section of AGENTS.md, referencing Eval C1"
     },
     {
-      "title": "Activate the failures.md pitfall records",
-      "solution": "Add 3 typical recent issues to .docs/failures.md this week, referencing Eval C5"
+      "title": "Record recurring project pitfalls",
+      "solution": "Record representative recurring issues in the project's existing troubleshooting or incident source, referencing Eval C5"
     }
   ]
 }

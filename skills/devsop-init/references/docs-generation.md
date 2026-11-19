@@ -2,9 +2,9 @@
 
 ## Contents
 
-0. Before reading this methodology · 1. Core Principles · 2. Four-layer model of docs · 3. Generic generation loop · 4. Trigger timing · 5. Anti-patterns · 6. Physical layout · 7. On-demand loading conventions · 8. Recommended workflow · 9. Quality self-check checklist · Appendix A: Minimal viable output
+0. Before reading this methodology · 1. Core Principles · 2. Documentation lenses · 3. Documentation update loop · 4. Trigger timing · 5. Anti-patterns · 6. Documentation layout · 7. Discoverability and authority · 8. Recommended workflow · 9. Quality self-check · Appendix A: Minimal viable output
 
-> `.docs/` generation methodology. **Generic version** — not tied to any language, framework, or domain.
+> Project-documentation discovery and maintenance methodology. **Generic version** — not tied to any language, framework, documentation directory, or filename.
 >
 > When to load:
 > 1. After initialization, when project-specific facts need to be documented
@@ -15,37 +15,36 @@
 
 ## 0. Before reading this methodology
 
-The directory structure, section templates, and extraction scripts below are all **illustrative**, not hard template constraints.
-The only things that truly never change are the following five:
+The directory structure, section templates, and extraction scripts below are **illustrative**, not hard constraints. Preserve and reuse the project's authoritative sources instead of introducing a parallel documentation set.
 
 1. **Why**: the purpose of docs (Section 1 core principles)
-2. **What layer dimensions**: Orientation / Contract / Internals / Operability (Section 2 four-layer model)
-3. **How methodology**: the extract-sample-revise loop from information sources to artifacts (Section 3 generic generation method)
+2. **What to look for**: orientation / contracts / internals / operability (Section 2 as optional lenses)
+3. **How methodology**: inventory sources, identify gaps and verify only changes made (Section 3)
 4. **When**: trigger timing and corresponding actions (Section 4)
 5. **Invariant anti-patterns** (Section 5)
 
-Which files a specific project ends up with, and which tools are used for extraction, is decided by Section 6 "Project-form adaptation".
+Which sources a project uses is decided from the actual repository and any linked authoritative team documentation.
 
 ---
 
 ## 1. Core Principles
 
-`.docs/` is not a "project introduction / README enhanced version"; it is the **minimal knowledge set needed for a brand-new person (or AI Agent) to understand, modify, and operate this project without reading the source code**.
+Project guidance should help contributors discover relevant knowledge; it complements rather than duplicates the README, source code, specifications, and team handbooks.
 
 Four principles, independent of project type:
 
 | # | Principle | Meaning |
 |---|-----------|---------|
-| 1 | **Code is the truth, docs are the map** | Outdated docs are not scary; inconsistency between docs and code is fatal; when writing docs, include "how to keep in sync with the code" (each doc footer notes the source path + sync time) |
+| 1 | **Code is the truth, docs are the map** | Check project guidance against implementation and configuration when it describes behavior; note sources or verification dates when useful |
 | 2 | **Write for the reader, not the author** | Contract docs are written from the caller's perspective; architecture docs are written from the new maintainer's perspective; ADRs are written from the future maintainer's perspective |
-| 3 | **Semi-automatic > fully automatic > fully manual** | Fully automatic AI will fabricate details; fully manual nobody maintains; **AI drafts → human reviews → commit to repo** is what works long-term |
-| 4 | **Layered, on-demand, incremental** | Don't produce 100 files at once; produce in batches by importance, let people review each batch, then produce the next |
+| 3 | **Evidence before assertion** | Unsupported claims mislead maintainers; distinguish observed facts from assumptions |
+| 4 | **On-demand, incremental** | Improve the smallest useful set of authoritative sources and avoid documentation quotas |
 
 ---
 
 ## 2. What — the four-layer model of docs (decoupled from project type)
 
-Regardless of whether the project is a backend service, frontend SPA, CLI tool, SDK / library, mobile app, or data pipeline, docs must answer the following four types of questions:
+These four questions are useful lenses when reviewing a backend service, frontend SPA, CLI tool, SDK / library, mobile app, or data pipeline. They are not a required file set:
 
 | Layer | Name | Question it answers | Cost of losing it |
 |-------|------|---------------------|-------------------|
@@ -54,24 +53,23 @@ Regardless of whether the project is a backend service, frontend SPA, CLI tool, 
 | L3 | **Internals layer** | Why is it implemented this way? What are the key algorithms, state machines, data models, and persistence structures? | Maintainers can only reverse-engineer; refactoring is like groping an elephant in the dark |
 | L4 | **Operability layer** | How to run locally? How to test? How to release? How to observe? How to roll back? | Project handover = re-stumbling through all the same pitfalls |
 
-**Hard requirement on generation order between layers**: L1 → L2/L3 in parallel → L4. **Strictly forbidden** to write contract docs before the orientation layer (without context, nobody can understand the contract docs).
+Use the lenses that are relevant to the specific gap. Do not generate an orientation document just to satisfy an order before documenting another missing topic.
 
-> Which files each layer maps to in different project types is covered in Section 6.
+> Use the layers as optional lenses; the project's actual documentation layout is covered in Section 6.
 
 ---
 
 ## 3. How — generic generation method (all layers share the same loop)
 
-No matter which layer's docs are being generated, the same 5-step loop is followed:
+When creating or changing documentation, use this lightweight loop:
 
 ```
-Scan        →  Extract     →  Draft      →  Verify     →  Commit
-Scan info sources   Extract structured facts   Generate Markdown   Sample-check against source code   Commit to repo after user review
+Inventory   →  Identify gap →  Update source →  Verify evidence
 ```
 
 ### Step 1: Scan — find the information sources
 
-Each layer has "authoritative information sources", and the AI **must** list them before starting extraction. Common information source types:
+Identify authoritative information sources before writing. Common source types include:
 
 | Information source type | Examples |
 |-------------------------|----------|
@@ -84,11 +82,11 @@ Each layer has "authoritative information sources", and the AI **must** list the
 | **CI / CD configuration** | `.github/workflows/` / `.gitlab-ci.yml` / Jenkinsfile |
 | **Dependency graphs** | lockfile / `go mod graph` / `npm ls` / `cargo tree` |
 
-> The first thing the AI does: use `list_dir` to look at the repository root, then use `codebase_search` to locate files of the above types — **do not** assume from memory that they necessarily exist.
+Inspect the repository and use the available file/code search tools; do not assume paths or commands exist.
 
 ### Step 2: Extract — extract structured facts
 
-Extract facts from the code into "structured entries" and then render them into Markdown; **do not** let the LLM write free-form text descriptions (easy to fabricate).
+Extract claims from repository and linked team sources. Verify important statements against the implementation/configuration; mark uncertain facts as uncertain rather than inventing details.
 
 | Fact to extract | Extraction means (pick one) |
 |-----------------|------------------------------|
@@ -99,13 +97,13 @@ Extract facts from the code into "structured entries" and then render them into 
 | Dependency graphs | Output of package manager commands |
 | DB schema | Directly connect to the test DB `SHOW CREATE TABLE` / read migration history |
 
-**Iron rule**: the output of extraction scripts must be **deterministic** — running twice on the same code yields byte-by-byte identical output; only then can it be put into CI for "docs drift" detection.
+Automation is optional; do not add tooling or CI solely to generate documentation.
 
 ### Step 3: Draft — generate the draft
 
-- Drafts are written to `*.draft.md` by default; **do not** write directly to the official files, to avoid overwriting manual revisions.
-- Keep **`<!-- TODO: ... -->` placeholders** in templates, marking fields the AI is unsure about, for humans to fill in.
-- Fixed footer at the top of each document:
+- Preserve manual edits. Use a draft only when the change is substantial or the source owner should review it first.
+- Mark uncertain facts clearly; do not leave boilerplate placeholders in user-facing guidance.
+- Add source/verification notes when they materially help future maintainers:
   ```markdown
   > Source: <extraction source file / command>
   > Generated: <date>  by <skill / script name>
@@ -113,17 +111,17 @@ Extract facts from the code into "structured entries" and then render them into 
 
 ### Step 4: Verify — sample-check
 
-For every N docs of the same type generated (N=10 is the empirical value), **randomly pick 2** and check them against the source code:
+Verify important claims and commands against source code or configuration when practical:
 - Do the names (interface names / field names / command names) match the code?
 - Are the default values, required/optional relationships correct?
 - Is error handling / failure semantics complete?
 
-If inconsistencies are found: **fix the extraction script**, regenerate everything; **manual patching is forbidden** (a manual patch will be overwritten the next time it is regenerated).
+If inconsistencies are found, update the authoritative source with verified information and note unresolved discrepancies for the maintainer.
 
-### Step 5: Commit — commit to repo after human review
+### Step 5: Review — leave changes for the project owner
 
-- Diff `*.draft.md` against existing official files; let the user decide the merge strategy.
-- Update the corresponding `index.md` / navigation table at the same time as committing.
+- Show the changed authoritative sources and any remaining decisions for the owner.
+- Do not commit changes or create a second index when an existing project entry point can link to the source.
 
 ---
 
@@ -131,12 +129,12 @@ If inconsistencies are found: **fix the extraction script**, regenerate everythi
 
 | Trigger scenario | Corresponding action | Output location |
 |------------------|----------------------|-----------------|
-| **Project just initialized (Scenario A)** | In L1 → L2/L3 → L4 order, generate drafts layer by layer + user review | All of `.docs/` |
-| **First-time backfill of an existing project** | Same as above, **in batches by module**: fill in core modules first; stop for review every N contract-layer docs | Same as above |
+| **Project just initialized (Scenario A)** | Inventory source evidence and existing guidance; create only useful missing context | Project's chosen documentation location |
+| **First-time backfill of an existing project** | Record authoritative sources, gaps, and conflicts; update only confirmed gaps | Existing authoritative sources |
 | **Behavior or configuration changes** | Derive **incremental** updates from the change; only touch guidance affected by it | Only the docs involved this time |
 | **Quarterly / version health check** | Sample-check (names / default values / error codes); open a chore task for inconsistencies | Exposed problems → task → fix |
-| **After a major refactor / architecture evolution** | Review relevant docs and record important decisions when useful | Relevant `.docs/` files or the project's decision-record location |
-| **Major dependency version upgrade** | Regenerate the L4 environment / deployment docs, cross-check against the new version's commands / configuration | `.docs/<L4 file>` |
+| **After a major refactor / architecture evolution** | Review relevant guidance and record lasting decisions when useful | Existing authoritative design/decision source |
+| **Major dependency version upgrade** | Review affected setup/operations guidance against the new version | Existing authoritative setup/operations source |
 
 ---
 
@@ -144,43 +142,22 @@ If inconsistencies are found: **fix the extraction script**, regenerate everythi
 
 | # | Anti-pattern | Consequence | Correct approach |
 |---|--------------|-------------|------------------|
-| 1 | **Generate all docs in one batch** | Large volume, low quality, nobody reviews, rotten as soon as written | Batch by module / layer, human review each batch |
+| 1 | **Generate all docs in one batch** | Large volume, low quality, nobody reviews, rotten as soon as written | Add only project-relevant missing information |
 | 2 | **AI merges directly after generating** | AI will fabricate parameters / default values / error codes | Sample-check ≥3 places against the code |
 | 3 | **Docs and code in unrelated changes** | Guidance may remain stale | Update relevant docs with the change when practical |
 | 4 | **Only record "what" not "why"** | Nobody understands the decision six months later | ADR records "why"; contract layer / internals layer record "what" |
 | 5 | **Contract docs copy the source code** | Lose the caller's perspective, become "code translation" | Write from the caller's perspective: how to call / what it returns / how to diagnose errors |
-| 6 | **Skip the orientation layer and write contract / internals directly** | Contracts pile up, internals are isolated, no context | Must pass L1 review first, then do L2/L3 |
+| 6 | **Require an unrelated orientation doc before addressing a concrete gap** | Adds process and files without helping users | Address the relevant gap directly |
 | 7 | **Copy persistence schema as code strings** | Inconsistent with production | Export directly from the test DB / real migration state |
-| 8 | **Overwrite existing manual edits** | User revisions are lost | Output to `*.draft.md` by default; user diffs then merges |
-| 9 | **AI substitutes memory for scanning** | File paths / command names are made up | Must start with `list_dir` / `codebase_search` verification |
+| 8 | **Overwrite or duplicate existing guidance** | User revisions are lost and conflicting sources emerge | Preserve existing sources; edit only with evidence and report conflicts |
+| 9 | **AI substitutes memory for scanning** | File paths / command names are made up | Inspect repository evidence before making claims |
 | 10 | **Docs without source footnotes** | Don't know when or with whom to sync | Fixed `Source` + `Generated` footer at the top |
 
 ---
 
-## 6. Physical layout of this skeleton
+## 6. Documentation layout
 
-> This skill's skeleton is fully consistent with the team's current `.docs/`. All docs land in the following fixed physical paths:
-
-| Purpose | Physical path |
-|---------|---------------|
-| System architecture | `.docs/architecture.md` |
-| Upstream / downstream & integrations | `.docs/relationship.md` |
-| Coding style (line length/complexity/naming/security) | `.docs/coding-style.md` |
-| Team manual Code Review process | `.docs/code-review.md` |
-| Business glossary | `.docs/glossary.md` |
-| Pitfalls log | `.docs/failures.md` |
-| Logging standards | `.docs/logging.md` |
-| External interfaces | `.docs/apis/<module>/<Action>.md` + `apis/index.md` + `apis/_template.md` + `apis/api-standards.md` |
-| Data / Schema | `.docs/sqls/README.md` + `sqls/database.md` |
-| Unit testing standards | `.docs/unittest/unittest.md` |
-| Integration testing standards | `.docs/integration_test/integration_test.md` |
-| Environment setup | `.docs/devops/env.md` |
-| Deployment & run standards | `.docs/devops/deployment.md` |
-| Local development environment standards | `.docs/devops/development.md` |
-| AI Code Review guidance standards | `.docs/review.md` (at the `.docs/` top level) |
-
-> "L1 Orientation / L2 Contract / L3 Internals / L4 Operability" are methodology labels to help the AI think about "what should be written" —
-> **physical directory names are fixed as `architecture.md / relationship.md / apis/ / sqls/ / unittest/ / integration_test/ / devops/`; do not create a parallel `contracts/internals/operability` set just to "match the labels"**.
+There is no required documentation root, directory structure, or filename. Respect the project's existing layout and use content—not names alone—to identify equivalent guidance. The starter profile paths are examples for new projects; they are not required when a project already has authoritative sources. If two sources conflict, report the paths and discrepancy for maintainer resolution rather than silently merging or choosing one.
 
 ### Information source mapping examples (by form)
 
@@ -193,22 +170,13 @@ If inconsistencies are found: **fix the extraction script**, regenerate everythi
 
 ---
 
-## 7. On-demand loading and directory conventions
+## 7. Discoverability and authority
 
-`.docs/` grows on demand; do not create all placeholder files at once. But these conventions must be followed:
-
-1. **The first 5 lines of each doc** include:
-   - a one-sentence summary
-   - target audience
-   - Source (information source path)
-   - Generated / Last-verified time
-   - links to related upper / lower docs
-2. **`apis/` list-type directory** must have an `index.md` master table that maps 1:1 to the official document list.
-3. **Project-specific rules take priority**: if project rules for a topic exist (under the project rules dir `rules/`, e.g. `unittest_rule.md`, `cls_mcp_rule.md`), they are the **authoritative source** for that topic —
-   - same-named docs under `.docs/<topic>/` should **excerpt + link**, not copy-paste;
-   - on conflict, the project rules dir wins;
-   - revising rules requires syncing docs and vice versa.
-4. **Do not pre-generate placeholders** like `README.md` / `conventions.md` / `glossary.md` / `risks.md` / `adr/` / `PROFILES.md` just to "look complete" — add them on demand when actually used.
+1. Link the authoritative sources from an existing repository entry point when that improves discoverability.
+2. Use concise summaries or indexes only when useful; do not maintain a parallel copy of detailed guidance.
+3. Determine authority from project references, ownership, content, and source evidence. Do not assume a particular directory (including `rules/`) always wins.
+4. When sources conflict, cite both and ask the project owner to resolve the conflict; do not silently select or merge them.
+5. Add documents and indexes only when they address a confirmed need.
 
 ---
 
@@ -223,33 +191,14 @@ If inconsistencies are found: **fix the extraction script**, regenerate everythi
 
 ---
 
-## 9. Quality self-check checklist (decoupled from form)
+## 9. Quality self-check (apply where relevant)
 
-Minimum standard for docs to be considered "complete":
-
-### Orientation
-- [ ] Has an ASCII / mermaid diagram that fully draws the flow from external trigger to core components to output
-- [ ] Module table covers all top-level directories (each row: module / responsibility / entry file / main dependencies)
-- [ ] At least 1 end-to-end typical flow is fully drawn
-
-### Contract
-- [ ] Important public interfaces, commands, and APIs have enough usage and error guidance for their consumers
-- [ ] Reference pages are discoverable and match the implementation
-
-### Internals
-- [ ] Every persistence structure has a corresponding file, with all fields explained
-- [ ] Every key state machine has a diagram + transition conditions
-- [ ] Contracts with external dependencies (e.g. third-party APIs, protocol versions) have their own section
-
-### Operability
-- [ ] A newcomer can run it locally within 30 minutes following the docs
-- [ ] Test / build / deploy / rollback commands are all one-click executable
-- [ ] Key observability metrics / alert thresholds are listed
-- [ ] `unittest/unittest.md` has all three sections (environment setup / generation standards / running & debugging), and the "pre-dependency check checklist" in Section 1 is filled in according to this project's reality
-- [ ] If unit-test project rules exist in the repo (`rules/unittest_*.md`), `unittest/unittest.md` links to them and states the authority relationship (no copying of conflicting content)
-- [ ] `integration_test/integration_test.md` has relevant environment, test-case, and run/debug guidance, linked to project dependency or deployment docs when present
-- [ ] If integration-test project rules exist in the repo (`rules/integration_test_*.md` / `it_*.md`), `integration_test/integration_test.md` links to them and states the authority relationship
-- [ ] `devops/env.md` lists local startup methods
+- [ ] Claims are grounded in repository or linked team evidence; uncertainties are explicit
+- [ ] The chosen source is authoritative, discoverable, and does not duplicate another source
+- [ ] Guidance is specific enough for its intended readers and reflects actual project behavior
+- [ ] Instructions and commands were checked when practical
+- [ ] Conflicts, stale content, and unverified assumptions are reported rather than silently resolved
+- [ ] The update is limited to the topics affected by the identified gap or change
 
 ---
 
