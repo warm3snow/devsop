@@ -1,1 +1,0 @@
-../skills/devsop.init/scripts/pre_push_check.sh
