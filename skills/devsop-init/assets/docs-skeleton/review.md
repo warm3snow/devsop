@@ -49,9 +49,9 @@
 - [ ] Common code extracted to a reasonable level
 - [ ] No duplicate code (rule: the same logic appearing more than 3 times must be abstracted)
 
-### Compatibility
-- [ ] Protocol changes backward compatible (new fields do not break old clients)
-- [ ] DB schema changes support rollback
+### Interfaces and Data
+- [ ] API and data-model changes match the agreed requirements
+- [ ] Tests cover behavior affected by interface or schema changes
 - [ ] Dependency versions consistent with project constraints
 
 ---

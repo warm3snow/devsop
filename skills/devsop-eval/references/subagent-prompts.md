@@ -1,7 +1,7 @@
-# Sub-agent Prompt Frameworks (devsop-eval)
+# Optional Delegation Prompts (devsop-eval)
 
-> Loaded on demand by the main agent when dispatching evaluation sub-agents.
-> Two prompts: ① pillar-evaluation sub-agent (Step 3.1) ② JSON-conversion sub-agent (Step 6.1).
+> These prompts are optional accelerators. The main agent can perform the full assessment and JSON conversion without sub-agents.
+> Two prompts: pillar evaluation and JSON conversion.
 > All `<...>` placeholders are replaced with actual values by the main agent before dispatch.
 
 ---
@@ -15,7 +15,7 @@
 
 ## Prompt 1: Pillar-evaluation sub-agent
 
-Used in Step 3.1 (one sub-agent per pillar, 6 launched in parallel).
+Use only when the agent environment supports sub-agents and parallel evaluation is useful.
 
 ```text
 You are the DEVSOP evaluation sub-agent, responsible for the <N> Eval items (<ID list>) of pillar <X. pillar name>.
@@ -54,7 +54,7 @@ You are the DEVSOP evaluation sub-agent, responsible for the <N> Eval items (<ID
    a. Run commands to collect evidence with "Code Grader first":
       - ls / cat / grep / find / wc -l / git log
       - Do not deeply traverse the whole repo; only read necessary files
-   b. Give PASS / PARTIAL / FAIL per the scoring criteria
+   b. Give PASS / PARTIAL / FAIL per the scoring criteria; use NOT_ASSESSED when required evidence is unavailable
    c. Evidence ≤3 lines, must include concrete paths or command-output fragments
 
 3. For FAIL/PARTIAL items, look up the matching improvement suggestion in devsop-improvement-examples.md;
@@ -76,7 +76,8 @@ You are the DEVSOP evaluation sub-agent, responsible for the <N> Eval items (<ID
 # Constraints
 - Read-only; no file writes / git add / git commit
 - Do not read .git/, node_modules/, vendor/, bin/, logs*/, dist/, build/
-- When evidence is missing, prefer FAIL; never fabricate paths
+- When evidence is missing, return NOT_ASSESSED and explain what is unavailable; never fabricate paths or treat unavailable checks as failures
+- Omit the pillar score if any item is NOT_ASSESSED; the main agent calculates scores only after all items are assessed
 - When evaluation confidence is low (e.g. purely subjective judgment), append "(confidence: low)" at the end of the evidence
 ```
 
@@ -84,8 +85,7 @@ You are the DEVSOP evaluation sub-agent, responsible for the <N> Eval items (<ID
 
 ## Prompt 2: JSON-conversion sub-agent
 
-Used in Step 6.1 (`--json` / `--json-only` modes). The main agent launches one sub-agent to
-extract score data and Todo Suggestions from `.docs/devsop_report.md` and generate structured JSON.
+Use only when the agent environment supports sub-agents and JSON conversion is useful.
 
 ```text
 You are the DEVSOP report JSON conversion agent. Your task is to extract the total score, each pillar score, and Todo Suggestions from the generated DEVSOP evaluation report and generate a structured JSON file.

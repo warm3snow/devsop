@@ -3,10 +3,8 @@
 # agent-agnostic standard skills directory).
 #
 # Usage:
-#   bash install.sh          # install (idempotent; auto-discovers skills/*/SKILL.md)
-#   bash install.sh --check  # verify existing symlinks, no changes
-#
-# Idempotent: safe to run multiple times. New skills are picked up automatically.
+#   bash install.sh          # link the bundled skills into ~/.agents/skills/
+#   bash install.sh --check  # check links without changing the filesystem
 
 set -euo pipefail
 
@@ -17,7 +15,11 @@ warn()    { echo -e "${YELLOW}[WARN]${RESET} $*"; }
 fail()    { echo -e "${RED}[FAIL]${RESET} $*"; }
 
 MODE="install"
-[[ $# -gt 0 && "$1" == "--check" ]] && MODE="check"
+case "$#:$*" in
+  0:) ;;
+  1:--check) MODE="check" ;;
+  *) fail "Usage: bash install.sh [--check]"; exit 2 ;;
+esac
 
 # ── Resolve this repo's real location (handles symlinks) ────────
 REAL_SCRIPT="$(readlink "${BASH_SOURCE[0]}" 2>/dev/null || true)"
@@ -29,13 +31,21 @@ SKILLS_SRC="$(cd "$(dirname "${REAL_SCRIPT}")" && pwd)/skills"
 DEST_DIR="${HOME}/.agents/skills"
 
 [[ -d "${SKILLS_SRC}" ]] || { fail "skills/ not found at ${SKILLS_SRC}"; exit 1; }
-mkdir -p "${DEST_DIR}"
 
 # ── Auto-discover skills: every skills/*/ dir containing SKILL.md ──
 SKILLS=""
 for skill_dir in "${SKILLS_SRC}"/*/; do
   [[ -f "${skill_dir}SKILL.md" ]] && SKILLS="${SKILLS} $(basename "${skill_dir}")"
 done
+[[ -n "${SKILLS}" ]] || { fail "No skills found in ${SKILLS_SRC}"; exit 1; }
+
+if [[ "${MODE}" == "check" ]]; then
+  [[ -d "${DEST_DIR}" ]] || { fail "Skills directory does not exist: ${DEST_DIR}"; exit 1; }
+else
+  mkdir -p "${DEST_DIR}"
+fi
+
+FAILURES=0
 
 for skill in ${SKILLS}; do
   src="${SKILLS_SRC}/${skill}"
@@ -46,6 +56,7 @@ for skill in ${SKILLS}; do
       ok "${skill}"
     else
       warn "${skill}: not linked correctly (run 'bash install.sh' to fix)"
+      FAILURES=$((FAILURES + 1))
     fi
     continue
   fi
@@ -61,6 +72,7 @@ for skill in ${SKILLS}; do
   fi
   if [[ -e "${dst}" ]]; then
     fail "${skill}: ${dst} exists and is not a symlink — remove it manually"
+    FAILURES=$((FAILURES + 1))
     continue
   fi
   ln -s "${src}" "${dst}"
@@ -70,8 +82,16 @@ done
 SKILL_COUNT=$(echo "${SKILLS}" | wc -w | tr -d ' ')
 echo ""
 if [[ "${MODE}" == "check" ]]; then
-  echo -e "${CYAN}[INFO]${RESET} Check complete. Skills dir: ${DEST_DIR} (${SKILL_COUNT} skills)"
+  if [[ "${FAILURES}" -gt 0 ]]; then
+    fail "Check failed: ${FAILURES} skill link(s) missing or incorrect"
+    exit 1
+  fi
+  echo -e "${CYAN}[INFO]${RESET} Check passed. Skills dir: ${DEST_DIR} (${SKILL_COUNT} skills)"
 else
-  echo -e "${CYAN}[INFO]${RESET} Done. ${SKILL_COUNT} skills installed into ${DEST_DIR} (the agent-agnostic standard dir)."
+  if [[ "${FAILURES}" -gt 0 ]]; then
+    fail "Install incomplete: ${FAILURES} skill link(s) could not be created"
+    exit 1
+  fi
+  echo -e "${CYAN}[INFO]${RESET} Done. ${SKILL_COUNT} skills linked into ${DEST_DIR}."
 fi
 echo ""

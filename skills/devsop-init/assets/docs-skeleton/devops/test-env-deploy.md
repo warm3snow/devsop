@@ -3,8 +3,8 @@
 > This document explains how to call the Skills for test-environment operations.
 > All environment operations are handled uniformly through the **team environment management Skill**; no need to run CLI commands manually.
 >
-> This document is maintained by the `devsop-init` skill; it is **force-refreshed** when the skill is initialized or upgraded (project-customized areas are preserved; Git-managed, no backup needed).
-> Project-specific customizations such as the "component list" and "environment naming" should be filled into the `## Project Customization` section below to avoid being overwritten by the refresh.
+> This document is maintained by the `devsop-init` skill. Its project-specific `## Project Customization` section is preserved when the standard content is refreshed.
+> Add project-specific details such as the component list and environment names to that section.
 
 ---
 

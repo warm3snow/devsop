@@ -10,9 +10,9 @@
 - [Pillar F: Measurement mechanisms](#pillar-f-measurement-mechanisms-15-points) — F1–F4
 - [Placeholder Template Recognition Rules](#placeholder-template-recognition-rules-basis-for-content-substance-judgment)
 - [General PARTIAL Judgment Principles](#general-partial-judgment-principles)
-- [Notes for Sub-agents Using This Document](#notes-for-sub-agents-using-this-document)
+- [Notes for Evaluators](#notes-for-evaluators)
 
-This document provides `devsop-eval` with the judgment criteria, evidence sources, command examples, and PARTIAL boundaries for the 28 Eval items. Sub-agents must read the chapter for their pillar when scanning.
+This document provides `devsop-eval` with the judgment criteria, evidence sources, command examples, and PARTIAL boundaries for the 28 Eval items. Read the relevant chapters for each assessment.
 
 > Basis: team AI R&D workflow DEVSOP v1.0
 > Score mapping: ✅ PASS = full score, ⚠️ PARTIAL = full score × 40%, ❌ FAIL = 0
@@ -791,9 +791,9 @@ When the PASS / FAIL boundary is unclear, use the following decision tree:
 
 ---
 
-## Notes for Sub-agents Using This Document
+## Notes for Evaluators
 
-- Each pillar sub-agent only needs to read its own chapter; do not load the whole document
+- Read only the chapters needed for the current assessment
 - Prefer executing command examples with the `Bash` / `Grep` / `Glob` tools rather than depending on external commands
 - When a command does not apply to the project's language stack (e.g. running npm commands on a Go project), skip that command rather than error out
 - Keep command-output fragments in evidence (first 3 lines); do not keep full stderr

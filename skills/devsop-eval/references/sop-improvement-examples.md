@@ -11,7 +11,7 @@
 - [Anti-pattern Specialized Improvements](#anti-pattern-specialized-improvements)
 - [General Suggestion Generation Rules](#general-suggestion-generation-rules)
 
-This document provides `devsop-eval` with a lookup library for "FAIL/PARTIAL → executable improvement actions". Sub-agents should match this library first when generating improvement suggestions; if no match, generate with the model.
+This document provides `devsop-eval` with examples for turning findings into executable improvement actions. Use the closest example when relevant; otherwise write a specific, evidence-based action.
 
 > **Three elements of an improvement suggestion**:
 > 1. **Executable**: must be of the form "add section Y to file X" / "configure tool Z" / "run command N"; empty phrases like "should strengthen X" are forbidden
@@ -399,9 +399,8 @@ If all three are missing, start with Path ① — local spec accumulation is the
 ### F1 devsop_report.md long not updated
 
 **Improvement action**:
-1. **Running devsop-eval this time updates the file** (creating it satisfies the requirement)
-2. **Establish a monthly evaluation mechanism**: add "run devsop-eval in the first week of each month" to the team weekly meeting agenda
-3. **Configure a scheduled CI job** (optional): add a scheduled job on the project's CI platform (e.g. GitHub Actions `schedule`/`cron`) triggering on the 1st of each month, run `devsop-eval --dry-run`, archive `.docs/devsop_report.md`, and mark the build UNSTABLE when the total drops below the threshold — alert but do not block
+1. **Run devsop-eval through an AI coding agent** to create the report (creating the report satisfies the first-evaluation requirement)
+2. **Establish a monthly evaluation reminder**: add "ask an AI agent to run devsop-eval" to the team review agenda
 
 ### F2 No AI session/memory/failure-case retention
 
@@ -447,7 +446,7 @@ Convention: append after each pitfall fix so historical issues are traceable in 
 2. **Immediately fix 1-2 high-priority FAIL items**: see the improvement suggestions for the corresponding Eval in this document
 3. **Establish a closure mechanism**: add a "DEVSOP improvement tracking" agenda item to the team monthly meeting:
    - Have the previous FAIL/PARTIAL items been fixed?
-   - After fixing, re-run `devsop-eval` to verify whether they upgraded to PASS
+   - After fixing, ask the agent to run `devsop-eval` again and verify the evidence
 4. **Mark the improvement trajectory in `.docs/devsop_report.md`**: after each evaluation, compare with the previous result and record the change in the "comparison with the previous evaluation" section
 
 ---
@@ -495,7 +494,7 @@ git commit -m "chore: remove leaked sensitive files"
 
 ## General Suggestion Generation Rules
 
-When this library does not match a specific scenario, sub-agents generate per the following principles:
+When this library does not match a specific scenario, generate suggestions using these principles:
 
 1. **Anchor on Eval ID**: every suggestion must clearly reference 1 Eval ID
 2. **Three executable elements**: where to change (file path) + what to change (specific content) + how to change (command or modification example)

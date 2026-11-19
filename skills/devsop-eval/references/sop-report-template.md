@@ -7,6 +7,7 @@
 - Todo Suggestions must be wrapped in `DEVSOP_TODOS_START` / `DEVSOP_TODOS_END` HTML markers (used by the JSON converter).
 
 This template is used by the `devsop-eval` skill to render the final report, **target path: `.docs/devsop_report.md`**.
+Use it only for the full 28-item assessment; the default quick check uses a shorter six-pillar format without a score.
 
 > Rendering rules:
 > - `{placeholders}` are filled in by the main agent
@@ -53,13 +54,6 @@ This template is used by the `devsop-eval` skill to render the final report, **t
 | 40-59 | L2 | Gates established |
 | 60-79 | L3 | Closed-loop flow |
 | 80-100 | L4 | Continuous optimization |
-
-### Comparison with the Previous Evaluation *(only output in `--diff-from` mode)*
-
-| Pillar | Previous score | Current score | Change |
-|--------|----------------|---------------|--------|
-| A | {X} | {X} | ↑/↓/= {X} |
-| ... | | | |
 
 ---
 
@@ -218,7 +212,7 @@ This template is used by the `devsop-eval` skill to render the final report, **t
 
 | # | Related Eval | Issue | Action | Expected benefit |
 |---|--------------|-------|--------|------------------|
-| 1 | {C1} | {specific missing content} | {concrete executable action, with file path/command} | {which Eval upgrade is unlocked when done} |
+| 1 | {C1} | {specific missing content} | {concrete executable action, with file path/command} | {expected status or score change} |
 | 2 | ... | | | |
 
 ### 🌱 Medium priority (complete within this month)
@@ -242,18 +236,18 @@ This template is used by the `devsop-eval` skill to render the final report, **t
 **Current level**: L{N} — {level name}
 **Next target**: L{N+1} — {next level name}
 
-### Key milestones for the upgrade
+### Improvement milestones
 
-To upgrade from L{N} to L{N+1}, you need to achieve:
+To reach L{N+1}, prioritize:
 
-- [ ] {milestone 1: e.g. "upgrade C2 from PARTIAL to PASS"}
+- [ ] {milestone 1: e.g. "improve C2 from PARTIAL to PASS"}
   - Key action: {concrete action}
   - Owner: {suggested assignee}
 - [ ] {milestone 2}
   - ...
 - [ ] {milestone 3}
 
-> After completing the milestones above, run `devsop-eval` again to verify the upgrade.
+> After completing the milestones above, ask an AI coding agent to run `devsop-eval` again and verify the evidence.
 
 ---
 

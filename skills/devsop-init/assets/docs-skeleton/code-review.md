@@ -82,7 +82,7 @@ All PRs/MRs merged into `{{main / master}}` must go through review; AI-generated
 ### Optional (per scenario)
 
 - [ ] Internationalization: whether hardcoded text should be extracted
-- [ ] Compatibility: impact of API field changes, database migrations
+- [ ] API and data-model changes match the requirements and have relevant tests
 - [ ] Documentation: whether README / ARCHITECTURE / OpenAPI are kept in sync
 
 ## 4. Review Reply Etiquette

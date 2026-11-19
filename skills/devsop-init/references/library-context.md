@@ -100,24 +100,9 @@ Replace "service topology diagram" with "module dependency graph"
 
 ---
 
-## § AGENTS.md-specific
+## Project entry
 
-The current `AGENTS.md` template (`assets/agents.md.tmpl`) has four sections: 1. Quick index / 2. DEVSOP / 3. Development conventions / 4. Forbidden red lines. Library projects are differentiated as follows (executed by Agent A in batch one, see `special-agent-agents.md`):
-
-### Section 1. Quick index (delete lines)
-- Delete the "Database / persistence schema" line (`.docs/sqls/`)
-- Delete the "Test environment deployment / code sync" line (`.docs/devops/test-env-deploy.md`)
-- Delete the "Integration testing standards" line (`.docs/integration_test/integration_test.md`) — library projects have no standalone runtime environment
-- Keep the "Unit testing standards" line (`.docs/unittest/unittest.md`; libraries still need unit tests)
-
-### Section 2. DEVSOP
-- The 9-stage process is kept, but Step 5 Deploy / Step 6 IT can be skipped for library projects (no standalone runtime environment, no external service interfaces)
-- Skipping must be noted with a reason in the `00-overview.md` Progress, with the time log filled with the same timestamp and the remark column reading "skipped: library project has no such stage"
-
-### Section 3. Development conventions
-- Add exported API stability rules (e.g.: public interface changes must go through the deprecation process; breaking changes bump the major version)
-- Add the minimal dependency principle (zero-dependency / minimal-dependency preferred)
-- Add backward compatibility constraints (semver, the core contract of a library project)
+Keep the generated `AGENTS.md` concise. For a library, emphasize its public package surface, examples, and the commands used to build and test it. Do not add service deployment or runtime guidance unless the library actually has those concerns.
 - Delete DB interaction conventions and deployment environment requirements
 
 ### Section 4. Forbidden red lines

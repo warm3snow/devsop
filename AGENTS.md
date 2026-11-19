@@ -13,26 +13,15 @@
 | AI collaboration entry | `AGENTS.md` (this file; the generic entry shared by all AI coding agents) |
 | DEVSOP scaffolding skill (create `.docs/` skeleton in target projects) | `skills/devsop-init/SKILL.md` |
 | DEVSOP maturity audit skill | `skills/devsop-eval/SKILL.md` |
-| Requirement clarification skill | `skills/devsop-init/assets/clarify-skill/SKILL.md.tmpl` |
 | Language coding standards | `rules/` — Go / Python / Java / TypeScript / Rust style guides |
 | Skill installation script | `install.sh` |
 
-### Common Commands
+### Repository Commands
 
 ```bash
-# Install skills into ~/.agents/skills/ (the agent-agnostic standard dir)
+# Link the two skills into ~/.agents/skills/
 bash install.sh
-bash install.sh --check        # verify existing symlinks
-
-# Initialize the DEVSOP structure in a target project
-devsop-init
-devsop-init --dry-run          # preview the changes
-devsop-init --update-only      # only update templates
-
-# Audit a target project's DEVSOP compliance
-devsop-eval
-devsop-eval --json             # JSON format output
-devsop-eval --diff-from HEAD~3 # incremental audit
+bash install.sh --check
 
 # Git Hooks checks (this repo)
 bash scripts/pre_commit_check.sh
@@ -47,9 +36,10 @@ bash scripts/commit_msg_check.sh
 
 - **Skills live under `~/.agents/skills/` (user-level) or `<repo>/.agents/skills/` (project-level)** — the agent-agnostic standard locations; never depend on any specific AI coding tool's config dir.
 - **`$SKILL_DIR` and `$REPO_ROOT` are strictly separated**: Skills only read the install directory and write only to the target project directory; never write to this repo or `$HOME`.
-- **No auto-commit**: `devsop-init` / `devsop-eval` do not run `git add` / `git commit`; changes are left for the user to review.
+- **Skill invocation**: `devsop-init` and `devsop-eval` are Skills invoked through an AI coding agent that supports the Skills format; they are not terminal commands.
+- **No auto-commit**: the Skills do not run `git add` / `git commit`; changes are left for the user to review.
 - **Keep the shipped skill set focused**: maintain `devsop-init` and `devsop-eval` as the two standalone skills; companion templates remain inside the skill that uses them.
-- **Template changes**: after modifying templates under `devsop-init/assets/`, run `devsop-init --update-only` to verify the generated `AGENTS.md` is ≤300 lines (≤200 is excellent).
+- **Template changes**: after modifying templates under `skills/devsop-init/assets/`, verify the generated `AGENTS.md` stays within its line limit.
 - **Skill scripts**: follow the matching `rules/*-style-guide.md` (Go / Python / Java / TypeScript / Rust). Shell scripts must pass `bash -n`; Python must pass `ast.parse`.
 
 ### Git Hooks (this repo's CI)

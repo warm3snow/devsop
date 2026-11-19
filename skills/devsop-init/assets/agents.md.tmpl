@@ -1,204 +1,39 @@
-# {{PROJECT_NAME}} — AI Collaboration Entry Point
+# {{PROJECT_NAME}} — AI Collaboration Guide
 
-> This file is the **single source of truth entry point** for AI collaboration (AGENTS.md), shared by all AI coding agents. No tool-specific entry files are required.
-> Specific technical docs are maintained in `.docs/`, task deliverables in `.docs/plans/<task dir>/`; this file only serves as an index + recovery protocol + project-specific red lines.
+This file is the project entry point for AI coding agents. Keep project-specific facts here and link to focused docs under `.docs/`.
 
----
+## Project Docs
 
-## §1 Quick Index
+| Topic | Location |
+|---|---|
+| Project architecture | `.docs/architecture.md` |
+| Coding conventions | `.docs/coding-style.md` |
+| Code review | `.docs/code-review.md` |
+| Unit tests | `.docs/unittest/unittest.md` |
+| Task notes | `.docs/plans/` |
+| Optional API, database, relationship, integration-test, DevOps, glossary, failure, and logging docs | Read when present |
 
-| What you want to know | Document Location |
-|-----------|---------|
-| Overall project architecture, module division, key flows | `.docs/architecture.md` |
-| Upstream/downstream / integrator relationships | `.docs/relationship.md` |
-| API docs (organized by module) | `.docs/apis/<module>/<API name>.md` |
-| API docs master index | `.docs/apis/index.md` |
-| Database / persistence schema | `.docs/sqls/` |
-| **Unit test standards (environment / generation / run & debug, three parts)** | **`.docs/unittest/unittest.md`** (if project rules exist — `rules/unittest_*.md` — they are authoritative) |
-| **Integration test standards (environment / cases / run & debug, three parts)** | **`.docs/integration_test/integration_test.md`** (if project rules exist — `rules/integration_test_*.md` — they are authoritative) |
-| Environment setup and startup | `.docs/devops/env.md` |
-| Test environment deployment / code sync | `.docs/devops/test-env-deploy.md` |
-| Coding standards (line length / complexity / naming / secure coding) | `.docs/coding-style.md` |
-| Team manual Code Review flow and merge criteria | `.docs/code-review.md` |
-| Logging standards (levels / must-log scenarios / desensitization / trace) | `.docs/logging.md` |
-| AI Code Review guidance standards | `.docs/review.md` |
-| All task lists | `ls .docs/plans/` (one directory per task, non-interfering) |
-| Overview & progress of a single task (**single source of truth**) | `.docs/plans/YYYY-MM-DD_<title>/00-overview.md` |
-| Per-stage deliverables of a single task | `.docs/plans/YYYY-MM-DD_<title>/0N-<step>.md` |
+## Working in This Repository
 
-### Skill Trigger Matrix
+1. Read this file, the project README, and the relevant code before making changes.
+2. Follow existing patterns and documented commands. If a detail is unknown, inspect the repository or ask; do not invent project facts.
+3. For non-trivial work, record the goal, approach, risks, and validation in a task note under `.docs/plans/`. Keep small changes lightweight.
+4. Make focused changes and preserve unrelated work in the working tree.
+5. Run the smallest relevant tests and checks. Report what passed, what did not run, and why.
+6. Update project docs when behavior or setup changes.
+7. Review the final diff and summarize the result.
 
-> If you think there is even a 1% chance a skill applies to what you are doing, you MUST use it. This is not optional and cannot be rationalized away.
-> **If your agent has no skill-loading mechanism**: skills are plain Markdown — read `.agents/skills/<name>/SKILL.md` directly and follow it (e.g. `.agents/skills/clarify/SKILL.md` as the Stage-01 clarification protocol).
+## Safety and Quality
 
-| What you are doing | Skill to use | Key principle |
-|--------------------|--------------|---------------|
-| Starting a requirement / the user describes a change | `devsop-init` (once per project) + `clarify` (per task, Stage 01) | Scaffold first; clarify before plan |
-| Planning / implementing / committing any task | The 9-step DEVSOP below (per-task md artifacts, TDD red-green) | Evidence in `.docs/plans/<task>/` |
-| Baseline or monthly compliance check | `devsop-eval` (supports `--dry-run` / `--only` / `--diff-from`) | Measure before you judge |
+- Never expose, add, or commit credentials or other secrets.
+- Validate external input and use safe, established APIs for security-sensitive operations.
+- Ask before destructive actions, production changes, or actions with external side effects.
+- Do not commit or push unless the user asks.
+- Keep code, tests, and docs consistent. Prefer simple solutions over speculative abstractions.
 
-### Three-Tier Boundaries
+## Skills
 
-| Tier | Meaning | Examples (extend per project) |
-|------|---------|-------------------------------|
-| ✅ Always do | Non-negotiable defaults | Run lint+UT before commit; write per-stage md artifacts; follow `.docs/coding-style.md` |
-| ⚠️ Ask first | Higher-risk or user-preference-dependent | Hot-deploying to the test environment (Stage 05); changing public API; adding a dependency |
-| 🚫 Never do | Hard prohibitions | Commit secrets/credentials; skip TDD red-green; modify other tasks' md artifacts; `git push --force` (use `--force-with-lease`) |
+- `devsop-init` creates this guide and the core project documentation.
+- `devsop-eval` reviews project development practices; it runs a quick check by default and a full scored assessment when requested.
 
----
-
-## §2 DEVSOP (Standard Development Flow)
-
-> **Trigger**: when the user describes a requirement / says "start DEVSOP" / "create a task: <description>", enter automatically, advancing from Step 1 Clarify.
-> **Entry determination**: after establishing/locating the task directory, if `01-clarify.md` already has valid content → skip Clarify and go directly to Plan (requires user confirmation + mark the skip in `00-overview.md`).
-
-### Context Recovery (MANDATORY every session / clear / compact)
-
-> <EXTREMELY-IMPORTANT>
-> This recovery protocol is non-negotiable. Skipping it because "I remember this project" is forbidden — state changes between sessions, and stale context corrupts the current task.
-> </EXTREMELY-IMPORTANT>
->
-> 1. Read `AGENTS.md` → 2. `git branch --show-current` → 3. Traverse `.docs/plans/*/00-overview.md` to match the branch → 4. Read the current task's `00-overview.md` → 5. Lazy-load the current stage md → 6. Report progress to the user.
-> No match → handle per the "DEVSOP Startup Prerequisites".
-
-### Task Isolation (mandatory)
-
-> **Strictly forbidden** for AI to proactively read/reference any md under **other** task directories `.docs/plans/<other task>/`. Tasks are physically isolated and each is an independent source of truth; cross-task references will contaminate design judgment.
-> **The only exception**: the user **explicitly** says "reference task X" → read only the specified directory; the content stays in the conversation context, and **writing back to the current task's deliverables automatically is forbidden**.
-
-### DEVSOP Startup Prerequisites: Branch and Task Determination
-
-> 1. `git branch --show-current` to get the branch name
-> 2. Match the branch under `.docs/plans/`:
->    - **Has a matching task** → continue per `00-overview.md`
->    - **None + on master/main** → brand-new requirement: `git checkout -b feature/<name> origin/master` → `cp -r .docs/plans/_template .docs/plans/YYYY-MM-DD_<title>` → **simplify the comments** (see ③ below) → fill in Meta → enter the entry determination
->    - **None + on a feature/ branch** → "Collaborative Development Detection"
-> 3. **After copying _template/, the comments must be simplified** (applies to brand-new requirements / collaborative development, **AI must execute**): open the new `plans/<task>/00-overview.md`, delete **entirely** all HTML comment blocks marked with `<!-- TEMPLATE-ONLY-DO-NOT-COPY: -->` (including the marker lines), replacing them with a single-line pointer to `_template/00-overview.md`; also delete **entirely** the header "⚠️ TEMPLATE ONLY" section. DEVSOP rules are maintained only in `_template/`; it is **forbidden** to repeat ~30 lines of rules in every task file (noise + version drift). See the top of `_template/00-overview.md` for details.
->
-> **Forbidden** to do DEVSOP on `master`/`main`; one branch may only correspond to one task directory.
-
-### Collaborative Development Detection (design.md-driven)
-
-> Trigger: current branch is non-master/main and has no matching task.
-> - `.docs/design.md` exists and the user confirms using it → create the task directory (also simplify _template/ comments per ③ above) → fully derive `01-clarify.md` + `02-plan.md` from design.md (forbidden to just write "see design.md") → fill in Meta (`Development mode`=collaborative, `Test environment`) → after self-check, delete design.md → start from Step 3
-> - design.md does not exist → standard flow
-
-### The 9 Step Definitions
-
-| # | Step | Deliverable | Description |
-|---|------|------|------|
-| 1 | **Clarify** | `01-clarify.md` | `skill: clarify` clarifies the requirements, producing background/goals/open questions |
-| 2 | **Plan** | `02-plan.md` | Changed files, call chain, **§6 UT cases (TDD required)**, IT cases, risks |
-| 3 | **Implement** | `03-implement.md` | Red-Green cycle per Plan §6: write UT and run red first → minimal implementation to green → refactor |
-| 4 | **UT** | `04-ut.md` | Cases aligned item by item with Plan §6, coverage, uncovered lines |
-| 5 | **Deploy** | `05-deploy.md` | Hot-deploy code to the test environment via the team environment management Skill |
-| 6 | **IT** | `06-it.md` | Paste key logs (with reqid) for each case; not skipped in collaborative mode |
-| 7 | **Docs** | `07-docs.md` | Incrementally update `.docs/` |
-| 8 | **Review** | `08-review.md` | Code review results |
-| 9 | **Commit** | `09-commit.md` | ① Ask about the issue/task ticket → ② Release the environment → ③ Advance the ticket status to "Developing" → ④ Write commit message → ⑤ Update overview (boundary point A) → ⑥ One-time `git add` → ⑦ `git commit` (first time only) → ⑧ `git push` creates the MR, triggering the ticket status "Developing→CR" → ⑨ (repeatable until the MR merges) amend to accumulate fixes (one MR one commit principle) |
-
-### Task Size Branch
-
-> **Trigger condition**: when the 02 Plan stage estimates `estimated code change lines ≤ 10`, set `Small-requirement mode` to ✅ in the `00-overview.md` Meta. From 03 onward, execute per the rules below.
-
-| # | Step | Standard Mode | Small-Requirement Mode |
-|---|------|----------|------------|
-| 1 | Clarify  | Confirm | **Confirm** |
-| 2 | Plan     | Confirm | **Confirm** |
-| 3 | Implement | Confirm | **Automatic** (run combined with 04, report once at the end) |
-| 4 | UT       | Confirm | **Automatic** (run combined with 03, report once at the end) |
-| 5 | Deploy   | Confirm | **Confirm** (environment-sensitive, must be explicitly confirmed) |
-| 6 | IT       | Confirm | **Confirm** (involves real chain / reqid verification, skipping confirmation is not allowed) |
-| 7 | Docs     | Confirm | **Automatic** |
-| 8 | Review   | Confirm | **Automatic** |
-| 9 | Commit   | Confirm | **Automatic** (environment release still follows section 0 of `09-commit.md`) |
-
-> "Automatic" ≠ skip deliverables: the md deliverables of 03-04 / 07-09, the `00-overview.md` time records, and Progress check-offs **must still** be written per the normal flow. "Automatic" only means merging the two confirmations (start/end) of the step into one — AI says "I'm going to do X-Y-Z" once and starts running, then reports once at the end ("03-04 complete (summary of conclusions)"), **without interrupting the user in between**.
->
-> **05 Deploy / 06 IT must still be explicitly confirmed**: Deploy involves environment side effects and IT involves real-chain verification; these are the two most error-prone steps in the DEVSOP and are not included in the automatic batch.
->
-> **Batch time records**: for the 03-04 / 07-09 batches, the `00-overview.md` time-tracking table writes the **same** start time and the **same** end time for every row of each batch (the moment the batch starts/ends), and the duration is also the same value; write "Small-requirement mode batch: 03-04" or "Small-requirement mode batch: 07-09" in the remarks column for aggregation. See rule 9 of the `00-overview.md` time-tracking section.
->
-> **Rollback mechanism**: if, after entering 03, the actual changes turn out > 10 lines (underestimate), AI should change `Small-requirement mode` back to ⬜ when reporting the 03-04 conclusions, and from 05 onward run in standard mode (05/06 still confirmed; 07-09 decided based on the new judgment). Time records already written per batch are **not backfilled** — batch records correctly reflect the actual work window, and cross-task statistics can be recognized by the "Small-requirement mode batch" prefix.
-
-### Step Execution Rules
-
-> Each step follows the **five-part pattern**: start confirmation → record start time → execute → record end time → end confirmation.
->
-> - **Start confirmation**: must obtain the user's explicit consent
-> - **Time records**: write start/end times into `00-overview.md` accurate to the second using `date "+%Y-%m-%d %H:%M:%S"`; backfilling afterwards is forbidden
-> - **End confirmation**: present "✅ step complete + core conclusions + duration + next-step overview" → wait for the user to reply agree/pause/adjust
-> - **Forbidden** to skip steps automatically without confirmation; **forbidden** to merge start/end into a single question
-> - **Small-requirement mode exception**: the start/end confirmations of 03-04 and 07-09 may be merged into a single question ("I'm going to do 03-04, report once when done"), but the deliverable files + time records + Progress check-offs are **not exempt**
-
-### Commit Standards
-
-> This section is the **DEVSOP entry** — `09-commit.md` gives the **checklist + forms**; the complete rules are in the team issue-tracker skill / `SKILL.md` red line 4.
-
-**Order**: ① Ask about the issue/task ticket → ② Release the environment (team environment management Skill) → ③ Advance the ticket status to "Developing" (team issue-tracker Skill) → ④ Write the `09-commit.md` commit message → ⑤ Update `00-overview.md` (triggers **boundary point A**) → ⑥ One-time `git add` (code + plans deliverables + 00-overview.md + docs) → ⑦ `git commit` (first time only) → ⑧ `git push` creates the MR, triggering the ticket status **Developing → CR** → ⑨ (repeatable until the MR merges) code fix amend → merge triggers **boundary point B**.
-
-> **Note on timing**: the trigger condition for the ticket status "Developing → CR" is "automatic after MR submission"; only push (step ⑧) creating the MR can trigger it, and it is **not** a prerequisite of step ③; step ③ only needs to advance to "Developing".
->
-> **New: forbidden to modify `00-overview.md` / `09-commit.md` after boundary points A / B** — completing steps ④+⑤ triggers boundary point A (commit content finalized); MR merge triggers boundary point B (task wrap-up). Between the two, the **only exception** is the step ⑨ code fix via amend — **only change the code itself, do not touch md**; repeatable without limit, always one commit; once merged, completely frozen. Full rules in the "1. Execution Order" section of `09-commit.md`.
-
-**When entering commit, you MUST first ask whether there is an issue/task ticket** (AI must execute entry): do not just look at the `00-overview.md` Meta field and assume yes / no; if there is none, you **must guide the user to create one** (default recommended path A: AI creates it on behalf via the team issue-tracker skill). 4 situations: ① user gives an ID ② AI creates it on behalf ③ user creates it manually then gives the ID ④ skip (must record the reason in the key decision log). See the "0.0 Ask about the ticket" section of `09-commit.md`.
-
-**Ticket status advancement** (mandatory when part of the team flow): before commit, call the team issue-tracker Skill to advance the status from the current node to "Developing" (solution reviewed → scheduled → developing); **CR is automatically triggered by the MR submission after push**, not completed before commit, and is **not mandatory** to backfill in `09-commit.md` (the tracker's status is the only source). **Before task wrap-up**, query the real ticket status with the team issue-tracker Skill to confirm it has landed on **CR**. See the "0.2 Ticket Status Advancement" section of `09-commit.md`.
-
-**Commit title format**: `<type>(<module-or-service>): <subject>`. Use one of four types: `feat` (feature), `fix` (bug fix), `docs` (documentation), or `refactor` (internal change without behavior change). The required scope is the lowercase name of the changed module or microservice, using letters, numbers, and hyphens (e.g. `gateway`). Example: `feat(gateway): add circuit break function`. The commit-msg hook checks this title format only; ticket tracking is handled by the task workflow.
-
-**One MR one commit (iron rule)**: the MR for this task may only have one commit. Any fix (before push / follow-up after DEVSOP completes / push meta-information additions) must go through `git commit --amend` to accumulate into the original commit; **strictly forbidden** to add a second commit. After amend, push must use `git push --force-with-lease` (**forbidden** bare `--force`). See the "2. Amend Process" section of `09-commit.md`.
-
----
-
-## §3 Development Guidelines
-
-<!--
-Append project-specific development standards here, e.g.:
-- Standard steps for adding new interfaces / new pages / new services
-- API naming style (e.g. AWS-style PascalCase, RESTful kebab-case)
-- DB interaction guidelines (must hit indexes, sync field definitions to `.docs/sqls/`)
-- Code check commands (lint / format / type check)
-- Language / framework version constraints (e.g. Go 1.22, go-zero v1.6.x)
-- Security baseline (SQL parameterization, no hardcoded credentials, etc.)
--->
-
-### Code Checks (CI mandatory · commands first)
-
-<!-- Adjust the targets to this project's real Makefile/CI; keep this block near the top of §3 -->
-```bash
-make build   # compile, must pass before commit
-make lint    # e.g. golangci-lint run (see .golangci.yml)
-make ut      # e.g. go test ./... (coverage threshold per CI)
-make format  # e.g. gofmt -w ./... or goimports
-```
-
-| Rule | Requirement |
-|------|------|
-| Line length |  |
-| Trailing whitespace |  |
-| Indentation |  |
-| Unused imports |  |
-| File encoding declaration |  |
-
-### Language / Framework Version Constraints
-
-<!-- TODO: fill in the version matrix, e.g. Go 1.22 (consistent with the go directive in go.mod) / go-zero v1.6.8, etc. -->
-
-### Security Baseline
-
-1. SQL must be parameterized; string concatenation is forbidden.
-2. Hardcoded keys, tokens, and passwords are forbidden.
-3. External input must be validated; output escaped per scenario.
-4. Encryption uses the standard library; self-developed algorithms are forbidden.
-
----
-
-## §4 Forbidden Red Lines
-
-<!-- TODO: fill in this project's fatal red lines (architecture / performance / security / testing) -->
-
-| # | Red Line | Consequence |
-|---|------|------|
-| 1 | **Strictly forbidden for AI to proactively read/reference md deliverables under other `.docs/plans/<other task dir>/`** (including `00-overview.md`, `01-clarify.md` … `09-commit.md`, `.docs/design.md`, etc.); only when the user **explicitly** specifies "reference task X" may the specified task directory be read, and the referenced content is forbidden from being automatically written back to the current task. See the "Task Isolation Principle (mandatory)" section above. | Task single source of truth contaminated; cross-task context interferes with the current task's design; conflicts with concurrent development |
-| 2 |  |  |
+Use Skills through an AI coding agent that supports them. If a Skill is not automatically discoverable, read its `SKILL.md` from the installed skills directory.
