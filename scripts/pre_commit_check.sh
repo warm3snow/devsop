@@ -1,1 +1,1 @@
-../skills/devsop.init/scripts/pre_commit_check.sh
+../skills/devsop-init/scripts/pre_commit_check.sh

@@ -1,1 +1,0 @@
-../skills/devsop.init/scripts/lib_check.sh

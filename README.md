@@ -6,33 +6,25 @@ This repository is the team R&D DEVSOP (Standard Operating Procedures) **AI Skil
 
 Problems it solves:
 - Scattered, duplicated AI entry files → unified as a single source of truth in `AGENTS.md` (the generic entry shared by all AI agents).
-- Projects lacking AI-friendly structure, quality gates, and change flows → one-command scaffolding with `devsop.init`, quantified maturity with `devsop.eval`.
-- High-risk secret leaks in incremental changes → language-agnostic `secret-leak-review` before merge.
+- Projects lacking AI-friendly structure, quality gates, and change flows → one-command scaffolding with `devsop-init`, quantified maturity with `devsop-eval`.
 
 ## Core Feature List
 
-- **`devsop.init`**: one-command creation of the DEVSOP directory structure in the target project (`AGENTS.md` / `.docs/` regulations library + Git Hooks + the `clarify` skill under `.agents/skills/`).
-- **`devsop.eval`**: read-only DEVSOP compliance audit of the target project (six pillars, 28 Eval items, anti-pattern detection), producing `.docs/devsop_report.md`.
-- **`secret-leak-review`**: language-agnostic privacy-leak review of incremental code (passwords / tokens / keys / PII printed to logs, including indirect whole-object serialization leaks), outputting a JSON report.
+- **`devsop-init`**: one-command creation of the DEVSOP directory structure in the target project (`AGENTS.md` / `.docs/` regulations library + Git Hooks + the `clarify` skill under `.agents/skills/`).
+- **`devsop-eval`**: read-only DEVSOP compliance audit of the target project (six pillars, 28 Eval items, anti-pattern detection), producing `.docs/devsop_report.md`.
 
 ## Repository Structure
 
 ```
 skills/
-├── devsop.init/            # DEVSOP directory scaffolding Skill
+├── devsop-init/            # DEVSOP directory scaffolding Skill
 │   ├── SKILL.md
 │   ├── references/      # templates + sub-agent instructions + hooks
 │   └── assets/          # copyable configs such as .golangci.yml
-├── devsop.eval/            # DEVSOP maturity audit Skill
+├── devsop-eval/            # DEVSOP maturity audit Skill
 │   ├── SKILL.md
 │   ├── references/      # scoring criteria / report template / improvement examples
 │   └── scripts/         # detection scripts + JSON validation
-├── secret-leak-review/     # language-agnostic incremental secret-leak review Skill
-│   ├── SKILL.md
-│   ├── references/      # sub-agent review instructions (L0-L4 levels + exemptions)
-│   └── scripts/         # diff extraction (bash) + report assembly (python)
-└── devsop.skill-authoring/ # skill-writing meta skill (self-bootstrapping)
-    └── SKILL.md
 
 rules/                      # always-on language coding standards for AI agents
 ├── go-style-guide.md       #   Go (Google Golang style guide baseline)
@@ -51,33 +43,22 @@ bash install.sh            # symlinks skills/ → ~/.agents/skills/ (auto-discov
 bash install.sh --check    # verify the symlinks without changes
 ```
 
-Skills are discovered and invoked by the AI coding agent in the target project by the `skills/<name>` path. This repository itself needs no build or running service.
+Only `devsop-init` and `devsop-eval` are distributed as standalone skills. Skills are discovered and invoked by the AI coding agent in the target project by the `skills/<name>` path. This repository itself needs no build or running service.
 
 Entry-point invocation of each Skill (run at the target project root):
 
 ```bash
-devsop.init              # initialize the DEVSOP directory (supports --dry-run / --skip-harness / --only / --update-only)
-devsop.eval              # audit DEVSOP compliance (supports --dry-run / --only / --json / --json-only / --diff-from)
-secret-leak-review       # review a commit range for secret leaks (incremental / single / full modes)
+devsop-init              # initialize the DEVSOP directory (supports --dry-run / --skip-harness / --only / --update-only)
+devsop-eval              # audit DEVSOP compliance (supports --dry-run / --only / --json / --json-only / --diff-from)
 ```
 
-## Open-Source Skill Adoption Plan
+## Skill Scope
 
-The former `go-quality-scorer` (six-dimension Go scoring) was removed: its toolchain layer was deeply Go-specific and de-language-izing it meant a rewrite rather than a refactor. Quality **gates** remain covered by `devsop.eval` pillar C; language-agnostic quality **skills** are planned to be adopted from mature open-source ecosystems:
-
-| Candidate (open source) | Covers | Adoption criteria |
-|--------------------------|--------|-------------------|
-| `addyosmani/agent-skills` — `code-review-and-quality` | five-axis review, severity labels, change sizing | language-agnostic; active maintenance |
-| `addyosmani/agent-skills` — `security-and-hardening` | OWASP top 10, auth patterns, dependency audit | language-agnostic; active maintenance |
-| `addyosmani/agent-skills` — `performance-optimization` | measure-first profiling, anti-pattern detection | language-agnostic |
-| `obra/superpowers` — `test-driven-development` | red-green-refactor discipline | complements the DEVSOP TDD red line |
-| others (TBD) | code simplification, debugging | per team need |
-
-Adoption checklist for each candidate: ① SKILL.md ≤300 lines with frontmatter; ② no tool-specific lock-in; ③ MIT/Apache-2.0 license; ④ vendored under `skills/<name>/` with upstream attribution in the SKILL.md header; ⑤ passes `bash scripts/validate_skills.sh`.
+The library intentionally maintains two standalone skills: `devsop-init` for project onboarding and `devsop-eval` for maturity evaluation. Keep additional capabilities out of the default installation unless they are necessary to deliver one of these two workflows.
 
 ## Collaboration Conventions
 
 - **`$SKILL_DIR` and `$REPO_ROOT` are strictly separated**: Skills only read the install directory and write only to the target project directory; never write to this repository or `$HOME`.
-- **No auto-commit**: `devsop.init` / `devsop.eval` do not run `git add` / `git commit`; changes are left for the user to review.
+- **No auto-commit**: `devsop-init` / `devsop-eval` do not run `git add` / `git commit`; changes are left for the user to review.
 - **Tool-agnostic audit**: the DEVSOP audit does not mandate a specific CI / issue-tracker / dependency-management stack. It evaluates whether the project consistently uses its team-designated tools (any of Jenkins, GitHub Actions, GitLab CI, TAPD, GitHub Issues, Jira, Renovate, Dependabot, etc.), and the commit-message ticket reference convention is configurable (default `--story=<id>` / `--bug=<id>`, GitHub-style `#<id>` also accepted).
 - The AI collaboration entry for this repository is [AGENTS.md](AGENTS.md).

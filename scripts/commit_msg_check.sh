@@ -1,1 +1,1 @@
-../skills/devsop.init/scripts/commit_msg_check.sh
+../skills/devsop-init/scripts/commit_msg_check.sh
