@@ -4,7 +4,7 @@ devsop is a small library of two reusable Skills for starting and improving proj
 
 ## Skills
 
-- **devsop-init** creates a compact project starter: `AGENTS.md`, core `.docs/` files, a lightweight task note template, and Git Hooks. Detailed task templates and optional documentation are available with the full profile.
+- **devsop-init** creates agent-neutral project context: `AGENTS.md`, core `.docs/` files, and lightweight Git Hooks. Optional documentation is available with the full profile.
 - **devsop-eval** checks project practices against a consistent set of criteria and writes an evidence-based report to `.docs/devsop_report.md`.
 
 These are Skills, not terminal commands. Ask an AI coding agent that supports the Skills format to use `devsop-init` or `devsop-eval` in the target repository. Skill discovery depends on the agent; this repository does not configure an agent product.
@@ -25,7 +25,13 @@ The installer only creates links in `~/.agents/skills/`. It does not install dep
 ```text
 skills/
 ├── devsop-init/   # Project starter and documentation workflow
+│   ├── assets/profiles/core/ # Required project context
+│   ├── assets/profiles/full/ # Optional documentation
+│   ├── references/ # Shared methodology and optional doc guides
+│   └── scripts/    # Initializer and hook setup
 └── devsop-eval/   # Evidence-based project assessment
+    ├── references/ # Rubric and report format
+    └── scripts/    # Evidence collection and validation
 rules/             # Language coding standards
 scripts/           # Repository validation
 ```

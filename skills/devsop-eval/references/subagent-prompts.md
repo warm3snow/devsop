@@ -139,10 +139,10 @@ Extract the total score, each pillar score, and Todo Suggestions from the report
   "level_name": "closed-loop flow",
   "pillars": [
     {"id": "A", "name": "Project AI-friendliness", "score": 22, "max": 25},
-    {"id": "B", "name": "Dev mode / role collaboration", "score": 11, "max": 15},
+    {"id": "B", "name": "Development coordination", "score": 11, "max": 15},
     {"id": "C", "name": "Quality checks & feedback mechanisms", "score": 17, "max": 25},
     {"id": "D", "name": "Design & change management", "score": 12, "max": 15},
-    {"id": "E", "name": "Shared knowledge base", "score": 3, "max": 5},
+    {"id": "E", "name": "Shared project knowledge", "score": 3, "max": 5},
     {"id": "F", "name": "Measurement mechanisms", "score": 7, "max": 15}
   ],
   "todos": [

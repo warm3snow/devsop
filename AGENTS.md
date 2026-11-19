@@ -35,7 +35,7 @@ bash scripts/commit_msg_check.sh
 ### Skill Development Conventions
 
 - **Skills live under `~/.agents/skills/` (user-level) or `<repo>/.agents/skills/` (project-level)** — the agent-agnostic standard locations; never depend on any specific AI coding tool's config dir.
-- **`$SKILL_DIR` and `$REPO_ROOT` are strictly separated**: Skills only read the install directory and write only to the target project directory; never write to this repo or `$HOME`.
+- **Skill runtime boundaries**: a Skill reads its own install directory and writes only to the target project. The explicit `bash install.sh` command is separate: when the user runs it, it creates Skill links in `~/.agents/skills/`.
 - **Skill invocation**: `devsop-init` and `devsop-eval` are Skills invoked through an AI coding agent that supports the Skills format; they are not terminal commands.
 - **No auto-commit**: the Skills do not run `git add` / `git commit`; changes are left for the user to review.
 - **Keep the shipped skill set focused**: maintain `devsop-init` and `devsop-eval` as the two standalone skills; companion templates remain inside the skill that uses them.
@@ -69,7 +69,7 @@ Key points: no hardcoded credentials, input validation, parameterized queries, a
 |------|---------|-------------------|
 | ✅ Always do | Non-negotiable defaults | Keep the standalone skill set to `devsop-init` and `devsop-eval`; run `bash scripts/validate_skills.sh --strict` and the Git Hook checks before commit; keep SKILL.md ≤300 lines (≤500 hard limit) |
 | ⚠️ Ask first | Higher-risk or preference-dependent | Restructuring `install.sh` targets; adding new tool dependencies to skills |
-| 🚫 Never do | Hard prohibitions | Skills writing to this repo or `$HOME`; auto-commit (`git add`/`git commit` inside skills); a second commit in one MR; `git push --force` (use `--force-with-lease`) |
+| 🚫 Never do | Hard prohibitions | Skill workflows writing to their own install directory or unrelated projects; auto-commit (`git add`/`git commit` inside skills); a second commit in one MR; `git push --force` (use `--force-with-lease`) |
 
 ---
 
@@ -77,6 +77,6 @@ Key points: no hardcoded credentials, input validation, parameterized queries, a
 
 | # | Red line | Consequence |
 |---|----------|-------------|
-| 1 | **Skills must never write to this repo or `$HOME`**: `$SKILL_DIR` and `$REPO_ROOT` are strictly separated; Skills only write to the target project directory. | repo pollution; broken install state |
+| 1 | **Skill workflows may write only to the target project**: the separate, explicitly run `install.sh` may create links in `~/.agents/skills/`; skills themselves must not write to their install directory, this repository, or `$HOME`. | repo pollution; broken install state |
 | 2 | **No auto-commit**: `devsop-init` / `devsop-eval` do not run git operations; changes must be reviewed and committed manually by the user. | accidentally committing unreviewed content |
 | 3 | **One MR one commit**: an MR in this repo may only contain one commit; fixes are always accumulated via `git commit --amend`, and pushes must use `--force-with-lease`. | messy commit history; difficult Code Review |

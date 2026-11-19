@@ -2,7 +2,7 @@
 
 ## Contents
 
-- Overview Score → Capability Eval Details → Anti-pattern Detection → Entropy Management → Skill Health
+- Overview Score → Capability Eval Details → Anti-pattern Detection → Entropy Management
 - Prioritized Improvement Suggestions → Upgrade Roadmap → Core Conclusions → Todo Suggestions → Appendix
 - Todo Suggestions must be wrapped in `DEVSOP_TODOS_START` / `DEVSOP_TODOS_END` HTML markers (used by the JSON converter).
 
@@ -32,10 +32,10 @@ Use it only for the full 28-item assessment; the default quick check uses a shor
 | Pillar | Score | Full score | Completion | Status |
 |--------|-------|------------|------------|--------|
 | A. Project AI-friendliness | {X} | 25 | {X%} | 🔴/🟡/🟢 |
-| B. Dev mode / role collaboration | {X} | 15 | {X%} | 🔴/🟡/🟢 |
+| B. Development coordination | {X} | 15 | {X%} | 🔴/🟡/🟢 |
 | C. Quality checks & feedback mechanisms | {X} | 25 | {X%} | 🔴/🟡/🟢 |
 | D. Design & change management | {X} | 15 | {X%} | 🔴/🟡/🟢 |
-| E. Shared knowledge base | {X} | 5 | {X%} | 🔴/🟡/🟢 |
+| E. Shared project knowledge | {X} | 5 | {X%} | 🔴/🟡/🟢 |
 | F. Measurement mechanisms | {X} | 15 | {X%} | 🔴/🟡/🟢 |
 | **Total** | **{X}** | **100** | **{X%}** | — |
 
@@ -66,8 +66,8 @@ Use it only for the full 28-item assessment; the default quick check uses a shor
 | A1 AGENTS.md exists and ≤300 lines | ✅/⚠️/❌ | {file path / line count} | code |
 | A2 README.md complete | ✅/⚠️/❌ | {covered section list} | model |
 | A3 .docs/architecture.md complete | ✅/⚠️/❌ | {covered section list} | model |
-| A4 .docs/ regulations library covers the new core docs (incl. content substance) | ✅/⚠️/❌ | {present/missing/placeholder file list} | code+model |
-| A5 Multi-tool symlinks + checked in | ✅/⚠️/❌ | {link status + .gitignore check} | code |
+| A4 Core project guidance is relevant and substantive | ✅/⚠️/❌ | {relevant guidance and gaps} | model |
+| A5 Generic AI entry present | ✅/⚠️/❌ | {AGENTS.md and .gitignore check} | code |
 | A6 One-command start | ✅/⚠️/❌ | {Makefile target / package.json scripts} | code |
 | A7 Environment config template | ✅/⚠️/❌ | {.env.example status / README env-var docs} | code |
 
@@ -78,13 +78,13 @@ Use it only for the full 28-item assessment; the default quick check uses a shor
 
 ---
 
-### B. Dev mode / role collaboration（{score}/15）
+### B. Development coordination（{score}/15）
 
 | Eval | Conclusion | Evidence | Grader |
 |------|-----------|----------|--------|
-| B1 9-step R&D flow explicit | ✅/⚠️/❌ | {doc path + covered steps} | model |
-| B2 Role responsibility conventions | ✅/⚠️/❌ | {covered roles + item count} | model |
-| B3 Phase deliverables have ownership locations | ✅/⚠️/❌ | {design/task/test dirs} | code+model |
+| B1 Project development workflow is discoverable | ✅/⚠️/❌ | {repository docs or linked team process} | model |
+| B2 Ownership and responsibilities are clear | ✅/⚠️/❌ | {owners/review responsibilities or gaps} | model |
+| B3 Change context and outputs are findable | ✅/⚠️/❌ | {issue, PR, docs, tests, and result locations} | code+model |
 | B4 Branch/Commit conventions | ✅/⚠️/❌ | {commitlint config / conventions doc path} | code+model |
 
 **Evaluation confidence**: 🟢 high / 🟡 medium / 🔴 low
@@ -98,7 +98,7 @@ Use it only for the full 28-item assessment; the default quick check uses a shor
 
 | Eval | Conclusion | Evidence | Grader |
 |------|-----------|----------|--------|
-| C1 Commit/Push conventions memorized (AGENTS.md / project rules dir) | ✅/⚠️/❌ | {rule file paths + covered items (commit / push)} | code+model |
+| C1 Commit and push conventions documented | ✅/⚠️/❌ | {version-controlled guidance + covered items (commit / push)} | code+model |
 | C2 CI pipeline + coverage gate (CI config file or README/deployment.md with CI platform URL) | ✅/⚠️/❌ | {CI config path (e.g. .github/workflows/, .gitlab-ci.yml, Jenkinsfile) or CI platform URL in docs + coverage threshold} | code |
 | C3 Prohibited-item protection | ✅/⚠️/❌ | {.gitignore rules + doc explanation} | code+model |
 | C4 Branch protection and Review flow | ✅/⚠️/❌ | {documented constraint count} | model |
@@ -115,14 +115,12 @@ Use it only for the full 28-item assessment; the default quick check uses a shor
 
 ### D. Design & change management（{score}/15）
 
-> **Evaluation system**: based on the 10-file DEVSOP system under `.docs/plans/<task>/` (new devsop-init; task overviews sink into each `00-overview.md`, no global plan.md)
-
 | Eval | Conclusion | Evidence | Grader |
 |------|-----------|----------|--------|
-| D1 Task directories exist with substantive content (≥1 with the full 10 files) | ✅/⚠️/❌ | {task directory count under .docs/plans/ + file completeness} | code |
-| D2 00-overview.md maintenance activity (updated in the last 90 days) | ✅/⚠️/❌ | {latest task 00-overview.md update time} | code+model |
-| D3 Small-change TDD/regression testing + template completeness (_template/ has the 10 files + TDD documented in unittest/unittest.md) | ✅/⚠️/❌ | {_template/ file count + unittest TDD section} | code+model |
-| D4 Change-classification standard documented | ✅/⚠️/❌ | {classification definition doc path + criteria content} | model |
+| D1 Significant change intent is captured | ✅/⚠️/❌ | {sampled issue, PR, design note, or equivalent} | code+model |
+| D2 Change records reflect outcomes | ✅/⚠️/❌ | {sampled records and links to outcomes/status} | code+model |
+| D3 Verification matches change risk | ✅/⚠️/❌ | {relevant tests/checks and regression evidence} | code+model |
+| D4 Project guidance changes with the product | ✅/⚠️/❌ | {documentation updates for behavior/setup changes} | code+model |
 
 **Evaluation confidence**: 🟢 high / 🟡 medium / 🔴 low
 
@@ -131,12 +129,12 @@ Use it only for the full 28-item assessment; the default quick check uses a shor
 
 ---
 
-### E. Shared knowledge base（{score}/5）
+### E. Shared project knowledge（{score}/5）
 
 | Eval | Conclusion | Evidence | Grader |
 |------|-----------|----------|--------|
-| E1 In-project Skills accumulation | ✅/⚠️/❌ | {.agents/skills dir + Skill count} | code |
-| E2 Knowledge accumulation completeness (path α: specs/openspec/docs or remote wiki; path β: remote wiki or ≥10 docs after excluding design dirs) | ✅/⚠️/❌ | {hit path + quantitative evidence: specs module count / docs doc count / external links} | code+model |
+| E1 Project guidance is discoverable | ✅/⚠️/❌ | {entry point and linked project guidance} | model |
+| E2 Shared knowledge is useful and maintained | ✅/⚠️/❌ | {substantive project docs or linked team knowledge base} | code+model |
 
 **Evaluation confidence**: 🟢 high / 🟡 medium / 🔴 low
 
@@ -150,7 +148,7 @@ Use it only for the full 28-item assessment; the default quick check uses a shor
 | Eval | Conclusion | Evidence | Grader |
 |------|-----------|----------|--------|
 | F1 devsop_report.md exists and is updated regularly | ✅/⚠️/❌ | {file path + latest update} | code |
-| F2 AI session/memory/failure-case retention (AI memory store of any agent / logs/ai-sessions / failures.md in git, choose one of three) | ✅/⚠️/❌ | {hit path + file count} | code |
+| F2 Decisions and recurring failure knowledge are retained | ✅/⚠️/❌ | {decision records, incident notes, or documented lessons} | code+model |
 | F3 .docs/ doc changes traceable | ✅/⚠️/❌ | {commit count in 60 days} | code |
 | F4 Improvement-loop closure | ✅/⚠️/❌ | {historical evaluation count + improved items} | code+model |
 
@@ -189,20 +187,6 @@ Use it only for the full 28-item assessment; the default quick check uses a shor
 > {1-2 sentences: is the tech-debt cleanup mechanism running? Are docs/code evolving in sync?}
 
 ---
-
-## 🧭 Skill Health (observational, does not affect scores)
-
-> Purpose: measure whether the project's skill library is actually being used — skills that exist but never trigger are decoration. This section is informational and feeds the anti-pattern "skills present but never triggered".
-
-| Metric | Current value | Healthy signal |
-|--------|---------------|----------------|
-| Repo-local skills count (`.agents/skills/*/SKILL.md`) | {X} | ≥3 (E1) |
-| Skill-trigger traces in git (commits/messages referencing skill names in 60 days) | {X} | >0 |
-| Session retention (F2 evidence hit) | {hit path or NONE} | any path hit |
-| Task-plan discipline (new `.docs/plans/<task>/` dirs in 30 days vs code commits) | {X dirs / Y commits} | dirs >0 when commits >10 |
-
-**Skill health judgment**:
-> {1 sentence: are skills activated in real work, or only installed? If traces = 0, recommend adding the skill-trigger matrix to AGENTS.md §1 or enabling session logging per F2.}
 
 ---
 

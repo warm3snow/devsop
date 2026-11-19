@@ -3,10 +3,10 @@
 ## Contents
 
 - [Pillar A: Project AI-friendliness](#pillar-a-project-ai-friendliness) — A1–A7
-- [Pillar B: Dev mode / role collaboration](#pillar-b-dev-mode--role-collaboration) — B1–B4
+- [Pillar B: Development coordination](#pillar-b-development-coordination) — B1–B4
 - [Pillar C: Quality checks & feedback mechanisms](#pillar-c-quality-checks--feedback-mechanisms) — C1–C6
 - [Pillar D: Design & change management](#pillar-d) — D1–D4
-- [Pillar E: Shared knowledge base](#pillar-e) — E1–E2
+- [Pillar E: Shared project knowledge](#pillar-e) — E1–E2
 - [Pillar F: Measurement mechanisms](#pillar-f) — F1–F4
 - [Anti-pattern Specialized Improvements](#anti-pattern-specialized-improvements)
 - [General Suggestion Generation Rules](#general-suggestion-generation-rules)
@@ -29,7 +29,7 @@ This document provides `devsop-eval` with examples for turning findings into exe
 | Does not exist | Run the `devsop-init` skill to auto-generate; or create AGENTS.md manually, at least including: tech stack / directory structure / regulations index / quick start / core conventions / prohibited items |
 | Line count >300 | Split detailed chapters into `.docs/` sub-regulations or `rules/*.mdc`; AGENTS.md keeps only the index and core constraints (refer to the slimming experience of mature projects) |
 | Line count <30 (shallow) | Add the following sections: ① tech stack versions ② directory structure ③ .docs/ regulation links ④ one-command start ⑤ 5+ prohibited items |
-| Four chapters incomplete (1-2 of quick index/DEVSOP/dev guidelines/forbidden red lines missing) | Add the missing chapters: ① quick index table (incl. .docs/ doc location mapping) ② §2 DEVSOP (incl. 9-step plans flow, context recovery, task isolation, scale branching) ③ §3 dev guidelines (fill per the project's actual situation) ④ §4 forbidden red lines (≥5 hard constraints). Reference the `assets/agents.md.tmpl` template structure of the `devsop-init` skill |
+| Project entry is missing important guidance | Add concise, project-specific facts and links: repository structure, build/test commands, coding/security constraints, and relevant docs. Avoid prescribing a specific agent or task workflow. Reference `assets/agents.md.tmpl` in `devsop-init` |
 
 ### A2 README.md incomplete
 
@@ -53,12 +53,12 @@ This document provides `devsop-eval` with examples for turning findings into exe
 | Core design decisions | List 3-5 project-level key decisions (e.g. "why event-driven", "why monolith rather than microservices") |
 | Known tech debt | Add "## Known Tech Debt", listing currently-known but unfixed issues and their planned handling time |
 
-### A4 .docs/ regulations library incomplete
+### A4 Core project guidance is incomplete
 
 | Missing file | Improvement action |
 |--------------|--------------------|
-| Any new core doc missing | Run the `devsop-init` skill to auto-fill; or manually create the files under `.docs/` per the DEVSOP requirements |
-| File exists but ≤10 lines (skeleton) | Fill in per the file's topic: architecture → architecture diagram/modules/tech debt; relationship → upstream/downstream dependency graph/failure propagation; coding-style → naming/format/security rules; unittest → test strategy/coverage/run commands; integration_test → integration test scope/how to run; code-review → Review checklist; glossary → business glossary; failures → pitfall records (≥3 items); logging → log levels/format/redaction. Each at least 30 lines of substantive content; avoid placeholders |
+| Project-specific architecture, coding, review, or testing guidance is missing | Run `devsop-init` or write the relevant guidance manually; include only topics that help contributors work with this project |
+| Guidance is a generic placeholder | Replace it with verified project facts and actionable conventions; remove sections that do not apply instead of filling them with boilerplate |
 
 ### A5 Generic AI entry missing or gitignored
 
@@ -87,29 +87,19 @@ This document provides `devsop-eval` with examples for turning findings into exe
 
 ---
 
-## Pillar B: Dev mode / role collaboration
+## Pillar B: Development coordination
 
-### B1 9-step R&D flow not documented
+### B1 Project workflow is hard to discover
 
-**Improvement action**: add the 9-step plans flow description to the "§2 DEVSOP" section of `AGENTS.md`, explaining for each step:
-- The corresponding artifact file (`.docs/plans/<task>/0N-xxx.md`)
-- Input/output
-- Confirmation points (start confirmation + end confirmation)
-- Time-record requirements
+**Improvement action**: add a short "Development workflow" section to `AGENTS.md` or README that links to the team's existing issue, implementation, verification, and review process. Keep the existing workflow as the source of truth; do not copy it into a second planning system.
 
-Refer to the "DEVSOP startup prerequisites" and "step execution rules" sections in the `assets/agents.md.tmpl` template of the `devsop-init` skill.
+### B2 Ownership and responsibilities are unclear
 
-### B2 Role responsibilities not defined
+**Improvement action**: document the actual maintainers, service owners, or review responsibilities in `CODEOWNERS`, `AGENTS.md`, or the team's contributor guide. Do not invent PM/QA/R&D roles when the team does not use them.
 
-**Improvement action**: add a "## Role Responsibilities" section at the top of `AGENTS.md`, listing 4-6 responsibilities each for PM / QA / RD per the DEVSOP "role responsibility division" table. For small teams, simplify to "in small teams role X also handles role Y".
+### B3 Change context and outputs are hard to find
 
-### B3 Phase deliverable ownership unclear
-
-**Improvement action**:
-- Task directories: uniformly under `.docs/plans/<YYYY-MM-DD_task-title>/`, each task with the 10 files (00-overview through 09-commit)
-- Design docs: accumulate in `.docs/architecture.md` + `.docs/apis/`
-- Unit test conventions: state "same directory as source / standalone `tests/` dir" in `.docs/unittest/unittest.md`
-- Task discovery: `ls .docs/plans/` or `find .docs/plans -maxdepth 2 -name 00-overview.md`
+**Improvement action**: link the team's existing issue tracker, pull-request process, test instructions, and project documentation from the repository entry point. Use the team's chosen systems rather than adding a mandatory task-plan directory.
 
 ### B4 Branch/Commit conventions not documented
 
@@ -155,7 +145,7 @@ Refer to the "DEVSOP startup prerequisites" and "step execution rules" sections 
 
 ### C1 Commit / Push conventions not memorized
 
-**Improvement action**: write the commit / push behavior conventions into AI-readable project memory files (`AGENTS.md` or the project rules dir `rules/`); only then do AI and humans have gate conventions to follow when collaborating.
+**Improvement action**: document the commit / push behavior in version-controlled project guidance such as `AGENTS.md`, `CONTRIBUTING.md`, or `rules/`, so contributors can find and follow it.
 
 1. **Commit conventions** (write into the "§2 DEVSOP" section of `AGENTS.md` or a rules file like `rules/commit.md`):
    ```markdown
@@ -323,74 +313,33 @@ Call `make security` in CI (GitHub Actions / GitLab CI / Jenkinsfile all work th
 
 ## Pillar D: Design & change management
 
-> The new devsop-init uniformly uses the 10-file DEVSOP system under `.docs/plans/<task>/`. Evaluation is based on task-directory existence, template completeness, and TDD documentation.
+### D1 Significant change intent is missing
 
-### D1 No task directories or incomplete artifacts
+**Improvement action**: for future substantial changes, record the problem and expected outcome in the team's existing issue, pull request, design note, or equivalent. Keep small changes lightweight.
 
-| Current state | Improvement action |
-|---------------|--------------------|
-| No `.docs/plans/` directory | Run the `devsop-init` skill to initialize the DEVSOP system |
-| Has `_template/` but no historical tasks | Pick an in-progress feature and run: `cp -r .docs/plans/_template .docs/plans/YYYY-MM-DD_<task-title>`, then fill the Meta info of 00-overview.md per the DEVSOP flow |
-| Task directory exists but files incomplete (<8 step files) | Rebuild the missing step files from `_template/`, ensuring 00-09 = 10 files complete |
+### D2 Change outcomes are hard to trace
 
-### D2 00-overview.md maintenance inactive
+**Improvement action**: ensure existing change records link to the resulting pull request/commit and record completion or follow-up status. Use the team's current tracker rather than adding another task system.
 
-| Current state | Improvement action |
-|---------------|--------------------|
-| Task dirs exist but no git updates in 90 days | Review in-progress tasks and update the Progress checkboxes and time records in `00-overview.md` |
-| Tasks completed but not archived | Mark the completion time in `00-overview.md`; append the final commit info to the key-decision notes |
+### D3 Verification is insufficient for change risk
 
-### D3 Small-change TDD not documented or template incomplete
+**Improvement action**: add the relevant automated or manual check to the existing test/CI workflow. For a defect, add a regression check when practical; TDD is optional, not a required process.
 
-| Current state | Improvement action |
-|---------------|--------------------|
-| `_template/` file count <10 | Re-run the `devsop-init` skill to refresh `_template/` (idempotent; it fills gaps) |
-| TDD requirement not documented | Add a TDD principles section to `.docs/unittest/unittest.md` (see the TDD content in the A1 improvement suggestion) |
+### D4 Project guidance is stale
 
-### D4 Change-classification standard not documented
-
-**Improvement action**: add a "## Change Classification Standard" section to the "§3 Dev Guidelines" of `AGENTS.md` or to `.docs/devops/development.md`:
-
-```markdown
-## Change Classification Standard
-
-| Level | Judgment criteria | Corresponding flow | Deliverables |
-|-------|-------------------|--------------------|--------------|
-| **Large** | ≥5 person-days, or affecting ≥3 modules | full 9-step DEVSOP (01-09) | full artifacts under `.docs/plans/<task>/` |
-| **Medium** | 1-5 person-days, affecting 1-2 modules | standard DEVSOP (some step confirmations may be merged) | `.docs/plans/<task>/` |
-| **Small** | <1 person-day, bug fixes, config changes | small-requirement mode (≤10-line changes may merge 03-04, 07-09 confirmations) | regression tests + MR |
-```
+**Improvement action**: update the relevant README or `.docs/` page with behavior, setup, interface, or operational changes. Do not add documentation for changes with no lasting user or maintainer impact.
 
 ---
 
-## Pillar E: Shared knowledge base
+## Pillar E: Shared project knowledge
 
-### E1 No Skills accumulation directory
+### E1 Project guidance is difficult to discover
 
-**Improvement action**:
-```bash
-mkdir -p .agents/skills   # the agent-agnostic standard repo-local skills dir
-# wrap repeatedly-used project commands as Skills
-# create at least 3 common Skills (e.g. fix-bug / commit / code-review)
-```
+**Improvement action**: link substantive project guidance from the README or `AGENTS.md`. Guidance may be local docs, a team handbook, scripts, or optional agent Skills; no specific format or minimum count is required.
 
-### E2 Knowledge accumulation incomplete
+### E2 Shared project knowledge is incomplete
 
-**Improvement action** (any one of three counts as PASS; local first):
-
-**Path ① strengthen local spec accumulation (recommended; AI consumes it directly)**:
-- `specs/` covers at least 5 core modules, each with a design doc + interface definitions
-- `openspec/changes/` continuously records medium changes, archiving them to `archive/`
-- Let AI read regulations through local files; more reliable than remote wiki search
-
-**Path ② reference the team's remote knowledge base**: add a "## Team Shared Materials" section to `AGENTS.md` or `README.md` listing:
-- Team Wiki links (e.g. a Confluence space)
-- Shared Skill / Hook repo links
-- Business-standards exemplar repos
-
-**Path ③ build an in-project knowledge base**: accumulate ≥10 business/technical docs in the `.docs/` or `knowledge/` directory, indexed in the AGENTS.md Index section.
-
-If all three are missing, start with Path ① — local spec accumulation is the most efficient knowledge form in the AI-collaboration era.
+**Improvement action**: record the specific missing decision, operational detail, or recurring pitfall in the existing project docs, issue tracker, or team handbook, then link it from the project entry point. Do not create a documentation quota.
 
 ---
 
@@ -399,32 +348,12 @@ If all three are missing, start with Path ① — local spec accumulation is the
 ### F1 devsop_report.md long not updated
 
 **Improvement action**:
-1. **Run devsop-eval through an AI coding agent** to create the report (creating the report satisfies the first-evaluation requirement)
-2. **Establish a monthly evaluation reminder**: add "ask an AI agent to run devsop-eval" to the team review agenda
+1. Run `devsop-eval` to create the initial report.
+2. Set a review cadence that fits the project and assign an owner for acting on findings.
 
-### F2 No AI session/memory/failure-case retention
+### F2 Important decisions and recurring failures are not retained
 
-**Improvement action** (any one of three counts as PASS):
-
-**Path ① enable the AI memory store (recommended)**:
-```bash
-# The agent-agnostic standard memory locations:
-#   repo-local: .agents/memory/          (any agent can read/write it)
-#   user-level: ~/.agents/projects/<project path slug>/memory/
-# Prompt AI in AGENTS.md to actively maintain memory and let it accumulate
-# user preferences/project facts/feedback (≥3 memory files + MEMORY.md index)
-mkdir -p .agents/memory
-```
-Memory files are themselves structured AI-session accumulation, easier to reuse than raw logs. Prompt AI in `AGENTS.md` to actively maintain memory.
-
-**Path ② configure a session-log directory**:
-```bash
-mkdir -p logs/ai-sessions
-echo "logs/ai-sessions/" >> .gitignore  # sessions may contain sensitive content
-```
-Convention: after each significant feature development, save the AI session as `logs/ai-sessions/{YYYY-MM-DD}-{topic}.md`; archive to external storage after 30 days.
-
-> Note: having session logs under `logs/ai-sessions/` or `.agents/sessions/` from the last 30 days automatically satisfies this path.
+**Improvement action**: document a recent, representative design decision or recurring failure in the project's existing decision record, incident review, issue tracker, or troubleshooting guide. Link the record from the README or project docs index. Do not store AI conversations or user-level agent memory as a project requirement.
 
 **Path ③ keep failures.md in git and maintained**:
 ```bash

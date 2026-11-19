@@ -4,8 +4,8 @@
 # Usage:
 #   bash init_docs.sh [repo_root] [--full]
 #
-# The default creates a compact core. --full also creates optional API, database,
-# integration-test, DevOps, relationship, glossary, failure, and logging docs.
+# The default creates core project context. --full also creates optional API,
+# database, integration-test, DevOps, relationship, glossary, failure, and logging docs.
 
 set -euo pipefail
 
@@ -34,74 +34,48 @@ done
 REPO_ROOT="${REPO_ROOT:-$(pwd)}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SKILL_DIR="$(dirname "$SCRIPT_DIR")"
-SKELETON="$SKILL_DIR/assets/docs-skeleton"
-TEMPLATE="$SKILL_DIR/assets/plans-template"
-CORE_TEMPLATE="$SKILL_DIR/assets/plans-template-core"
+CORE_PROFILE="$SKILL_DIR/assets/profiles/core"
+FULL_PROFILE="$SKILL_DIR/assets/profiles/full"
 
-if [[ ! -d "$SKELETON" ]]; then
-    echo "[ERROR] Skeleton directory does not exist: $SKELETON" >&2
+if [[ ! -d "$CORE_PROFILE/docs" ]]; then
+    echo "[ERROR] Core profile assets are missing: $CORE_PROFILE" >&2
     exit 1
 fi
-if [[ ! -d "$CORE_TEMPLATE" ]]; then
-    echo "[ERROR] Core task template directory does not exist: $CORE_TEMPLATE" >&2
-    exit 1
-fi
-if [[ "$PROFILE" == "full" && ! -d "$TEMPLATE" ]]; then
-    echo "[ERROR] Task template directory does not exist: $TEMPLATE" >&2
+if [[ "$PROFILE" == "full" && ! -d "$FULL_PROFILE/docs" ]]; then
+    echo "[ERROR] Full profile assets are missing: $FULL_PROFILE" >&2
     exit 1
 fi
 
 SPECS_DIR="$REPO_ROOT/.docs"
-PLANS_TEMPLATE_DIR="$SPECS_DIR/plans/_template"
 
 mkdir -p "$SPECS_DIR"
-mkdir -p "$SPECS_DIR/plans"
 
-# ---------------------------------------------------------------------------
-# Copy the selected documentation profile. Existing files are never overwritten.
-# ---------------------------------------------------------------------------
-(cd "$SKELETON" && find . -type f -print0) | while IFS= read -r -d '' rel; do
-    if [[ "$PROFILE" == "core" ]]; then
-        case "$rel" in
-            ./review.md|./architecture.md|./coding-style.md|./code-review.md|./unittest/unittest.md) ;;
-            *) continue ;;
-        esac
-    fi
-    src="$SKELETON/$rel"
-    dst="$SPECS_DIR/$rel"
-    mkdir -p "$(dirname "$dst")"
-    if [[ ! -e "$dst" ]]; then
-        cp "$src" "$dst"
-        echo "[ADD] Added skeleton file: .docs/${rel#./}"
-    fi
-done
+copy_profile_tree() {
+    local source="$1"
+    local destination="$2"
+    local label="$3"
 
-# Copy the selected task template. Existing files are never overwritten.
-mkdir -p "$PLANS_TEMPLATE_DIR"
-if [[ "$PROFILE" == "core" ]]; then
-    src="$CORE_TEMPLATE/00-overview.md"
-    dst="$PLANS_TEMPLATE_DIR/00-overview.md"
-    if [[ ! -e "$dst" ]]; then
-        cp "$src" "$dst"
-        echo "[ADD] Added core task template: .docs/plans/_template/00-overview.md"
-    fi
-else
-    (cd "$TEMPLATE" && find . -type f -print0) | while IFS= read -r -d '' rel; do
-        src="$TEMPLATE/$rel"
-        dst="$PLANS_TEMPLATE_DIR/$rel"
+    (cd "$source" && find . -type f -print0) | while IFS= read -r -d '' rel; do
+        src="$source/$rel"
+        dst="$destination/$rel"
         mkdir -p "$(dirname "$dst")"
         if [[ ! -e "$dst" ]]; then
             cp "$src" "$dst"
-            echo "[ADD] Added template file: .docs/plans/_template/${rel#./}"
+            echo "[ADD] Added ${label}: ${dst#"$REPO_ROOT"/}"
         fi
     done
+}
+
+# Both profiles share the core docs. Full adds optional docs; no existing
+# project files are overwritten.
+copy_profile_tree "$CORE_PROFILE/docs" "$SPECS_DIR" "core doc"
+if [[ "$PROFILE" == "full" ]]; then
+    copy_profile_tree "$FULL_PROFILE/docs" "$SPECS_DIR" "optional doc"
 fi
 
 echo "[OK] .docs initialized at: $SPECS_DIR"
 echo "     - profile: $PROFILE"
 echo "     - core docs: review.md, architecture.md, coding-style.md, code-review.md, unittest/unittest.md"
-[[ "$PROFILE" == "core" ]] && echo "     - plans/: _template/00-overview.md"
-[[ "$PROFILE" == "full" ]] && echo "     - plans/: _template/ (detailed task workflow)"
 [[ "$PROFILE" == "core" ]] && echo "     - optional docs: run with --full to create the full documentation set"
 
 # ---------------------------------------------------------------------------

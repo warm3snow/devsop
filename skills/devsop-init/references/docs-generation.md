@@ -2,14 +2,14 @@
 
 ## Contents
 
-0. Before reading this methodology · 1. Core Principles · 2. Four-layer model of docs · 3. Generic generation loop · 4. Trigger timing · 5. Anti-patterns · 6. Physical layout · 7. On-demand loading conventions · 8. Recommended workflow · 9. Quality self-check checklist · 10. Relationship with other DEVSOP stages · Appendix A: Minimal viable output
+0. Before reading this methodology · 1. Core Principles · 2. Four-layer model of docs · 3. Generic generation loop · 4. Trigger timing · 5. Anti-patterns · 6. Physical layout · 7. On-demand loading conventions · 8. Recommended workflow · 9. Quality self-check checklist · Appendix A: Minimal viable output
 
 > `.docs/` generation methodology. **Generic version** — not tied to any language, framework, or domain.
 >
 > When to load:
-> 1. **After Scenario A**: the project has just been initialized, and the empty skeleton needs to be filled in
-> 2. **Reverse-filling an existing project**: the project already exists but `.docs/` is still empty
-> 3. **Stage 07 Docs**: when a task reaches the documentation synchronization step, as a decision reference
+> 1. After initialization, when project-specific facts need to be documented
+> 2. When adding or revising documentation in an existing project
+> 3. When a code or configuration change makes project guidance inaccurate
 
 ---
 
@@ -133,9 +133,9 @@ If inconsistencies are found: **fix the extraction script**, regenerate everythi
 |------------------|----------------------|-----------------|
 | **Project just initialized (Scenario A)** | In L1 → L2/L3 → L4 order, generate drafts layer by layer + user review | All of `.docs/` |
 | **First-time backfill of an existing project** | Same as above, **in batches by module**: fill in core modules first; stop for review every N contract-layer docs | Same as above |
-| **Task reaches Stage 07 Docs** | Derive **incremental** updates from this change's code diff; only touch the docs affected by this task | Only the docs involved this time |
+| **Behavior or configuration changes** | Derive **incremental** updates from the change; only touch guidance affected by it | Only the docs involved this time |
 | **Quarterly / version health check** | Sample-check (names / default values / error codes); open a chore task for inconsistencies | Exposed problems → task → fix |
-| **After a major refactor / architecture evolution** | Forcibly trigger full Stage 07; add a new ADR to record decisions when necessary | `.docs/` + `.docs/adr/` |
+| **After a major refactor / architecture evolution** | Review relevant docs and record important decisions when useful | Relevant `.docs/` files or the project's decision-record location |
 | **Major dependency version upgrade** | Regenerate the L4 environment / deployment docs, cross-check against the new version's commands / configuration | `.docs/<L4 file>` |
 
 ---
@@ -146,7 +146,7 @@ If inconsistencies are found: **fix the extraction script**, regenerate everythi
 |---|--------------|-------------|------------------|
 | 1 | **Generate all docs in one batch** | Large volume, low quality, nobody reviews, rotten as soon as written | Batch by module / layer, human review each batch |
 | 2 | **AI merges directly after generating** | AI will fabricate parameters / default values / error codes | Sample-check ≥3 places against the code |
-| 3 | **Docs and code in two separate PRs** | The docs PR never gets merged | Complete within the same Stage 07, same PR as the code |
+| 3 | **Docs and code in unrelated changes** | Guidance may remain stale | Update relevant docs with the change when practical |
 | 4 | **Only record "what" not "why"** | Nobody understands the decision six months later | ADR records "why"; contract layer / internals layer record "what" |
 | 5 | **Contract docs copy the source code** | Lose the caller's perspective, become "code translation" | Write from the caller's perspective: how to call / what it returns / how to diagnose errors |
 | 6 | **Skip the orientation layer and write contract / internals directly** | Contracts pile up, internals are isolated, no context | Must pass L1 review first, then do L2/L3 |
@@ -175,7 +175,6 @@ If inconsistencies are found: **fix the extraction script**, regenerate everythi
 | Unit testing standards | `.docs/unittest/unittest.md` |
 | Integration testing standards | `.docs/integration_test/integration_test.md` |
 | Environment setup | `.docs/devops/env.md` |
-| Test environment deployment | `.docs/devops/test-env-deploy.md` |
 | Deployment & run standards | `.docs/devops/deployment.md` |
 | Local development environment standards | `.docs/devops/development.md` |
 | AI Code Review guidance standards | `.docs/review.md` (at the `.docs/` top level) |
@@ -208,21 +207,18 @@ If inconsistencies are found: **fix the extraction script**, regenerate everythi
 3. **Project-specific rules take priority**: if project rules for a topic exist (under the project rules dir `rules/`, e.g. `unittest_rule.md`, `cls_mcp_rule.md`), they are the **authoritative source** for that topic —
    - same-named docs under `.docs/<topic>/` should **excerpt + link**, not copy-paste;
    - on conflict, the project rules dir wins;
-   - revising rules requires syncing docs and vice versa; stages such as the task template 04-ut.md / 05-deploy.md force reading both.
+   - revising rules requires syncing docs and vice versa.
 4. **Do not pre-generate placeholders** like `README.md` / `conventions.md` / `glossary.md` / `risks.md` / `adr/` / `PROFILES.md` just to "look complete" — add them on demand when actually used.
 
 ---
 
-## 8. Recommended workflow (after Scenario A)
-
-In order, strictly batched, waiting for user confirmation at each step:
+## 8. Recommended workflow (after initialization)
 
 ```
-Step 1  Generate architecture.md / relationship.md drafts (architecture diagram / module table / data flow / upstream-downstream) → user review
-Step 2  Generate sqls/ drafts (persistence schema, key state machines) → DBA / maintainer review
-Step 3  Generate apis/ drafts, batched by module, N=10 per batch → sample-check 2 against the code
-Step 4  Generate unittest/unittest.md + integration_test/integration_test.md + devops/{env.md, test-env-deploy.md} (including run commands) → actually run once to verify the commands work
-Step 5  Fill in other .docs/<topic>/ files on demand
+1. Inspect the repository and identify which project facts are useful to document.
+2. Draft only the relevant docs using source/configuration evidence.
+3. Verify commands and factual details when practical; mark anything unverified.
+4. Link the docs from the project entry point and keep them updated as needed.
 ```
 
 ---
@@ -237,10 +233,8 @@ Minimum standard for docs to be considered "complete":
 - [ ] At least 1 end-to-end typical flow is fully drawn
 
 ### Contract
-- [ ] ≥ 80% of external interfaces / commands / public APIs have their own docs
-- [ ] Each doc has: usage, parameter table, return / output, error / failure modes, examples, change log
-- [ ] `index.md` maps 1:1 to the files
-- [ ] 3 sample-checked docs match the source code
+- [ ] Important public interfaces, commands, and APIs have enough usage and error guidance for their consumers
+- [ ] Reference pages are discoverable and match the implementation
 
 ### Internals
 - [ ] Every persistence structure has a corresponding file, with all fields explained
@@ -253,34 +247,12 @@ Minimum standard for docs to be considered "complete":
 - [ ] Key observability metrics / alert thresholds are listed
 - [ ] `unittest/unittest.md` has all three sections (environment setup / generation standards / running & debugging), and the "pre-dependency check checklist" in Section 1 is filled in according to this project's reality
 - [ ] If unit-test project rules exist in the repo (`rules/unittest_*.md`), `unittest/unittest.md` links to them and states the authority relationship (no copying of conflicting content)
-- [ ] `integration_test/integration_test.md` has all three sections (environment & dependencies / test case design / running & debugging) and is aligned with `relationship.md` and `devops/test-env-deploy.md` (dependencies come from relationship, environment deployment comes from devops)
+- [ ] `integration_test/integration_test.md` has relevant environment, test-case, and run/debug guidance, linked to project dependency or deployment docs when present
 - [ ] If integration-test project rules exist in the repo (`rules/integration_test_*.md` / `it_*.md`), `integration_test/integration_test.md` links to them and states the authority relationship
 - [ ] `devops/env.md` lists local startup methods
-- [ ] `devops/test-env-deploy.md` lists the test environment deployment / sync process
-
----
-
-## 10. Relationship with other DEVSOP stages
-
-```
-Stage 02 Plan        → must read L1 / L2 of .docs/ before designing the solution
-Stage 03 Implement   → implement cross-checked against L3 (schema / state machine) of .docs/
-Stage 04 UT          → write tests per L4 (unittest standards) of .docs/
-Stage 05 Deploy      → execute per L4 (deployment / rollback) of .docs/
-Stage 06 IT          → run integration tests per L4 (integration_test standards) of .docs/
-Stage 07 Docs        → incrementally update .docs/, one-to-one with this change's code modifications
-```
-
-`.docs/` is not a write-once-and-done thing; **it is the blood-supply system of the DEVSOP** — every stage reads it, Stage 07 replenishes it, and it becomes more accurate over time.
 
 ---
 
 ## Appendix A: Minimal viable output (MVP docs)
 
-If the project is just starting and time is tight so only the minimal set can be done, the **3 things that cannot be cut** are:
-
-1. `.docs/architecture.md` — one diagram plus one paragraph to clearly explain "what this is" (at least 1 Mermaid diagram + system positioning)
-2. `.docs/relationship.md` — upstream / downstream & integration relationships (upstream callers + downstream dependency table, even if each row only has names)
-3. `.docs/apis/index.md` — at least list the full external exposure surface (names alone are fine, details can be added later; for projects without APIs, Agent C deletes the `apis/` directory, so this item can be omitted)
-
-The rest may be temporarily missing, but each temporarily missing doc should keep a `<!-- TODO(devsop-init): ... -->` placeholder in the corresponding file to avoid omissions. **Strictly forbidden** to pre-generate `.docs/README.md` / `conventions.md` / `glossary.md` / `risks.md` / `adr/` placeholders (red line 3) — create them on demand.
+Start with the docs that answer immediate project questions, usually architecture, coding conventions, and test commands. Add API, data, deployment, or operational docs only when the project needs them. Do not create placeholder files or TODOs solely to make the documentation set look complete.

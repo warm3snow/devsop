@@ -3,10 +3,10 @@
 ## Contents
 
 - [Pillar A: Project AI-friendliness](#pillar-a-project-ai-friendliness-25-points) — A1–A7
-- [Pillar B: Dev mode / role collaboration](#pillar-b-dev-mode--role-collaboration-15-points) — B1–B4
+- [Pillar B: Development coordination](#pillar-b-development-coordination-15-points) — B1–B4
 - [Pillar C: Quality checks & feedback mechanisms](#pillar-c-quality-checks--feedback-mechanisms-25-points) — C1–C7
 - [Pillar D: Design & change management](#pillar-d-design--change-management-15-points) — D1–D4
-- [Pillar E: Shared knowledge base](#pillar-e-shared-knowledge-base-5-points) — E1–E2
+- [Pillar E: Shared project knowledge](#pillar-e-shared-project-knowledge-5-points) — E1–E2
 - [Pillar F: Measurement mechanisms](#pillar-f-measurement-mechanisms-15-points) — F1–F4
 - [Placeholder Template Recognition Rules](#placeholder-template-recognition-rules-basis-for-content-substance-judgment)
 - [General PARTIAL Judgment Principles](#general-partial-judgment-principles)
@@ -88,69 +88,18 @@ grep -c "^## §4 Forbidden Red Lines" AGENTS.md
 
 ---
 
-### A4: .docs/ regulations library covers the new core docs (5 points)
+### A4: Core project guidance is relevant and substantive (5 points)
 
-**DEVSOP basis**: the new devsop-init's `.docs/` standard layout (§1.2 core docs + subdirectory docs).
+Assess whether the repository provides useful, project-specific guidance for architecture, coding conventions, review, and testing. The compact `devsop-init` core set is `.docs/architecture.md`, `.docs/coding-style.md`, `.docs/code-review.md`, `.docs/unittest/unittest.md`, and `.docs/review.md`; equivalent files or a well-organized README/handbook are equally valid.
 
-**Required core docs (count OK if present and non-placeholder)**:
-- `architecture.md` (system positioning/module division/views)
-- `relationship.md` (upstream/downstream relationships)
-- `coding-style.md`
-- `code-review.md`
-- `glossary.md`
-- `failures.md`
-- `logging.md`
-- `unittest/unittest.md` (**replaces the old `testing.md`**)
-- `integration_test/integration_test.md`
+Do not require optional API, database, deployment, glossary, failure, logging, or integration-test documents when they are not relevant. Do not reward document count by itself. A document is substantive when it contains applicable project facts or actionable guidance rather than only headings, empty tables, or generic placeholders.
 
-**On-demand subdirectory docs** (may be omitted when the capability is absent; no deduction; a missing one is only noted in the report):
-- `apis/index.md` + `apis/api-standards.md` — may be omitted for projects without external APIs (note "no APIs")
-- `sqls/README.md` + `sqls/database.md` — may be omitted for projects without databases (note "no database")
-- `devops/deployment.md` / `devops/development.md` / `devops/env.md` / `devops/test-env-deploy.md` — library projects may partially omit
+**Judgment**:
+- ✅ PASS: relevant core topics are covered with actionable, project-specific information; optional docs are added only when useful
+- ⚠️ PARTIAL: some important guidance is missing, generic, or still a placeholder
+- ❌ FAIL: developers must guess the project's architecture, conventions, or how to validate changes
 
-**Core judgment philosophy (from specs-checklist)**: **"file exists" ≠ "content is substantial"**. Each document must go beyond the initial placeholder template (see "Placeholder Template Recognition Rules" at the end); a document containing only a title + empty tables + `<fill>`/`TODO` placeholders counts as unfilled and is treated as missing.
-
-**Code Grader**:
-```bash
-# required docs (9) — missing existence/content directly affects scoring
-REQUIRED="architecture relationship coding-style code-review glossary failures logging unittest/unittest integration_test/integration_test"
-req_ok=0; req_total=9; skeleton=0
-for f in $REQUIRED; do
-  if [ -f .docs/$f.md ]; then
-    lines=$(wc -l < .docs/$f.md)
-    # placeholder judgment: ≤10 lines or almost entirely placeholders/empty tables
-    if [ "$lines" -le 10 ]; then
-      skeleton=$((skeleton+1)); echo "SKELETON $f ($lines lines)"
-    else
-      req_ok=$((req_ok+1)); echo "OK $f"
-    fi
-  else
-    echo "MISSING $f"
-  fi
-done
-
-# on-demand subdirectory docs (report only, does not affect judgment; trimmed per project capability)
-for f in .docs/apis/index.md .docs/sqls/README.md \
-         .docs/devops/deployment.md .docs/devops/development.md \
-         .docs/devops/env.md .docs/devops/test-env-deploy.md \
-         .docs/review.md; do
-  if [ -f "$f" ]; then
-    lines=$(wc -l < "$f")
-    [ "$lines" -gt 10 ] && echo "OPTIONAL_OK $f"
-  fi
-done
-
-echo "Required(non-skeleton): $req_ok/$req_total (skeleton: $skeleton)"
-```
-
-**Judgment** (based only on content substance of the 9 required docs):
-- ✅ PASS: all 9 required docs exist + each non-empty (>10 lines and non-placeholder); on-demand docs are trimmed per project capability and not mandatory
-- ⚠️ PARTIAL: 5-8 of the required docs exist and are non-placeholder (skeleton counts as missing), or all 9 exist but ≥3 are empty skeletons (≤10 lines/pure placeholder)
-- ❌ FAIL: ≤4 required docs exist or are non-placeholder
-
-> **Equivalent recognition**: if a project uses `.docs/design.md` instead of `architecture.md`, or another naming carrying equivalent content, treat it equally as long as the information is equivalent; do not double-deduct (following the specs-checklist evaluation philosophy).
-> Note: `devsop_report.md` does not count toward this item (it is this Skill's own output, evaluated by F1).
-> Note: missing on-demand docs do not affect the PASS/PARTIAL/FAIL judgment.
+> Equivalent names and external team handbooks are acceptable when the repository makes them easy to discover. `devsop_report.md` does not count as project guidance.
 
 ---
 
@@ -215,58 +164,38 @@ ls docker-compose.yml docker-compose.yaml 2>/dev/null
 
 ---
 
-## Pillar B: Dev mode / role collaboration (15 points)
+## Pillar B: Development coordination (15 points)
 
-### B1: 9-step R&D flow explicit (5 points)
+### B1: Project development workflow is discoverable (5 points)
 
-**DEVSOP basis**: §2.1 "overall flow: Clarify → Plan → Implement → UT → Deploy → IT → Docs → Review → Commit"
-
-**Model Grader**: check whether AGENTS.md's "§2 DEVSOP" describes the complete 9-step plans flow.
-
-**Code Grader**:
-```bash
-grep -cE "Clarify|Plan|Implement|UT|Deploy|IT|Docs|Review|Commit" AGENTS.md
-```
+Check whether contributors can find how work is proposed, implemented, verified, and reviewed. Evidence may be in repository docs, linked team guidance, issue/PR conventions, or another established process. No particular sequence, planning artifact, coding agent, or workflow tool is required.
 
 **Judgment**:
-- ✅ PASS: the 9-step flow is explicitly documented (or a reasonably trimmed ≥7 steps), and each step describes its deliverable or tool
-- ⚠️ PARTIAL: the flow is mentioned but only 3-6 steps, or only step names without deliverable descriptions
-- ❌ FAIL: no flow description at all
+- ✅ PASS: the project's actual process is easy to discover and gives contributors enough direction to proceed
+- ⚠️ PARTIAL: guidance exists but omits important handoffs or is scattered
+- ❌ FAIL: contributors have no reliable way to determine how changes are coordinated
 
 ---
 
-### B2: Role responsibility conventions (4 points)
+### B2: Ownership and responsibilities are clear (4 points)
 
-**DEVSOP basis**: § (role responsibility division) product/test/R&D, 4-6 responsibilities each
-
-**Model Grader**: search for keywords such as "role responsibilities", "product manager", "QA", "R&D" and locate them in AGENTS.md / README.md / .docs/.
+Assess whether it is clear who owns project areas, approves changes, or handles relevant responsibilities. Do not require PM/QA/R&D role names or a formal role matrix; small teams and individual maintainers may describe ownership in simpler terms.
 
 **Judgment**:
-- ✅ PASS: all three roles (PM/QA/RD) have ≥3 concrete responsibility items each
-- ⚠️ PARTIAL: only 1-2 roles covered, or responsibilities are vague/shallow (like "do requirements well")
-- ❌ FAIL: no role definitions at all
+- ✅ PASS: ownership and review responsibility are clear for the project's size and structure
+- ⚠️ PARTIAL: ownership is partly implicit or unclear for some areas
+- ❌ FAIL: contributors cannot identify an owner or decision-maker when one is needed
 
 ---
 
-### B3: Phase deliverables have ownership locations (4 points)
+### B3: Change context and outputs are findable (4 points)
 
-**DEVSOP basis**: §2.1 each phase (design, subtasks, unit tests) needs an explicit deliverable location
-
-**Code Grader + model**:
-- Check whether the `.docs/plans/` directory exists
-- Check whether the `.docs/plans/_template/` template directory exists (with the 10 files)
-- Check whether any created task directories exist (containing `00-overview.md`)
-
-```bash
-ls -d .docs/plans/ 2>/dev/null
-ls -d .docs/plans/_template/ 2>/dev/null
-find .docs/plans -maxdepth 2 -name 00-overview.md 2>/dev/null | wc -l
-```
+Check whether contributors can locate the relevant request/design context, source changes, tests, and user-facing documentation. Accept repository files, issue trackers, pull requests, or linked team systems; do not require `.docs/plans/` or a particular template.
 
 **Judgment**:
-- ✅ PASS: `.docs/plans/_template/` exists + ≥1 created task directory (containing 00-overview.md)
-- ⚠️ PARTIAL: `_template/` exists but no historical task directories
-- ❌ FAIL: `.docs/plans/` does not exist or is empty
+- ✅ PASS: the project identifies suitable locations or links for relevant change context and outputs
+- ⚠️ PARTIAL: some locations are documented but key context or outputs are hard to find
+- ❌ FAIL: there is no discoverable location for change context or its results
 
 ---
 
@@ -293,17 +222,18 @@ grep -iE "branch|feat/|fix/|hotfix/|naming" .docs/devops/development.md .docs/co
 
 ## Pillar C: Quality checks & feedback mechanisms (25 points)
 
-### C1: Commit / Push conventions memorized (AGENTS.md / project rules dir defines commit + push conventions) (5 points)
+### C1: Commit and push conventions documented (5 points)
 
 **DEVSOP basis**: §3.1 "pre-commit: build + lint + unit tests + prohibited-item checks → block the commit"
 
-> **Architecture note**: this Skill runs on a server (pulls repo code to evaluate), so `.git/hooks/` is not distributed with the code and cannot be used as evidence. Instead, evaluate the equivalent target: **whether the commit / push behavior conventions are written into AI-readable project memory files** (`AGENTS.md` and rule files under the project rules dir `rules/`). Only when the rules are in the memory files do AI and humans have gate conventions to follow when collaborating.
+> **Architecture note**: `.git/hooks/` is not distributed with the code and cannot be used as evidence here. Assess whether commit and push conventions are documented in version-controlled project guidance, such as `AGENTS.md`, contributor docs, or rules under `rules/`.
 
 **Code Grader**:
 ```bash
-# memory file existence
+# project guidance locations
 ls AGENTS.md 2>/dev/null
 ls rules/ 2>/dev/null
+ls CONTRIBUTING.md .docs/devops/development.md 2>/dev/null
 
 # commit convention signals: message format / pre-commit checks / ticket references / amend constraints
 grep -inE 'commit' AGENTS.md rules/*.md 2>/dev/null | head -15
@@ -315,13 +245,13 @@ grep -inE 'push|force-with-lease|MR|merge' AGENTS.md rules/*.md 2>/dev/null | he
 **Model Grader**: read the hit passages and judge whether the rules are concrete and executable (with explicit commands / formats / prohibitions), not empty phrases like "pay attention to commit conventions".
 
 **Judgment**:
-- ✅ PASS: the memory files **simultaneously** define commit conventions (e.g. message format, mandatory build/lint/test before commit, ticket references `--story=` / `--bug=`, one MR one commit / amend constraints) **and** push conventions (e.g. pre-push checks, post-push MR flow, `--force-with-lease` constraints, no direct pushes to protected branches), and the rules are concrete and executable
+- ✅ PASS: version-controlled project guidance **simultaneously** defines commit conventions (e.g. message format, required pre-commit checks, ticket references) **and** push conventions (e.g. pre-push checks, review flow, force-push constraints), and the rules are concrete and executable
 - ⚠️ PARTIAL: only one category defined (commit conventions without push conventions, or vice versa), or both mentioned but only as a vague one-liner without executable details
-- ❌ FAIL: neither `AGENTS.md` nor any recognized rules dir contains commit/push conventions (including when neither exists)
+- ❌ FAIL: no project guidance defines commit or push conventions
 
-> ⚠️ **Boundary with adjacent Evals**: B4 evaluates "branch naming + Commit Message format conventions"; C4 evaluates "branch protection and Review flow docs"; C1 evaluates "**whether rule constraints on commit and push behavior enter the AI memory files**" — the same passage can support multiple items; no double-deduction and no mutual exemption.
+> ⚠️ **Boundary with adjacent Evals**: B4 evaluates branch naming and commit-message formats; C4 evaluates branch protection and review flow. The same guidance may support multiple items when it provides evidence for each.
 >
-> ⚠️ **Anti-false-hit**: do not count "the Commit step name in the 9-step flow" as a commit convention — there must be constraint clauses about the commit/push behavior itself (format, pre-checks, prohibitions) to count.
+> **Anti-false-hit**: a generic mention of committing is not a commit convention; look for actual constraints such as message format, pre-checks, or prohibited actions.
 
 ---
 
@@ -484,143 +414,73 @@ grep -iE "e2e|integration.test|interface test" .github/workflows/*.yml .gitlab-c
 
 ## Pillar D: Design & change management (15 points)
 
-> Uniformly use the `.docs/plans/` system to manage all changes (Clarify → Plan → Implement → UT → Deploy → IT → Docs → Review → Commit).
+Assess whether change records and checks are proportionate to the project's needs. Evidence can live in issues, pull requests, design notes, commits, CI, or other established systems. Do not require a fixed task directory, 10-file template, TDD mandate, or change-size taxonomy.
+
+### D1: Significant change intent is captured (4 points)
+
+For a sample of substantial changes, look for a discoverable statement of the problem, expected outcome, or design rationale recorded before or during implementation.
+
+**Judgment**:
+- ✅ PASS: substantial changes have enough recorded context to explain why and what was changed
+- ⚠️ PARTIAL: context is recorded inconsistently or only after implementation
+- ❌ FAIL: substantial changes have no discoverable intent or rationale
 
 ---
 
-### D1: Task directories exist with substantive content (4 points)
+### D2: Change records reflect outcomes (4 points)
 
-**DEVSOP basis**: §4 "design before coding" — manage changes through the `.docs/plans/` system
-
-**Code Grader**:
-```bash
-# check the task directory count under plans/ (excluding _template)
-task_dirs=$(find .docs/plans -mindepth 1 -maxdepth 1 -type d -not -name '_template' 2>/dev/null | wc -l)
-
-# check the 10-file completeness of each task directory
-find .docs/plans -mindepth 1 -maxdepth 1 -type d -not -name '_template' 2>/dev/null | while read d; do
-  files=$(ls "$d"/*.md 2>/dev/null | wc -l)
-  echo "$d: $files step files"
-done
-```
+Check a sample of recent change records for implementation links, review decisions, completion status, or follow-up actions. Records may be issues, pull requests, decision notes, or equivalent artifacts.
 
 **Judgment**:
-- ✅ PASS: ≥1 task directory, and at least 1 contains ≥8 step files (00-overview.md + 01-09)
-- ⚠️ PARTIAL: task directories exist but with incomplete files (1-7 step files)
-- ❌ FAIL: no task directories or only `_template/`
+- ✅ PASS: records are traceable to their outcome and kept current enough to be useful
+- ⚠️ PARTIAL: records exist but outcomes or status are often unclear
+- ❌ FAIL: project change records are absent or routinely stale
 
 ---
 
-### D2: 00-overview.md maintenance activity (4 points)
+### D3: Verification matches change risk (4 points)
 
-**DEVSOP basis**: §4 "design before coding" — the task overview file is continuously maintained
-
-**Code Grader**:
-```bash
-# check the latest update of 00-overview.md under plans/
-find .docs/plans -name 00-overview.md -not -path '*/_template/*' -exec git log -1 --format='%cI' {} \; 2>/dev/null | sort -r | head -1
-```
+Assess whether changes receive relevant automated or manual verification, with regression coverage for defects when practical. TDD may be used, but is not mandatory.
 
 **Judgment**:
-- ✅ PASS: a task `00-overview.md` has git updates in the last 90 days
-- ⚠️ PARTIAL: task directories exist but no updates in 90 days
-- ❌ FAIL: no task `00-overview.md`
+- ✅ PASS: verification is appropriate to the change and its risk
+- ⚠️ PARTIAL: checks exist but important changes or regression cases are inconsistently covered
+- ❌ FAIL: changes are routinely accepted without relevant verification
 
 ---
 
-### D3: Small-change TDD/regression testing + template completeness (4 points)
+### D4: Project guidance changes with the product (3 points)
 
-**DEVSOP basis**: §4.2 "bug fixes must include regression tests" + §3.1 "unit test gate"
-
-**Code Grader + model**:
-```bash
-# check the 10-file completeness under plans/_template/
-ls .docs/plans/_template/ 2>/dev/null | wc -l
-
-# TDD requirement (documented in unittest/unittest.md)
-grep -iE 'TDD|write tests first|regression' .docs/unittest/unittest.md AGENTS.md 2>/dev/null
-```
+Check whether user-facing or maintainer documentation is updated when behavior, setup, interfaces, or operational expectations change. Documentation can be omitted when a change has no lasting documentation impact.
 
 **Judgment**:
-- ✅ PASS: `_template/` has the 10 files + TDD explicitly in `unittest/unittest.md` or `AGENTS.md`
-- ⚠️ PARTIAL: the template exists but <10 files, or TDD is only a verbal convention
-- ❌ FAIL: the template does not exist and there is no TDD requirement
+- ✅ PASS: relevant docs are updated alongside changes, with no requirement to create docs for every change
+- ⚠️ PARTIAL: documentation updates are inconsistent
+- ❌ FAIL: changes regularly leave project guidance materially misleading or incomplete
 
 ---
 
-### D4: Change-classification standard documented (3 points)
+## Pillar E: Shared project knowledge (5 points)
 
-**DEVSOP basis**: §4.1 change classification rules
+### E1: Project guidance is discoverable (2 points)
 
-**Model Grader**:
-```bash
-grep -iE "classification|large|medium|small|person.day|change scale|impact scope" \
-  .docs/devops/development.md AGENTS.md .docs/code-review.md 2>/dev/null
-```
-
-Look for the change-classification definition in `.docs/devops/development.md`, `AGENTS.md`, or `.docs/code-review.md`.
+Check whether the README or another clear entry point links to the project's reusable guidance, such as architecture, coding conventions, tests, operations, or a team knowledge base. No Skills format, agent-specific file, or minimum file count is required.
 
 **Judgment**:
-- ✅ PASS: the doc clearly defines how large/medium/small changes are judged (e.g. person-day thresholds, number of affected modules, code line counts) and points to the process for each level
-- ⚠️ PARTIAL: only the "large/medium/small change" concept is mentioned without clear judgment criteria, or the criteria are vague
-- ❌ FAIL: no change-classification description
+- ✅ PASS: the entry point links to relevant, substantive project guidance
+- ⚠️ PARTIAL: useful guidance exists but is difficult to discover
+- ❌ FAIL: there is no discoverable project-specific guidance beyond source code
 
 ---
 
-## Pillar E: Shared knowledge base (5 points)
+### E2: Shared knowledge is useful and maintained (3 points)
 
-### E1: In-project Skills accumulation directory (2 points)
-
-**DEVSOP basis**: §5.1 "Skills & Hooks: useful skill files"
-
-**Code Grader**:
-```bash
-# the standard repo-local skills dir
-ls -d .agents/skills/ 2>/dev/null
-ls .agents/skills/*/SKILL.md 2>/dev/null | wc -l
-```
+Assess whether the project retains relevant knowledge that helps future contributors make decisions or operate the system. Examples include architecture and operational docs, decision records, domain-specific references, or a linked team knowledge base. A small number of useful sources is sufficient; do not score by document count or require task-plan archives.
 
 **Judgment**:
-- ✅ PASS: `skills/` exists + ≥3 SKILL.md files (including this Skill itself)
-- ⚠️ PARTIAL: only 1-2 Skills
-- ❌ FAIL: no accumulation directory at all
-
----
-
-### E2: Knowledge accumulation completeness (3 points)
-
-**DEVSOP basis**: §5 "shared knowledge base: build a shared knowledge-accumulation space" — the DEVSOP does not restrict where knowledge lives; local `.docs/` in the repo and remote wikis have equal value, and local accumulation is even easier for AI to consume directly.
-
-**Criteria**: PASS when any of the following paths is satisfied (choose one of three).
-
-**Path ① `.docs/` doc count (Code Grader)**:
-```bash
-# number of Markdown docs under .docs/
-find .docs/ -name '*.md' 2>/dev/null | wc -l
-```
-- ≥10 Markdown docs under `.docs/` → PASS
-
-**Path ② remote team knowledge-base references (Code Grader + Model Grader)**:
-```bash
-# check for external knowledge-base links in README/AGENTS
-# recognized keywords: wiki, confluence, notion, yuque, feishu, knowledge bases, shared repos, etc.
-grep -iE '(wiki|confluence|notion|yuque|feishu|knowledge|doc.center)' \
-  README.md AGENTS.md 2>/dev/null | grep -E 'https?://'
-```
-- a line or file contains both a knowledge-platform keyword and an http(s):// link → Code Grader hit
-- Model Grader confirms: the link points to a valid team knowledge base with a usage description → PASS
-
-**Path ③ `.docs/plans/` task count (Code Grader)**:
-```bash
-# task directory count under .docs/plans/ (excluding _template)
-find .docs/plans -mindepth 1 -maxdepth 1 -type d -not -name '_template' 2>/dev/null | wc -l
-```
-- ≥3 created task directories → PASS
-
-**Judgment**:
-- ✅ PASS: satisfies any of ①/②/③
-- ⚠️ PARTIAL: `.docs/` has 1-9 docs, or external resources are only mentioned without links, or `.docs/plans/` has 1-2 task directories
-- ❌ FAIL: no accumulation traces at all
+- ✅ PASS: useful, project-specific knowledge is discoverable and maintained in the repository or a linked team source
+- ⚠️ PARTIAL: knowledge exists but is incomplete, stale, or difficult to access
+- ❌ FAIL: important project knowledge is neither documented nor linked
 
 ---
 
@@ -667,45 +527,14 @@ ls .docs/devsop_improvements.md .docs/devsop_changelog.md 2>/dev/null
 
 ---
 
-### F2: AI session/memory/failure-case retention (4 points)
+### F2: Decisions and recurring failure knowledge are retained (4 points)
 
-**DEVSOP basis**: §6.2 "keep logs of key AI sessions (Prompt + output) / accumulate failure cases" — the DEVSOP cares about "whether the AI collaboration process is traceable"; the carrier is the agent-agnostic standard locations (repo-local `.agents/memory/` and `.agents/sessions/`, or user-level `~/.agents/projects/<slug>/memory/`).
-
-**Criteria**: PASS when any of the following paths is satisfied.
-
-**Path ① AI memory store (Code Grader · recommended)**:
-```bash
-# standard memory locations (user-level dir named with the project absolute-path slug: / → -, leading - removed)
-slug=$(pwd | sed 's|/|-|g; s/^-//')
-for m in ".agents/memory/" "$HOME/.agents/projects/$slug/memory/"; do
-  ls "$m" 2>/dev/null
-  find "$m" -name '*.md' 2>/dev/null | wc -l
-done
-# fallback scan when the slug does not match
-find "$HOME/.agents/projects" -maxdepth 2 -name MEMORY.md 2>/dev/null | head -5
-```
-- the `memory/` dir for the current project exists + ≥3 memory files → PASS (memory is already structured AI-context accumulation)
-- Note: memory may live in the **user-level** directory (outside the repo), a legitimate evidence source; scanning is read-only, no writes involved
-
-**Path ② session logs (Code Grader)**:
-```bash
-# in-repo session dirs
-ls -d logs/ai-sessions/ .agents/sessions/ 2>/dev/null
-find logs/ai-sessions/ .agents/sessions/ -name '*.md' -o -name '*.jsonl' 2>/dev/null | head -5
-```
-- any in-repo session dir exists + has files in the last 30 days → PASS
-
-**Path ③ failure cases in git (Code Grader)**:
-```bash
-git ls-files .docs/failures.md >/dev/null 2>&1 && \
-  git log --since='90 days ago' --format='%cI' -- .docs/failures.md | head -1
-```
-- failures.md is tracked + has commits in the last 90 days → PASS
+Assess whether important design decisions, incidents, and recurring pitfalls are captured in project documentation, issue records, or another discoverable team source. Do not require storing AI prompts, session transcripts, agent memory, or files in a specific location.
 
 **Judgment**:
-- ✅ PASS: satisfies any of ①/②/③
-- ⚠️ PARTIAL: only failures.md exists but not in git, or the memory store exists but <3 files, or session dirs exist but no new files in 30+ days
-- ❌ FAIL: no session/memory/failure retention at all
+- ✅ PASS: relevant decisions or lessons are recorded and easy for maintainers to find
+- ⚠️ PARTIAL: some records exist but important lessons are scattered or stale
+- ❌ FAIL: there is no discoverable record of decisions or recurring failures where the project needs one
 
 ---
 
@@ -749,7 +578,7 @@ If there are ≥2 git commit records, read the current report and compare the FA
 
 ## Placeholder Template Recognition Rules (basis for content-substance judgment)
 
-> From the specs-checklist evaluation philosophy: **"file exists" ≠ "content is substantial"**. Doc-type Evals such as A4/D1/D3 must use this to judge whether content goes beyond the initial placeholder template.
+> From the specs-checklist evaluation philosophy: **"file exists" ≠ "content is substantial"**. Use this to assess whether project guidance goes beyond initial placeholders.
 
 **Generic placeholder features (any hit = placeholder/unfilled)**:
 1. Placeholder variables: the file contains angle-bracket/double-brace placeholders such as `<project name>`, `<fill>`, `<example>`, `<module>`, `<ActionName>`, `<X.Y.Z>`, `<APP>`, `<pkg1>`, `{{PROJECT_NAME}}` with no corresponding real value
@@ -767,7 +596,6 @@ If there are ≥2 git commit records, read the current report and compare the FA
 | `unittest/unittest.md` | the tech-selection table's test framework is still `<fill...>`; the run command is still `<fill: sh run_test.sh ...>` |
 | `integration_test/integration_test.md` | §1 form determination is all placeholders without the project's actual form; §3 run command is still `<fill: sh run_it.sh ...>`; more than 8 placeholders |
 | `devops/env.md` | the runtime environment table has no valid rows; the quick start is still `# TODO:` |
-| `devops/test-env-deploy.md` | the tool-readiness check table has no valid rows; the sync command is still `# TODO:` |
 | `review.md` | a generic template; project customization is not required; existence alone counts as ✅ |
 
 **Equivalent recognition**: using `design.md` instead of `architecture.md`, using GitHub Issues instead of task registration, etc. — as long as the information is equivalent, treat it equally; do not deduct for different filenames.

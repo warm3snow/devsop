@@ -1,11 +1,11 @@
 ---
 name: devsop-eval
-description: Reviews a project's development practices and produces an evidence-based DEVSOP report. Use for a quick baseline or a detailed assessment of project processes and documentation.
+description: Reviews a project's documented context and engineering practices and produces an evidence-based report. Use for a quick baseline or a detailed assessment.
 ---
 
 # devsop-eval
 
-Review project development practices using repository evidence. The default is a quick check; perform the full 28-item scored assessment only when the user asks for a detailed evaluation.
+Review project context and engineering practices using repository evidence. The default is a quick check; perform the full 28-item scored assessment only when the user asks for a detailed evaluation. Evaluate outcomes, not adoption of a particular coding agent, Skill format, or task workflow.
 
 ## Output
 
@@ -26,9 +26,9 @@ Inspect the repository once and assess each pillar with the corresponding questi
 | Pillar | Quick-check question |
 |---|---|
 | A. Project AI-friendliness | Can a developer or AI agent understand the project and run it or its tests from the available entry docs? |
-| B. Development workflow | Is there a clear, usable workflow for clarifying, planning, implementing, testing, and reviewing changes? |
+| B. Development coordination | Can contributors discover how changes are coordinated, owned, verified, and reviewed? |
 | C. Quality checks | Are automated checks and review rules in place to catch common defects before changes merge? |
-| D. Change management | Are substantial changes planned, tested, and documented in a discoverable place? |
+| D. Change management | Is change context recorded, verification appropriate, and project guidance updated when needed? |
 | E. Shared knowledge | Does the repository preserve reusable project knowledge beyond source code? |
 | F. Improvement loop | Does the team review outcomes and track improvements over time? |
 
