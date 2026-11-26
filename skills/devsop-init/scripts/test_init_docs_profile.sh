@@ -120,6 +120,70 @@ else
 fi
 rm -rf "$REPO"
 
+echo "Global profile creates the orchestration set without code-oriented docs"
+REPO="$(new_repo)"
+bash "$INIT" "$REPO" --profile global >/dev/null 2>&1
+assert_exists "$REPO/AGENTS.md" "AI entry generated"
+assert_exists "$REPO/docs/architecture.md" "system-view architecture doc generated"
+assert_exists "$REPO/docs/services.md" "service registry generated"
+assert_exists "$REPO/docs/service-dependencies.md" "derived dependencies view generated"
+assert_exists "$REPO/docs/plans/README.md" "plan projection rules generated"
+if grep -q "## Orchestration (global repo)" "$REPO/AGENTS.md"; then
+    ok "AGENTS.md carries the orchestration section"
+else
+    bad "AGENTS.md should include the orchestration section under the global profile"
+fi
+if grep -qi "never hand-edit" "$REPO/docs/service-dependencies.md"; then
+    ok "derived dependencies view is marked generated"
+else
+    bad "service-dependencies.md should be marked as a generated view"
+fi
+assert_missing "$REPO/docs/coding-style.md" "coding style omitted in orchestration repo"
+assert_missing "$REPO/docs/code-review.md" "code review omitted in orchestration repo"
+assert_missing "$REPO/docs/api-standards.md" "API standards omitted in orchestration repo"
+assert_missing "$REPO/.git/hooks/pre-commit" "Git hooks skipped in orchestration repo"
+assert_missing "$REPO/.golangci.yml" "Go lint config skipped in orchestration repo"
+if grep -q "System Topology" "$REPO/docs/architecture.md"; then
+    ok "architecture doc uses the system-view template"
+else
+    bad "global architecture should use the system-view template"
+fi
+rm -rf "$REPO"
+
+echo "Global profile preserves existing docs and registry"
+REPO="$(new_repo)"
+bash "$INIT" "$REPO" --profile global >/dev/null 2>&1
+echo "my services" > "$REPO/docs/services.md"
+bash "$INIT" "$REPO" --profile global >/dev/null 2>&1
+RC=$?
+[[ $RC -eq 0 ]] && ok "repeat global initialization succeeds" || bad "repeat global initialization failed"
+if [[ "$(cat "$REPO/docs/services.md")" == "my services" ]]; then
+    ok "existing service registry kept"
+else
+    bad "global profile modified an existing registry"
+fi
+assert_missing "$REPO/docs/coding-style.md" "repeat run adds no code-oriented docs"
+rm -rf "$REPO"
+
+echo "Global profile rejects --include and unknown profiles"
+REPO="$(new_repo)"
+OUTPUT="$(bash "$INIT" "$REPO" --profile global --include optional-docs.md 2>&1)"
+RC=$?
+if [[ $RC -ne 0 ]] && echo "$OUTPUT" | grep -q "not supported with --profile global"; then
+    ok "--include rejected under the global profile"
+else
+    bad "--include should be rejected under the global profile"
+fi
+OUTPUT="$(bash "$INIT" "$REPO" --profile planning 2>&1)"
+RC=$?
+if [[ $RC -ne 0 ]] && echo "$OUTPUT" | grep -q "Unknown profile"; then
+    ok "unknown profile rejected"
+else
+    bad "unknown profile should fail with an error"
+fi
+assert_missing "$REPO/AGENTS.md" "no files written for invalid profile input"
+rm -rf "$REPO"
+
 echo "Unknown options fail before writing"
 REPO="$(new_repo)"
 OUTPUT="$(bash "$INIT" "$REPO" --unknown 2>&1)"

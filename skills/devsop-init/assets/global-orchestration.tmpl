@@ -1,0 +1,19 @@
+## Orchestration (global repo)
+
+This repository is the **orchestration repo**: it owns global requirements and
+dispatches work to service repos. It contains no service code.
+
+1. `docs/services.md` is the hand-maintained service registry (dev repos + manual
+   platforms). `docs/service-dependencies.md` is a derived view — regenerate it from
+   the registry and each dev repo's AGENTS.md / architecture.md before planning; never
+   hand-edit it.
+2. Run `devsop-plan` / `devsop-design` here on business-level stories. Do not split
+   stories by service; service impact is decided by design's architecture recon.
+3. Dispatch by `tasks.md` Component: each service repo receives a projection at
+   `docs/plans/<dir-id>/` (its tasks + relevant criteria/test cases + interface
+   contract summary) with a back-link to this repo and commit hash. Projections are
+   generated, never hand-edited.
+4. Cross-service integration verification and deployment ordering run here, against
+   the original acceptance criteria in this repo.
+5. Service-internal docs (coding style, tests, API standards) live in the service
+   repos — link them, do not copy them here.

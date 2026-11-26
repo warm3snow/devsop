@@ -6,7 +6,7 @@ devsop is a small library of reusable Skills for starting, running, and improvin
 
 **Setup and assessment**
 
-- **devsop-init** inventories existing project guidance and source evidence, then links authoritative docs and adds only confirmed missing context. For a new project it provides four starter docs (`architecture`, `api-standards`, `coding-style`, `code-review`) plus `AGENTS.md`; a `--full` catalog covers on-demand topics (testing, database, logging, DevOps, glossary, pitfalls, relationships). For a repository with no code yet it runs an interactive initialization (asks what the repo will do, confirms the shape, scaffolds, then documents it). Existing layouts and filenames are preserved.
+- **devsop-init** inventories existing project guidance and source evidence, then links authoritative docs and adds only confirmed missing context. For a new project it provides four starter docs (`architecture`, `api-standards`, `coding-style`, `code-review`) plus `AGENTS.md`; a `--full` catalog covers on-demand topics (testing, database, logging, DevOps, glossary, pitfalls, relationships). `devsop-init global` initializes an orchestration repo (service registry, derived dependency view, global plan projection rules) instead. For a repository with no code yet it runs an interactive initialization (asks what the repo will do, confirms the shape, scaffolds, then documents it). Existing layouts and filenames are preserved.
 - **devsop-eval** checks project practices against a consistent set of criteria and writes an evidence-based report to the existing report location or the project's documentation root.
 
 **Delivery stages** (each standalone, or composed end-to-end by **devsop-flow**)
