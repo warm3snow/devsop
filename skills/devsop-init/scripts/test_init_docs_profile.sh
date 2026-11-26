@@ -29,15 +29,17 @@ REPO="$(new_repo)"
 bash "$INIT" "$REPO" >/dev/null 2>&1
 assert_exists "$REPO/AGENTS.md" "AI entry generated"
 assert_exists "$REPO/docs/architecture.md" "architecture doc generated"
-assert_exists "$REPO/docs/unittest/unittest.md" "unit-test doc generated"
+assert_exists "$REPO/docs/api-standards.md" "API standards doc generated"
+assert_exists "$REPO/docs/coding-style.md" "coding style doc generated"
+assert_exists "$REPO/docs/code-review.md" "code review doc generated"
 if grep -q "Follow the project's established development workflow" "$REPO/AGENTS.md"; then
     ok "AI entry defers to the project's chosen workflow"
 else
     bad "AI entry should not prescribe a task workflow"
 fi
+assert_missing "$REPO/docs/review.md" "duplicate review doc is not created"
+assert_missing "$REPO/docs/unittest" "unit-test doc omitted by default"
 assert_missing "$REPO/docs/plans" "task-management structure is not imposed"
-assert_missing "$REPO/.agents/skills/clarify" "only the two bundled Skills are needed"
-assert_missing "$REPO/docs/apis" "API docs omitted by default"
 assert_missing "$REPO/docs/sqls" "database docs omitted by default"
 assert_missing "$REPO/docs/devops" "DevOps docs omitted by default"
 rm -rf "$REPO"
@@ -65,7 +67,7 @@ printf '# Coding conventions\n' > "$REPO/docs/conventions.md"
 bash "$INIT" "$REPO" --docs-dir docs --include architecture.md >/dev/null 2>&1
 assert_exists "$REPO/docs/architecture.md" "selected missing architecture template added"
 assert_exists "$REPO/docs/conventions.md" "unrelated existing document preserved"
-assert_missing "$REPO/docs/coding-style.md" "unselected equivalent template omitted"
+assert_missing "$REPO/docs/api-standards.md" "unselected equivalent template omitted"
 rm -rf "$REPO"
 
 echo "Ambiguous docs roots require an explicit choice"
@@ -96,13 +98,11 @@ assert_missing "$OUTSIDE/architecture.md" "no files written through external sym
 assert_missing "$REPO/AGENTS.md" "no project files written after symlink rejection"
 rm -rf "$REPO" "$OUTSIDE"
 
-echo "Full profile includes optional docs"
+echo "Full profile adds the optional-docs catalog"
 REPO="$(new_repo)"
 bash "$INIT" "$REPO" --full >/dev/null 2>&1
-assert_exists "$REPO/docs/apis/index.md" "API docs generated"
-assert_exists "$REPO/docs/sqls/database.md" "database docs generated"
-assert_exists "$REPO/docs/devops/env.md" "DevOps docs generated"
-assert_missing "$REPO/docs/devops/test-env-deploy.md" "no agent-specific environment guide is generated"
+assert_exists "$REPO/docs/optional-docs.md" "optional-docs catalog generated"
+assert_missing "$REPO/docs/devops" "no bulk optional docs are generated"
 assert_missing "$REPO/docs/plans" "full profile does not impose a task workflow"
 rm -rf "$REPO"
 
@@ -110,8 +110,8 @@ echo "Full profile adds to an existing core setup without overwriting files"
 REPO="$(new_repo)"
 bash "$INIT" "$REPO" >/dev/null 2>&1
 echo "user content" > "$REPO/docs/architecture.md"
-bash "$INIT" "$REPO" --full --include apis/index.md >/dev/null 2>&1
-assert_exists "$REPO/docs/apis/index.md" "full profile adds selected optional docs"
+bash "$INIT" "$REPO" --full --include optional-docs.md >/dev/null 2>&1
+assert_exists "$REPO/docs/optional-docs.md" "full profile adds selected optional docs"
 assert_missing "$REPO/docs/plans" "profile upgrade does not create task workflow files"
 if [[ "$(cat "$REPO/docs/architecture.md")" == "user content" ]]; then
     ok "existing core doc kept"

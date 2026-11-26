@@ -16,6 +16,8 @@ This document provides `devsop-eval` with the judgment criteria, evidence source
 
 > Basis: team AI R&D workflow DEVSOP v1.0
 > Score mapping: ✅ PASS = full score, ⚠️ PARTIAL = full score × 40%, ❌ FAIL = 0
+>
+> **Self-contained rubric**: the `§x.y` references in each item's "DEVSOP basis" line cite the team's DEVSOP regulation document, which is not shipped with this skill. Judge from the criterion text, evidence, and judgment rules in this file — never from an unavailable external document.
 
 ---
 
@@ -335,11 +337,14 @@ Look for evidence of how recurring issues are surfaced, addressed, and retained 
 
 **DEVSOP basis**: §3.2 prohibited item "committing dependencies with vulnerabilities" + industry security baseline
 
-> **Tooling scope**: team Go projects no longer use the `gosec` binary standalone; it is carried uniformly through `golangci-lint` (the `.golangci.yml` injected by devsop-init enables `gosec` in `linters.enable` by default). The primary evidence for Go projects is **`gosec` being enabled in `.golangci.yml`**.
+> **Tooling scope**: this criterion is language-neutral in principle — the primary evidence is a project-configured security scanner for whatever stack the project uses. For **Go projects** the team convention is: gosec is carried uniformly through `golangci-lint` (the `.golangci.yml` injected by devsop-init enables `gosec` in `linters.enable` by default), so the primary evidence for Go projects is **`gosec` being enabled in `.golangci.yml`**. For other languages, accept the equivalent evidence: configured SAST/dependency scanner in the project's lint or CI config (e.g. bandit/semgrep for Python, SpotBugs+dependency-check for Java, eslint-plugin-security+audit for JS/TS, cargo-audit for Rust).
 
 **Code Grader**:
 ```bash
-# 1. Go project primary path: gosec enabled in .golangci.yml
+# 1. Primary path for Go projects: gosec enabled in .golangci.yml
+# For non-Go projects, jump to check 3 below (any configured security scanner counts as evidence).
+# A configured security scanner for the project's stack counts as evidence.
+# Go team convention (primary path): gosec carried by golangci-lint.
 ls .golangci.yml .golangci.yaml 2>/dev/null
 # gosec present in the enable list (PASS signal)
 grep -A30 'enable:' .golangci.yml .golangci.yaml 2>/dev/null | grep -E '^\s*-\s*gosec'
@@ -364,9 +369,9 @@ ls renovate.json renovate.json5 .renovaterc .github/dependabot.yml .trivyignore 
 ```
 
 **Judgment**:
-- ✅ PASS: satisfies any of — ① Go project `.golangci.yml` / `.golangci.yaml` exists and `gosec` is in `linters.enable` (not in the disable list); ② local security-scan tool config files exist; ③ local CI config (GitHub Actions/GitLab CI/Jenkinsfile/Makefile) includes security scanning; ④ security scanning integrated in Argo Workflow or external CI yaml; ⑤ discovered project guidance explicitly declares the security scan is integrated in an external CI pipeline (with tool name and location); ⑥ dependency-update / vulnerability tooling exists (Renovate / Dependabot / trivy etc.)
-- ⚠️ PARTIAL: `.golangci.yml` exists but `gosec` not enabled (lint system present, security linter missing); or only dependency-update tooling without proactive vulnerability scanning; or project guidance mentions security scanning but does not state the specific tool/location; or the config exists but the rules are empty
-- ❌ FAIL: no `.golangci.yml` or the enable list is empty, no other security-scan config, and project guidance does not declare external-CI security scanning
+- ✅ PASS: satisfies any of — ① a security scanner for the project's stack is configured and enabled (Go convention: `gosec` in `.golangci.yml` `linters.enable`; other stacks: bandit/semgrep, SpotBugs+dependency-check, eslint-plugin-security + audit, cargo-audit, etc.); ② local security-scan tool config files exist; ③ local CI config (GitHub Actions / GitLab CI / Jenkinsfile / Makefile) includes security scanning; ④ security scanning is integrated in an external CI/pipeline config; ⑤ discovered project guidance explicitly declares the security scan with tool name and location; ⑥ dependency-update / vulnerability tooling exists (Renovate / Dependabot / trivy etc.)
+- ⚠️ PARTIAL: a lint system exists but no security scanner is enabled; or only dependency-update tooling without proactive vulnerability scanning; or project guidance mentions security scanning but does not state the specific tool/location; or the config exists but the rules are empty
+- ❌ FAIL: no security-scan configuration of any kind, and project guidance does not declare external-CI security scanning
 
 ---
 

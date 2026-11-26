@@ -4,7 +4,7 @@
 
 - Overview Score → Capability Eval Details → Anti-pattern Detection → Entropy Management
 - Prioritized Improvement Suggestions → Upgrade Roadmap → Core Conclusions → Todo Suggestions → Appendix
-- Todo Suggestions must be wrapped in `DEVSOP_TODOS_START` / `DEVSOP_TODOS_END` HTML markers (used by the JSON converter).
+- Todo Suggestions are wrapped in `DEVSOP_TODOS_START` / `DEVSOP_TODOS_END` HTML markers so the improvement list can be extracted reliably.
 
 This template is used by the `devsop-eval` skill to render the final report at the resolved `$REPORT_PATH`, preserving an existing report location or using the project's documentation root.
 Use it only for the full 28-item assessment; the default quick check uses a shorter six-pillar format without a score.
@@ -99,7 +99,7 @@ Use it only for the full 28-item assessment; the default quick check uses a shor
 | Eval | Conclusion | Evidence | Grader |
 |------|-----------|----------|--------|
 | C1 Commit and push conventions documented | ✅/⚠️/❌ | {version-controlled guidance + covered items (commit / push)} | code+model |
-| C2 CI pipeline + coverage gate (CI config file or README/deployment.md with CI platform URL) | ✅/⚠️/❌ | {CI config path (e.g. .github/workflows/, .gitlab-ci.yml, Jenkinsfile) or CI platform URL in docs + coverage threshold} | code |
+| C2 CI pipeline + coverage gate (CI config file or project docs with CI platform URL) | ✅/⚠️/❌ | {CI config path (e.g. .github/workflows/, .gitlab-ci.yml, Jenkinsfile) or CI platform URL in docs + coverage threshold} | code |
 | C3 Prohibited-item protection | ✅/⚠️/❌ | {.gitignore rules + doc explanation} | code+model |
 | C4 Branch protection and Review flow | ✅/⚠️/❌ | {documented constraint count} | model |
 | C5 Recurring-issue feedback | ✅/⚠️/❌ | {authoritative source path + maintenance/review evidence} | code+model |
@@ -188,8 +188,6 @@ Use it only for the full 28-item assessment; the default quick check uses a shor
 
 ---
 
----
-
 ## 🎯 Prioritized Improvement Suggestions
 
 ### 🔥 High priority (complete within this sprint)
@@ -211,7 +209,7 @@ Use it only for the full 28-item assessment; the default quick check uses a shor
 |---|--------------|-------|--------|------------------|
 | ... | | | | |
 
-> Improvement suggestions reference: the `devsop-eval` Skill's `devsop-improvement-examples.md` (in the Skill install dir, user-level `~/.agents/skills/devsop-eval/` or project-level `<repo>/.agents/skills/devsop-eval/`)
+> Improvement suggestions reference: the `devsop-eval` Skill's `sop-improvement-examples.md` (in the Skill install dir, user-level `~/.agents/skills/devsop-eval/` or project-level `<repo>/.agents/skills/devsop-eval/`)
 
 ---
 

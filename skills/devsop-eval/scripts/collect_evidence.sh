@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# collect_evidence.sh - collects shared project evidence for devsop-eval sub-agents
+# collect_evidence.sh - collects shared project evidence for devsop-eval
 #
 # Usage:
 #   cd <REPO_ROOT> && bash <SKILL_DIR>/scripts/collect_evidence.sh
 #
-# Outputs structured text to stdout; the main agent injects it into sub-agent prompts.
-# Design goal: collect once, reuse many times, avoid duplicate IO by 6 sub-agents.
+# Outputs structured text to stdout; the main agent uses it directly and may inject
+# it into optional pillar sub-agent prompts. Collect once, reuse many times.
 
 set -u
 # Note: -e/-o pipefail are NOT enabled. This script is read-only probing; the goal is

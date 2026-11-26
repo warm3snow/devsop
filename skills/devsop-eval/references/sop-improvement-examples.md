@@ -149,16 +149,16 @@ This document provides `devsop-eval` with examples for turning findings into exe
 
 ### C2 No CI pipeline
 
-> Any CI platform counts: GitHub Actions / GitLab CI / Jenkins / Argo CD / etc. Either of two counts as having CI: ① a CI config checked into the repo (`.github/workflows/` / `.gitlab-ci.yml` / `Jenkinsfile`); ② README/deployment.md explicitly writes the CI platform URL.
+> Any CI platform counts: GitHub Actions / GitLab CI / Jenkins / Argo CD / etc. Either of two counts as having CI: ① a CI config checked into the repo (`.github/workflows/` / `.gitlab-ci.yml` / `Jenkinsfile`); ② the project README or existing docs explicitly state the CI platform URL.
 
 | Current state | Improvement action |
 |---------------|--------------------|
 | Path ①: CI config checked in | Create a CI workflow at the repo root (e.g. `.github/workflows/ci.yml` / `.gitlab-ci.yml` / `Jenkinsfile`), stages: Checkout → Build → Lint → UnitTest → Coverage → IntegrationTest. Skeleton below |
 | Path ②: pipeline configured on the CI platform, not in the repo | Add a "## CI Pipeline" section to the README or existing deployment guidance, including platform name, clickable URL, trigger conditions, stages, and failure contact |
-| Platform name only, no URL | Add the URL: the pipeline page of the CI platform in use — paste it into deployment.md |
-| No coverage gate | Add `COVERAGE_THRESHOLD := 60` to the Makefile; in the CI config, after `sh 'go test -coverprofile=coverage.out ./...'`, validate with a shell `awk` check; on failure mark the build UNSTABLE |
+| Platform name only, no URL | Add the URL: the pipeline page of the CI platform in use — paste it into the project's existing CI or docs page |
+| No coverage gate | Add a `COVERAGE_THRESHOLD` (default 60) to the project's build tool; in the CI config, after the project's coverage command, validate the percentage with a shell check; on failure mark the build UNSTABLE |
 
-**CI workflow reference skeleton (Go project, GitHub Actions example)**:
+**CI workflow reference skeleton (Go project as a worked example; adapt the setup/run steps to the project's stack)**:
 ```yaml
 # .github/workflows/ci.yml
 name: CI
@@ -181,7 +181,7 @@ jobs:
 ```
 > Jenkinsfile / GitLab CI equivalents are equally valid — the framework does not mandate a specific platform.
 
-**deployment.md section template (Path ②)**:
+**CI section template for the project docs (Path ②)**:
 ```markdown
 ## CI Pipeline
 
@@ -276,10 +276,10 @@ Call `make security` in CI (GitHub Actions / GitLab CI / Jenkinsfile all work th
    mkdir -p tests/e2e
    ```
 
-2. **Write the first integration test** (Go example):
+2. **Write the first integration test** (use the project's language and test runner):
    - Choose a core business flow (e.g. "create user → query user")
-   - Use `testcontainers-go` or `docker-compose` to start real dependencies
-   - File naming: `tests/integration/user_flow_test.go`
+   - Start real dependencies with testcontainers or `docker-compose`
+   - File naming follows the project's existing integration-test convention
 
 3. **CI integration** (GitHub Actions example; Jenkinsfile/GitLab CI equivalents work the same):
    ```yaml
@@ -287,7 +287,7 @@ Call `make security` in CI (GitHub Actions / GitLab CI / Jenkinsfile all work th
       - name: Integration
         run: |
           docker-compose -f docker-compose.test.yml up -d
-          go test ./tests/integration/ -v -tags=integration
+          <project integration-test command>
           docker-compose -f docker-compose.test.yml down
    ```
 
@@ -372,7 +372,7 @@ Call `make security` in CI (GitHub Actions / GitLab CI / Jenkinsfile all work th
 ### Excessive test mocking
 
 **Improvement action**:
-1. Identify directories with a high mock ratio (e.g. `*_mock.go` accounting for >70% of `*_test.go`)
+1. Identify directories with a high mock ratio (mock files accounting for >70% of that area's test files)
 2. Add 1 real integration test per core business flow (using an in-memory SQLite DB / testcontainers)
 3. Document the verified database-testing approach in the project's existing test guidance
 

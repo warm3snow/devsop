@@ -40,28 +40,18 @@ If evidence is missing or a check cannot be completed, mark it **Not assessed** 
 
 Use the complete 28-item rubric in `references/sop-scoring-criteria.md` and render the detailed report with `references/sop-report-template.md`. Follow these rules:
 
-1. Detect the language stack and project type using repository files and `scripts/detect_project_type.sh`.
+1. Detect the language stack and project type from repository files and report them in the assessment context (project type affects how a few items are read, e.g. a library has no service topology).
 2. Collect shared evidence once with `scripts/collect_evidence.sh`. Discover documentation by scanning the repository's documentation files and entry points; exclude generated reports from project-knowledge evidence. Check the cache first; run additional read-only commands only when needed.
 3. Evaluate all 28 items against the rubric. Each item needs a conclusion, concrete evidence, and grader type (code / model / manual).
 4. Score PASS at full weight, PARTIAL at 40% of its weight, and FAIL at zero. Apply only rubric-defined exemptions and explain each exemption.
 5. Run the required anti-pattern checks. Summarize evidence-backed priorities and actionable tasks.
 6. If any item cannot be evaluated, mark it `NOT_ASSESSED`. Do not score it as zero. Complete the evaluation from the main agent when an optional delegated check fails. If any item remains unassessed, label the report incomplete and do not present a total score or maturity level.
 
-Optional sub-agents may evaluate independent pillars, but are never required. The main agent remains responsible for complete coverage, evidence quality, score aggregation, and the final report.
-
-## Optional structured output
-
-When the user asks for JSON, derive it from a completed full report, save it in the target repository or a user-specified path, and validate it with:
-
-```bash
-python3 "$SKILL_DIR/scripts/validate_todo_json.py" <json_file_path>
-```
-
-Do not use a sub-agent as a required converter. Do not create JSON from an incomplete report.
+Optional sub-agents may evaluate independent pillars, but are never required. `references/subagent-prompts.md` provides an optional pillar-evaluation prompt. The main agent remains responsible for complete coverage, evidence quality, score aggregation, and the final report.
 
 ## Guardrails
 
-- Read-only assessment: write only the requested report and, when requested, the JSON output.
+- Read-only assessment: write only the requested report.
 - Evidence first: distinguish observed facts from interpretation; never invent project practices.
 - Missing evidence is not proof of failure. Report uncertainty explicitly.
 - Do not assess code quality itself; assess the project's documented and automated development practices.

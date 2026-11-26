@@ -4,8 +4,11 @@
 # Usage:
 #   bash init_docs.sh [repo_root] [--full] [--docs-dir path] [--include template-path]
 #
-# The default creates core project context. --full also creates optional API,
-# database, integration-test, DevOps, relationship, glossary, failure, and logging docs.
+# The default creates core project context: AGENTS.md plus architecture.md,
+# api-standards.md, coding-style.md, code-review.md. --full also creates the
+# optional-docs.md catalog (unit/integration testing, database, logging,
+# devops, glossary, pitfalls, relationships, per-API docs) — from which
+# specific docs are created only for confirmed gaps.
 
 set -euo pipefail
 
@@ -57,8 +60,8 @@ REPO_ROOT="${REPO_ROOT:-$(pwd)}"
 REPO_ROOT="$(cd "$REPO_ROOT" && pwd -P)"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SKILL_DIR="$(dirname "$SCRIPT_DIR")"
-CORE_PROFILE="$SKILL_DIR/assets/profiles/core"
-FULL_PROFILE="$SKILL_DIR/assets/profiles/full"
+CORE_PROFILE="$SKILL_DIR/assets/docs"
+OPTIONAL_DOC="optional-docs.md"
 
 if [[ -n "$DOCS_DIR_ARG" ]]; then
     case "$DOCS_DIR_ARG" in
@@ -109,12 +112,8 @@ case "$SPECS_REAL/" in
         ;;
 esac
 
-if [[ ! -d "$CORE_PROFILE/docs" ]]; then
-    echo "[ERROR] Core profile assets are missing: $CORE_PROFILE" >&2
-    exit 1
-fi
-if [[ "$PROFILE" == "full" && ! -d "$FULL_PROFILE/docs" ]]; then
-    echo "[ERROR] Full profile assets are missing: $FULL_PROFILE" >&2
+if [[ ! -f "$CORE_PROFILE/architecture.md" ]]; then
+    echo "[ERROR] Core doc assets are missing: $CORE_PROFILE" >&2
     exit 1
 fi
 
@@ -127,40 +126,21 @@ if [[ "$HAS_INCLUDES" == true ]]; then
                 ;;
         esac
         found=false
-        [[ -f "$CORE_PROFILE/docs/$include" ]] && found=true
-        if [[ "$PROFILE" == "full" && -f "$FULL_PROFILE/docs/$include" ]]; then found=true; fi
+        [[ -f "$CORE_PROFILE/$include" ]] && found=true
         if [[ "$found" != true ]]; then
-            echo "[ERROR] Template not found in the selected profile: $include" >&2
+            echo "[ERROR] Template not found: $include" >&2
             exit 2
         fi
     done
 fi
-
-copy_profile_tree() {
-    local source="$1"
-    local destination="$2"
-    local label="$3"
-
-    (cd "$source" && find . -type f -print0) | while IFS= read -r -d '' rel; do
-        src="$source/$rel"
-        dst="$destination/$rel"
-        mkdir -p "$(dirname "$dst")"
-        if [[ ! -e "$dst" ]]; then
-            cp "$src" "$dst"
-            echo "[ADD] Added ${label}: ${dst#"$REPO_ROOT"/}"
-        fi
-    done
-}
 
 copy_selected_template() {
     local rel="$1"
     local src=""
     local dst="$SPECS_DIR/$rel"
 
-    if [[ -f "$CORE_PROFILE/docs/$rel" ]]; then
-        src="$CORE_PROFILE/docs/$rel"
-    elif [[ "$PROFILE" == "full" && -f "$FULL_PROFILE/docs/$rel" ]]; then
-        src="$FULL_PROFILE/docs/$rel"
+    if [[ -f "$CORE_PROFILE/$rel" ]]; then
+        src="$CORE_PROFILE/$rel"
     fi
     mkdir -p "$(dirname "$dst")"
     if [[ ! -e "$dst" ]]; then
@@ -183,9 +163,19 @@ elif find "$REPO_ROOT" \
     echo "       Inventory its content first; use --include <template-path> only for confirmed gaps."
 else
     mkdir -p "$SPECS_DIR"
-    copy_profile_tree "$CORE_PROFILE/docs" "$SPECS_DIR" "core doc"
+    for doc in architecture.md api-standards.md coding-style.md code-review.md; do
+        dst="$SPECS_DIR/$doc"
+        if [[ ! -e "$dst" ]]; then
+            cp "$CORE_PROFILE/$doc" "$dst"
+            echo "[ADD] Added core doc: ${dst#"$REPO_ROOT"/}"
+        fi
+    done
     if [[ "$PROFILE" == "full" ]]; then
-        copy_profile_tree "$FULL_PROFILE/docs" "$SPECS_DIR" "optional doc"
+        dst="$SPECS_DIR/$OPTIONAL_DOC"
+        if [[ ! -e "$dst" ]]; then
+            cp "$CORE_PROFILE/$OPTIONAL_DOC" "$dst"
+            echo "[ADD] Added optional-docs catalog: ${dst#"$REPO_ROOT"/}"
+        fi
     fi
 fi
 
@@ -194,9 +184,9 @@ echo "     - profile: $PROFILE"
 if [[ "$HAS_INCLUDES" == true ]]; then
     echo "     - selected templates: ${INCLUDES[*]}"
 else
-    echo "     - core docs: review.md, architecture.md, coding-style.md, code-review.md, unittest/unittest.md (new documentation set only)"
+    echo "     - core docs: architecture.md, api-standards.md, coding-style.md, code-review.md (new documentation set only)"
 fi
-[[ "$PROFILE" == "core" ]] && echo "     - optional docs: run with --full to create the full documentation set"
+[[ "$PROFILE" == "core" ]] && echo "     - optional docs: run with --full to add optional-docs.md (a catalog for confirmed gaps)"
 
 # ---------------------------------------------------------------------------
 # Git Hooks installation (idempotent)
@@ -217,7 +207,8 @@ fi
 # Go project lint config injection
 #
 # Only when the project is Go (go.mod exists) and .golangci.yml does not exist,
-# copy one from the Skill template.
+# copy one from the Skill template. This is a Go-specific convenience; projects
+# in other languages keep their own lint setup untouched.
 # ---------------------------------------------------------------------------
 if [[ -f "$REPO_ROOT/go.mod" ]]; then
     GOLANGCI_SRC="$SKILL_DIR/assets/.golangci.yml"
@@ -239,7 +230,18 @@ fi
 # ---------------------------------------------------------------------------
 # Repo-root AI entry: generate it only when the project has no AGENTS.md.
 # ---------------------------------------------------------------------------
-bash "$SKILL_DIR/scripts/generate_agents_md.sh" "$SKILL_DIR/assets/agents.md.tmpl" "$REPO_ROOT"
+AGENTS_TMPL="$SKILL_DIR/assets/agents.md.tmpl"
+AGENTS_MD="$REPO_ROOT/AGENTS.md"
+if [[ -e "$AGENTS_MD" || -L "$AGENTS_MD" ]]; then
+    echo "[SKIP] Keeping existing AGENTS.md"
+elif [[ ! -f "$AGENTS_TMPL" ]]; then
+    echo "[WARN] AGENTS.md template does not exist: $AGENTS_TMPL" >&2
+else
+    PROJECT_NAME="$(basename "$REPO_ROOT")"
+    awk -v name="$PROJECT_NAME" '{ gsub(/\{\{PROJECT_NAME\}\}/, name); print }' \
+        "$AGENTS_TMPL" > "$AGENTS_MD"
+    echo "[ADD] Generated AGENTS.md from the template"
+fi
 
 echo ""
 echo "═══════════════════════════════════════════════════════════════"
