@@ -16,7 +16,7 @@
 | DEVSOP maturity audit skill | `skills/devsop-eval/SKILL.md` |
 | Language coding standards | `rules/` — Go / Python / Java / TypeScript / Rust style guides |
 | Skill installation script | `install.sh` |
-| Skill-library test suites | `skills/devsop-init/scripts/test_init_docs_profile.sh`, `skills/devsop-eval/scripts/test_doc_discovery.sh` |
+| Skill-library test suites | `skills/devsop-init/scripts/test_init_docs_profile.sh`, `skills/devsop-eval/scripts/test_doc_discovery.sh`, `skills/devsop-plan/scripts/test_validate_plan.sh`, `scripts/test_validate_skills.sh` |
 
 ### Repository Commands
 
@@ -24,6 +24,8 @@
 # Skill-library black-box tests
 bash skills/devsop-init/scripts/test_init_docs_profile.sh
 bash skills/devsop-eval/scripts/test_doc_discovery.sh
+bash skills/devsop-plan/scripts/test_validate_plan.sh
+bash scripts/test_validate_skills.sh
 
 # Git Hooks checks (this repo)
 bash scripts/pre_commit_check.sh
