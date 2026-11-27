@@ -4,11 +4,12 @@ This directory holds the devsop repository's own tooling and Git Hook entry poin
 
 | Script | Purpose | When it runs | Used by |
 |------|------|----------|--------|
-| `validate_skills.sh` | Validate the skills library (frontmatter / naming / line count / reference depth / script syntax) | manually or CI (`--json`) | skills library maintainers (**this repo only**, not distributed to target projects) |
+| `validate_skills.sh` | Validate the skills library (frontmatter / naming / line count / reference depth / script syntax / cross-skill contract checks) | manually or CI (`--json`) | skills library maintainers (**this repo only**, not distributed to target projects) |
+| `test_validate_skills.sh` | Black-box tests for the cross-skill contract checks (fixture-based) | manually or CI | repo CI |
 | `pre_commit_check.sh` | Check staged whitespace errors and conflict markers (`git diff --cached --check`) | git pre-commit hook | this repo + all projects initialized by devsop-init |
 | `commit_msg_check.sh` | Check the `<type>(<module-or-service>): <subject>` title (only `feat` / `fix` / `docs` / `refactor`) | git commit-msg hook | same as above |
 
-> The two hook scripts are symlinks to `skills/devsop-init/scripts/` (single source). Initialization copies only those two scripts into the target project's `scripts/` directory; no pre-push hook is installed, and existing scripts or hooks are never overwritten. `validate_skills.sh` serves this skills library only and is never copied.
+> The two hook scripts are symlinks to `skills/devsop-init/scripts/` (single source). Initialization copies only those two scripts into the target project's `scripts/` directory; no pre-push hook is installed, and existing scripts or hooks are never overwritten. `validate_skills.sh` serves this skills library only and is never copied. The devsop-plan artifact validator (`skills/devsop-plan/scripts/validate_plan.py` + black-box tests) ships inside the skill and runs in target projects, unlike the repo-local scripts above.
 
 ## Common commands
 

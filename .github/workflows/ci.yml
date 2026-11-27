@@ -1,0 +1,25 @@
+name: ci
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Validate the skills library
+        run: bash scripts/validate_skills.sh --strict
+      - name: devsop-init black-box tests
+        run: bash skills/devsop-init/scripts/test_init_docs_profile.sh
+      - name: devsop-eval black-box tests
+        run: bash skills/devsop-eval/scripts/test_doc_discovery.sh
+      - name: devsop-plan validator tests
+        run: bash skills/devsop-plan/scripts/test_validate_plan.sh
+      - name: validate_skills contract tests
+        run: bash scripts/test_validate_skills.sh
