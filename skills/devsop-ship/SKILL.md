@@ -11,7 +11,7 @@ Core discipline: verify first, present the options, execute only the user's choi
 
 ## Preconditions — check all, stop on any miss
 
-1. **Verification evidence exists:** `docs/plans/<plan-dir>/test-report.md` shows no FAIL among automated cases, or the user explicitly waives this (record the waiver). NEEDS-HUMAN cases acknowledged by the user count as acknowledged, not passed — list them.
+1. **Verification evidence exists:** `docs/plans/<plan-dir>/test-report.md` (when written) shows no FAIL, and every scenario outside the report is covered by `devsop-code`'s completion-gate evidence; anything else needs an explicit user waiver (record it). NEEDS-HUMAN scenarios acknowledged by the user count as acknowledged, not passed — list them.
 2. **Working tree state known:** run `git status`. Uncommitted changes are reported; deploying with uncommitted work requires the user's explicit say-so. Never commit or push unless asked.
 3. **Deploy method known:** the project's documented deploy procedure — from `docs/` (devops docs, Makefile targets, scripts, `docker compose` files, CI pipelines) or the user's instruction. If none is documented, ask; do not discover a deploy path by trial and error against a shared environment.
 

@@ -10,6 +10,14 @@
 #   5. references stay one level deep (no references/ → references/ nesting)
 #   6. shipped .sh / .py scripts pass syntax checks (no __pycache__ left behind)
 #
+# Cross-skill contract checks:
+#   7. no stale artifact names (user-stories.md / test-cases.md) in skill docs
+#   8. delivery-stage skills reference only canonical artifacts
+#      (plan / tasks / progress / test-report / ship .md)
+#   9. each canonical artifact is referenced by its owning/producing skill
+#  10. devsop-flow's stage map covers all six delivery stages
+#  11. every backticked devsop-* skill reference in a SKILL.md exists under skills/
+#
 # Usage:
 #   bash scripts/validate_skills.sh            # summary + violations only
 #   bash scripts/validate_skills.sh -v         # per-skill detail lines
@@ -29,7 +37,7 @@ for arg in "$@"; do
     -v|--verbose) VERBOSE=1 ;;
     --json)       JSON=1 ;;
     --strict)     STRICT=1 ;;
-    -h|--help)    sed -n '2,20p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    -h|--help)    sed -n '2,28p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
     -*)           echo "Unknown option: $arg (see -h)" >&2; exit 2 ;;
     *)            SKILLS_ROOT="$arg" ;;
   esac
@@ -110,6 +118,55 @@ for skill_dir in "$SKILLS_ROOT"/*/; do
       && detail "$skill: $(basename "$py") syntax OK" \
       || fail "$skill: $(basename "$py") python syntax error"
   done
+done
+
+# ── Cross-skill contract checks (delivery pipeline) ─────────────
+
+# 7. stale artifact names must not reappear anywhere in skill docs
+while IFS= read -r hit; do
+  fail "contract: stale artifact name in ${hit#$SKILLS_ROOT/} — plans use plan.md scenarios"
+done < <(grep -rlE --include='*.md' --include='*.tmpl' 'user-stories\.md|test-cases\.md' "$SKILLS_ROOT" 2>/dev/null)
+
+# 8. delivery-stage skills reference only canonical artifacts
+CANONICAL_MD="plan.md tasks.md progress.md test-report.md ship.md SKILL.md AGENTS.md README.md"
+for stage in devsop-plan devsop-design devsop-code devsop-test devsop-ship devsop-flow; do
+  stage_file="$SKILLS_ROOT/$stage/SKILL.md"
+  [ -f "$stage_file" ] || continue
+  for tok in $(grep -oE '[A-Za-z0-9_.-]+\.md' "$stage_file" | sort -u); do
+    case " $CANONICAL_MD " in
+      *" $tok "*) ;;
+      *) fail "contract: $stage references non-canonical artifact '$tok' (canonical: $CANONICAL_MD)" ;;
+    esac
+  done
+done
+
+# 9. each canonical artifact is referenced by the skill that owns/produces it
+requires() { # artifact skill [skill ...]
+  artifact="$1"; shift
+  for owner in "$@"; do
+    grep -q "$artifact" "$SKILLS_ROOT/$owner/SKILL.md" 2>/dev/null \
+      || fail "contract: $owner does not reference its artifact '$artifact'"
+  done
+}
+requires plan.md devsop-plan devsop-design devsop-code devsop-test
+requires tasks.md devsop-design devsop-code
+requires progress.md devsop-code
+requires test-report.md devsop-test devsop-ship
+requires ship.md devsop-ship devsop-flow
+
+# 10. devsop-flow's stage map covers all six delivery stages
+flow_file="$SKILLS_ROOT/devsop-flow/SKILL.md"
+if [ -f "$flow_file" ]; then
+  for stage in devsop-init devsop-plan devsop-design devsop-code devsop-test devsop-ship; do
+    grep -q "$stage" "$flow_file" \
+      || fail "contract: devsop-flow stage map is missing '$stage'"
+  done
+fi
+
+# 11. every backticked devsop-* skill reference in a SKILL.md exists under skills/
+for name in $(grep -hoE '`devsop-[a-z0-9-]+`' "$SKILLS_ROOT"/*/SKILL.md 2>/dev/null | sed 's/^`//; s/`$//' | sort -u); do
+  [ -d "$SKILLS_ROOT/$name" ] \
+    || fail "contract: referenced skill '$name' has no skills/$name/ directory"
 done
 
 [ "$TOTAL" -eq 0 ] && { fail "no skills found under $SKILLS_ROOT"; }

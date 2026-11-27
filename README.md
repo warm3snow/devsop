@@ -11,25 +11,35 @@ devsop is a small library of reusable Skills for starting, running, and improvin
 
 **Delivery stages** (each standalone, or composed end-to-end by **devsop-flow**)
 
-- **devsop-plan** — challenge the user's input into user stories, acceptance criteria, and test cases (`docs/plans/<date-topic>/`).
-- **devsop-design** — map the plan onto the architecture: impact analysis, exact interface changes, and an ordered task list with frontend tasks first.
+- **devsop-plan** — challenge the user's input into a single `plan.md`: stories, non-functional requirements, and Given/When/Then scenarios (`docs/plans/<date-topic>/`).
+- **devsop-design** — map the plan onto the architecture: impact analysis, exact interface changes, displayable UI prototypes, and an ordered task list with frontend tasks first.
 - **devsop-code** — implement the task list with TDD discipline (failing test first, verified steps, progress ledger).
-- **devsop-test** — execute the plan's test cases and report a pass/fail matrix per acceptance criterion.
+- **devsop-test** — execute the plan's scenarios and report a pass/fail matrix per scenario.
 - **devsop-ship** — deploy to the development environment; optional and always behind an explicit human confirmation gate.
 - **devsop-flow** — orchestrate plan → design → code → test → ship (with optional init), or route a request to the right single stage.
 
-These are Skills, not terminal commands. Ask an AI coding agent that supports the Skills format to use a devsop skill in the target repository. Skill discovery depends on the agent; this repository does not configure an agent product.
+## Supported coding agents
+
+All major AI coding agents are supported — the skills are agent-agnostic by design. They install into `~/.agents/skills/`, the agent-agnostic standard location, as plain `SKILL.md` files (Markdown plus Bash/Python scripts); nothing depends on a specific agent's configuration directory or proprietary format.
+
+- Agents that natively discover the Skills format work out of the box after install.
+- Any other agent works as well — it only needs to read files and run Bash, Git, and Python. Point it at a skill's `SKILL.md` under `~/.agents/skills/` (or paste the content) and ask it to follow the instructions.
+
+These are Skills, not terminal commands. Skill discovery depends on the agent; this repository does not configure any agent product.
 
 ## Install
 
-Link both Skills into the standard user-level Skills directory:
+Clone the repository and run the installer:
 
 ```bash
-bash install.sh
-bash install.sh --check
+git clone https://github.com/warm3snow/devsop.git
+cd devsop
+
+bash install.sh          # link all bundled skills into ~/.agents/skills/
+bash install.sh --check  # verify the links
 ```
 
-The installer only creates links in `~/.agents/skills/`. It does not install dependencies, configure an AI agent, or create shell commands. The Skills themselves use Bash, Git, and Python's standard library.
+The installer only creates symlinks in `~/.agents/skills/` pointing back into this clone — it does not install dependencies, configure an AI agent, or create shell commands. Update the skills later with `git pull` in the clone directory. The Skills themselves use Bash, Git, and Python's standard library.
 
 ## Repository layout
 
@@ -45,10 +55,10 @@ skills/            # The skills (each dir = one skill, discovered by install.sh)
 ├── devsop-eval/    # Evidence-based project assessment
 │   ├── references/ # Rubric and report format
 │   └── scripts/    # Evidence collection, validation, black-box tests
-├── devsop-plan/    # Stories, acceptance criteria, test cases
-├── devsop-design/  # Impact analysis, interface changes, task list
+├── devsop-plan/    # Stories, non-functional requirements, scenarios
+├── devsop-design/  # Impact analysis, interface changes, UI prototypes, task list
 ├── devsop-code/    # TDD implementation of the task list
-├── devsop-test/    # Criteria-based verification report
+├── devsop-test/    # Scenario-based verification report
 ├── devsop-ship/    # Human-confirmed dev-env deployment
 └── devsop-flow/    # Stage orchestration and routing
 rules/             # Language coding standards (Go / Python / Java / TypeScript / Rust)
@@ -57,7 +67,7 @@ scripts/           # This repo's own tooling (validate_skills.sh + hook symlinks
 
 ## Language neutrality
 
-The devsop Skills are **language-neutral by design**. The workflow stages (plan → design → code → test → ship) operate on artifacts, acceptance criteria, and project evidence — they never assume a specific programming language, framework, or toolchain. Commands a stage runs (test, lint, deploy) always come from the target project's own configuration (Makefile, package.json, CI config, docs), not from the Skills.
+The devsop Skills are **language-neutral by design**. The workflow stages (plan → design → code → test → ship) operate on artifacts, scenarios, and project evidence — they never assume a specific programming language, framework, or toolchain. Commands a stage runs (test, lint, deploy) always come from the target project's own configuration (Makefile, package.json, CI config, docs), not from the Skills.
 
 Language-specific content exists only in two clearly marked places:
 
@@ -75,6 +85,8 @@ bash scripts/validate_skills.sh --strict
 # Skill-library black-box tests
 bash skills/devsop-init/scripts/test_init_docs_profile.sh
 bash skills/devsop-eval/scripts/test_doc_discovery.sh
+bash skills/devsop-plan/scripts/test_validate_plan.sh
+bash scripts/test_validate_skills.sh
 
 # Git Hook checks
 bash scripts/pre_commit_check.sh
